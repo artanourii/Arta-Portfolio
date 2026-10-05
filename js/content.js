@@ -35,9 +35,9 @@ const CONTACT = {
            جلوی دیوار LED آخر راهرو با صدا پخش می‌شه و صداش با نزدیک شدن بلندتر می‌شه
    Tapping either one opens it full screen with its own sound. */
 const FEATURES = {
-  logoAd:{src:"videos/logo-ad.mp4",r:"9/16",sound:false,
+  logoAd:{src:"videos/logo-ad.mp4",poster:"videos/logo-ad.jpg",r:"9/16",sound:false,
     t:{en:"ARTA NOORI",fa:"آرتا نوری"},m:{en:"Logo film",fa:"تیزر لوگو"}},
-  instagramAd:{src:"videos/instagram-ad.mp4",r:"9/16",sound:true,
+  instagramAd:{src:"videos/instagram-ad.mp4",poster:"videos/instagram-ad.jpg",r:"9/16",sound:true,
     t:{en:"@artanourii on Instagram",fa:"پیج اینستاگرام @artanourii"},m:{en:"Follow for new films",fa:"برای دیدن کارهای جدید فالو کن"}}
 };
 

@@ -936,7 +936,7 @@ const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActi
 function featureCard(f,pos,meters,range){
   if(!f||!f.src)return;
   const t=T(),vert=f.r==="9/16";
-  const a=anchor(`<button class="glass vcard feat" style="width:${vert?300:520}px"><div class="screen" style="aspect-ratio:${f.r}"><video src="${f.src}" loop playsinline preload="metadata" muted></video>${f.sound?`<span class="snd" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`:""}</div><div class="vcap"><b>${f.t[lang]}</b><span>${f.m[lang]}</span></div></button>`,pos,meters,{far:range+6,near:.6});
+  const a=anchor(`<button class="glass vcard feat" style="width:${vert?300:520}px"><div class="screen" style="aspect-ratio:${f.r}"><video src="${f.src}"${f.poster?` poster="${f.poster}"`:""} loop playsinline preload="metadata" muted></video>${f.sound?`<span class="snd" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`:""}</div><div class="vcap"><b>${f.t[lang]}</b><span>${f.m[lang]}</span></div></button>`,pos,meters,{far:range+6,near:.6});
   const btn=a.e.querySelector("button"),vid=btn.querySelector("video");
   const F={a,f,vid,pos,range,snd:btn.querySelector(".snd"),dead:false};
   // no file yet: keep the spot empty instead of showing a black frame
