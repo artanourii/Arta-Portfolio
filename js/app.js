@@ -811,13 +811,12 @@ function buildPanels3D(){
       const p=T().panels[i],fa=lang==="fa",c=inkCol(),pad=46,op=T().open;
       const fK=`600 32px "Vazirmatn", sans-serif`,fT=fa?`800 64px "Vazirmatn", sans-serif`:`800 56px "Unbounded", "Vazirmatn", sans-serif`,fP=`400 32px "Vazirmatn", sans-serif`,fO=`600 30px "Vazirmatn", sans-serif`;
       g.font=fT;const wt=g.measureText(p.h).width;g.font=fP;const wp=g.measureText(p.p).width;
-      const W=Math.max(wt,wp,300)+pad*2,H=pad*2+30+16+62+16+34+26+34;
+      const W=Math.max(wt,wp,300)+pad*2,H=pad*2+62+16+34+26+34;
       if(measure)return {w:W,h:H};
       if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";const x=fa?W-pad:pad;
       textShadow(g,true);
-      g.fillStyle=c.a;g.font=fK;g.fillText(p.k,x,pad+28);
-      g.fillStyle=c.t;g.font=fT;g.fillText(p.h,x,pad+30+16+56);
-      g.fillStyle=c.m;g.font=fP;g.fillText(p.p,x,pad+30+16+62+16+30);
+      g.fillStyle=c.t;g.font=fT;g.fillText(p.h,x,pad+56);
+      g.fillStyle=c.m;g.font=fP;g.fillText(p.p,x,pad+62+16+30);
       g.fillStyle=c.t;g.font=fO;textShadow(g,false);
       const yy=H-pad-6,cx=fa?W-pad-17:pad+17;g.lineWidth=3;g.strokeStyle=c.t;g.beginPath();g.arc(cx,yy-10,17,0,Math.PI*2);g.stroke();
       g.fillRect(cx-8,yy-11.5,16,3);g.fillRect(cx-1.5,yy-18,3,16);g.fillText(op,fa?cx-30:cx+30,yy);
@@ -1201,7 +1200,7 @@ function updateMap(){
 /* ---------- sheet & player ---------- */
 let lastFocus=null,playerEl=null,playerRect=null;
 function openSheet(id){const p=T().panels.find(x=>x.id===id);lastFocus=document.activeElement;
-  $("#sheetBody").innerHTML=`<div style="color:var(--accent);font-weight:600">${p.k}</div>`+p.body;$("#veil").classList.add("show");setTimeout(()=>$("#sheetX").focus(),50)}
+  $("#sheetBody").innerHTML=p.body;$("#veil").classList.add("show");setTimeout(()=>$("#sheetX").focus(),50)}
 function closeSheet(){$("#veil").classList.remove("show");lastFocus&&lastFocus.focus&&lastFocus.focus()}
 $("#sheetX").onclick=closeSheet;$("#veil").addEventListener("click",e=>{if(e.target.id==="veil")closeSheet()});
 function openPlayer(v,getRect,startAt){
