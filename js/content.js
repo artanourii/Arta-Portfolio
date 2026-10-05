@@ -19,7 +19,7 @@ const CONTACT = {
 };
 const STUDIOS = [
   {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79",frame:"#D9A9A4",glow:"rgba(183,110,121,.55)"},
-   name:{en:"Beauty Studio",fa:"استودیو بیوتی"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
+   name:{en:"Beauty Video",fa:"Beauty Video"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
    videos:[
      {t:{en:"Makeup transition",fa:"ترنزیشن میکاپ"},m:{en:"Transition video, 9:16",fa:"ویدیوی ترنزیشن، ۹:۱۶"},src:"",r:"9/16"},
      {t:{en:"Beauty teaser",fa:"تیزر بیوتی"},m:{en:"Teaser, 9:16",fa:"تیزر، ۹:۱۶"},src:"",r:"9/16"}]},
