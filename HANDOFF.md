@@ -10,10 +10,10 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 ## What the site does
 
 - Entrance with the 3D AN logo; WhatsApp (+98 901 137 7877) and Instagram (@artanourii) chips; language switch (English default, Persian RTL); dark/light mode with the white/black logo files in `assets/`.
-- Arta Studio: floating panels (about, résumé, skills, services, clients) and the logo film (`videos/logo-ad.mp4`, silent loop).
+- Arta Studio: floating panels (about, résumé, skills, services, clients) and the logo film (`videos/logo-ad.mp4`, silent loop) in a 3D glass frame that rises into place after the camera passes through the lobby logo. Both own films are 3D frames (`buildFeatureFilms` in `js/app.js`), so solid objects hide them correctly.
 - One continuous scroll path down a hall of 15 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup & Beauty, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
 - Tapping a frame opens the film full screen with sound; Esc, ✕, reverse scroll or swipe down closes it.
-- End of hall: LED wall with the Instagram film (`videos/instagram-ad.mp4`), which plays with sound as the visitor walks up (muted with a "Tap for sound" label until the visitor has tapped or clicked once).
+- End of hall: the Instagram film floats big in its own 3D glass frame (`videos/instagram-ad.mp4`), which plays with sound as the visitor walks up (muted with a "Tap for sound" label until the visitor has tapped or clicked once).
 
 ## Still open
 

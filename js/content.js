@@ -30,9 +30,9 @@ const CONTACT = {
 /* Your own two films / دو ویدیوی شخصی:
    logoAd: plays silently on a loop in the middle of Arta Studio, between the panels
            وسط استودیوی آرتا، بین پنل‌ها، بی‌صدا و تکراری پخش می‌شه
-   instagramAd: plays WITH SOUND in front of the LED wall at the end of the hall;
+   instagramAd: floats big at the end of the hall and plays WITH SOUND;
            the sound fades in as the visitor walks up to it
-           جلوی دیوار LED آخر راهرو با صدا پخش می‌شه و صداش با نزدیک شدن بلندتر می‌شه
+           آخر راهرو، بزرگ و معلق روی هوا، با صدا پخش می‌شه و صداش با نزدیک شدن بلندتر می‌شه
    Tapping either one opens it full screen with its own sound. */
 const FEATURES = {
   logoAd:{src:"videos/logo-ad.mp4",poster:"videos/logo-ad.jpg",r:"9/16",sound:false,

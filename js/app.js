@@ -74,12 +74,6 @@ const acousticTex=canvasTex(256,256,(g,w,h)=>{
   }
 },[30,4]);
 const chairTex=canvasTex(512,160,(g,w,h)=>{g.fillStyle="#141414";g.fillRect(0,0,w,h);g.fillStyle="#efe9df";g.font="800 92px Unbounded, Arial Black, sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("ARTA",w/2,h/2+4)});
-const ledTex=canvasTex(512,256,(g,w,h)=>{
-  const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"#2a1747");gr.addColorStop(.5,"#7a3b5e");gr.addColorStop(1,"#c98a3d");
-  g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle="rgba(0,0,0,.45)";
-  for(let y=0;y<h;y+=4)g.fillRect(0,y,w,1.4);for(let x=0;x<w;x+=4)g.fillRect(x,0,1.4,h);
-});
-ledTex.wrapS=THREE.RepeatWrapping;
 const monitorTex=canvasTex(128,80,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"#1d3a5f");gr.addColorStop(1,"#c06a3b");g.fillStyle=gr;g.fillRect(0,0,w,h);g.strokeStyle="rgba(255,255,255,.6)";g.strokeRect(10,8,w-20,h-16)});
 const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
 
@@ -94,7 +88,6 @@ const MAT={
   tape:std("#e8c234",.7,0),tapeW:std("#e9e9e9",.7,0),truss:std("#9ea1a6",.35,.9),
   space:new THREE.MeshStandardMaterial({color:C("#ffffff"),emissive:C("#fff4e2"),emissiveIntensity:.2,roughness:.6}),
   chairCanvas:new THREE.MeshStandardMaterial({map:chairTex,roughness:.9}),
-  led:new THREE.MeshBasicMaterial({map:ledTex,toneMapped:false}),
   monitor:new THREE.MeshBasicMaterial({map:monitorTex}),
   tally:new THREE.MeshStandardMaterial({color:0x330000,emissive:C("#ff2a2a"),emissiveIntensity:5})
 };
@@ -329,11 +322,9 @@ function build3D(){
   // brand sets
   STUDIOS.forEach((s,i)=>buildSet(s,i));
 
-  // LED wall
-  const fr=box(14.6,6.6,.2,MAT.metal,0,3.5,LED_Z-.12);scene.add(fr);
-  const led=mesh(new THREE.PlaneGeometry(14,6),MAT.led,false);led.position.set(0,3.5,LED_Z);scene.add(led);
-  slot(V(0,7.6,LED_Z+6),V(0,0,LED_Z+2),"#c9a0ff",1.4,.5,.7);
-  for(const x of [-7.6,7.6]){const t=truss(7);t.rotation.z=Math.PI/2;t.position.set(x,3.5,LED_Z);scene.add(t)}
+  // end of the hall
+  // end of the hall: the Instagram film floats here in its own glass frame (buildFeatureFilms)
+  slot(V(0,7.6,LED_Z-3),V(0,0,LED_Z-1),"#ffe3c4",1.1,.45,.7);
 
   // haze particles
   const N=Math.round((Q==="high"?1400:700)*Math.min(HALL_LEN/104,2)),pp=new Float32Array(N*3);
@@ -665,8 +656,10 @@ function drawCaption(F){
   const light=s.theme==="light";
   g.shadowColor=light?"rgba(255,255,255,.75)":"rgba(0,0,0,.6)";g.shadowBlur=8;
   const x=fa?W-34:34;
-  g.fillStyle=light?s.c.ink:"#ffffff";g.font=`700 ${H*.36}px ${fam}`;g.fillText(v.t[lang],x,H*.5);
-  g.globalAlpha=.7;g.font=`400 ${H*.25}px ${fam}`;g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
+  // long titles shrink to fit the frame instead of being cut off
+  const fit=(txt,wt,px)=>{g.font=`${wt} ${px}px ${fam}`;const m=g.measureText(txt).width,max=W-68;if(m>max)g.font=`${wt} ${px*max/m}px ${fam}`};
+  g.fillStyle=light?s.c.ink:"#ffffff";fit(v.t[lang],700,H*.36);g.fillText(v.t[lang],x,H*.5);
+  g.globalAlpha=.7;fit(v.m[lang],400,H*.25);g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
   F.capTex.needsUpdate=true;
 }
 const framesAll=[];
@@ -712,6 +705,7 @@ function updateFrames(dt){
   P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
   const cp=camera.position;
   for(const F of framesAll){
+    if(F.set<0){updateFeatureFilm(F,cp);continue}
     const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
@@ -724,6 +718,60 @@ function updateFrames(dt){
     }
     if(F.video&&!F.v._bad){if(want&&F.video.paused)F.video.play().catch(()=>{});else if(!want&&!F.video.paused)F.video.pause()}
   }
+}
+/* your own two films as real glass frames: the logo film in Arta Studio (it rises into place once the camera
+   has passed through the lobby logo, so the logo hides it like any solid object) and the Instagram film,
+   big and floating at the end of the hall, with sound that rises as you walk up */
+const FEATS3=[];
+function buildFeatureFilms(){
+  FEATS3.length=0;
+  const mk=(f,c,appear,range)=>{if(!f||!f.src)return;
+    const F=makeFrame({c,get theme(){return dark?"dark":"light"}},f,-1);Object.assign(F,{ph:Math.random()*6,r0:0,k:0,appear,range});F.base=V(0,0,0);
+    scene.add(F.G);FEATS3.push(F)};
+  mk(FEATURES.logoAd,{bg:"#141414",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((-6.6-cp.z)/2.6,0,1),14);
+  mk(FEATURES.instagramAd,{bg:"#1a1024",bg2:"#3a1a3a",ink:"#1d1a17",acc:"#e1306c"},()=>1,24);
+  layoutFeatureFilms();
+}
+function layoutFeatureFilms(){
+  const P=portrait();
+  for(const F of FEATS3){
+    if(F.v===FEATURES.logoAd){F.base.set(0,2.15,P?-12.6:-15);F.sc=P?1:1.3}
+    else{F.base.set(0,P?3.75:3.05,LED_Z);F.sc=P?1.9:2.7}
+    F.y0=F.base.y;F.G.position.copy(F.base);F.G.scale.setScalar(F.sc);
+  }
+}
+let sndA=null;
+function updateFeatureFilm(F,cp){
+  const k=F.appear(cp);F.k+=(k-F.k)*.12;const e=F.k*F.k*(3-2*F.k);
+  F.G.visible=e>.01;F.G.scale.setScalar(F.sc*(.6+.4*e));
+  F.G.position.y=F.y0-(1-e)*.8+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=Math.sin(frameT*.6+F.ph)*.025;
+  const sound=!!F.v.sound;let showHint=false;
+  if(F.G.visible){
+    F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
+    const want=mode==="hall"&&d<F.range&&e>.5&&!playerEl&&!document.hidden;
+    if(want&&!F.video){
+      const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
+      vd.addEventListener("error",()=>{F.v._bad=true});
+    }
+    const v=F.video;
+    if(v&&!F.v._bad){
+      if(want){
+        if(v.paused){v.muted=!(sound&&canSound());if(!v.muted)v.volume=0;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
+        if(sound&&v.muted&&canSound())v.muted=false;
+        // the sound rises as you walk up to the screen
+        if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);v.volume=clamp(v.volume+(tv-v.volume)*.08,0,1)}
+        showHint=sound&&v.muted;
+      }else if(!v.paused){if(sound&&!v.muted&&v.volume>.03&&!playerEl)v.volume=clamp(v.volume*.85,0,1);else v.pause()}
+    }
+  }
+  if(sound&&sndA)sndA.e.firstChild.hidden=!showHint;
+}
+function pickFeatureFilm(x,y){
+  if(mode!=="hall")return null;
+  ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObject(F.G,true)[0];if(h&&h.distance<F.range)return F}
+  return null;
 }
 function refreshCaptions(){framesAll.forEach(drawCaption);signTex.forEach(t=>t.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refreshCaptions);
@@ -744,11 +792,11 @@ function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFro
 canvas.addEventListener("click",e=>{
   if(dragged||playerEl)return;
   if(mode==="hall"){const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
-  const F=pickFrame(e.clientX,e.clientY);
+  const F=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY);
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
 
 /* ---------- Arta Studio panels and floating titles as real 3D objects ----------
    They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
@@ -850,6 +898,7 @@ function layoutPanels3D(){
   P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.82:1)});
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
+  layoutFeatureFilms();
 }
 function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
@@ -917,53 +966,19 @@ function buildOverlays(){
   }
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
   if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
-  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
-  // your own films: logo film under the arch, Instagram film (with sound) in front of the LED wall
-  feats.length=0;
-  featureCard(FEATURES.logoAd,P?V(0,2.05,-11.8):V(0,2.0,-15),P?.68:1,14);
-  featureCard(FEATURES.instagramAd,V(0,P?3.4:3.25,LED_Z+.8),P?1.6:1.4,17);
+  // contact card beside the floating Instagram film (below it on phones), never on top of the picture
+  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,P?V(0,.62,LED_Z+1.4):V(3.55,1.75,LED_Z+.6),P?2.5:2.7,{far:22});
+  sndA=FEATURES.instagramAd&&FEATURES.instagramAd.src?anchor(`<span class="snd snd3" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`,V(0,P?6.2:5.95,LED_Z+.2),P?1.5:1.3,{far:26}):null;
   ovl.querySelectorAll(".lang-chip").forEach(b=>b.addEventListener("click",toggleLang));
   ovl.querySelectorAll(".light-chip").forEach(b=>b.addEventListener("click",toggleLight));
   measure();
 }
 
 /* ---------- feature films that play on their own as you walk up ---------- */
-const feats=[];
 let activated=false;
 ["pointerdown","keydown","touchend"].forEach(n=>addEventListener(n,()=>{activated=true},{capture:true,passive:true}));
 // browsers only allow sound after the visitor has tapped, clicked or pressed a key on the page
 const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActive:activated;
-function featureCard(f,pos,meters,range){
-  if(!f||!f.src)return;
-  const t=T(),vert=f.r==="9/16";
-  const a=anchor(`<button class="glass vcard feat" style="width:${vert?300:520}px"><div class="screen" style="aspect-ratio:${f.r}"><video src="${f.src}"${f.poster?` poster="${f.poster}"`:""} loop playsinline preload="metadata" muted></video>${f.sound?`<span class="snd" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`:""}</div><div class="vcap"><b>${f.t[lang]}</b><span>${f.m[lang]}</span></div></button>`,pos,meters,{far:range+6,near:.6});
-  const btn=a.e.querySelector("button"),vid=btn.querySelector("video");
-  const F={a,f,vid,pos,range,snd:btn.querySelector(".snd"),dead:false};
-  // no file yet: keep the spot empty instead of showing a black frame
-  vid.addEventListener("error",()=>{F.dead=true;a.dead=true});
-  btn.addEventListener("click",()=>{vid.pause();openPlayer(f,()=>btn.querySelector(".screen").getBoundingClientRect(),vid.currentTime)});
-  feats.push(F);
-}
-function updateFeatures(){
-  for(const F of feats){
-    if(F.dead)continue;const v=F.vid;
-    const d=camera.position.distanceTo(F.pos);
-    const near=d<F.range&&F.a.e.style.visibility==="visible"&&!playerEl&&!document.hidden;
-    if(near){
-      if(v.paused){
-        v.muted=!(F.f.sound&&canSound());if(F.f.sound&&!v.muted)v.volume=0;
-        v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})});
-      }
-      if(F.f.sound&&v.muted&&canSound())v.muted=false;
-      if(F.snd)F.snd.hidden=!v.muted;
-      // sound rises as you walk up, like a screen playing on the far wall of the studio
-      if(F.f.sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);v.volume=clamp(v.volume+(tv-v.volume)*.08,0,1)}
-    }else if(!v.paused){
-      if(F.f.sound&&!v.muted&&v.volume>.03&&!playerEl)v.volume=clamp(v.volume*.85,0,1);else v.pause();
-    }
-  }
-}
-
 /* ---------- post processing ---------- */
 const FinalShader={
   uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.035},uExp:{value:1}},
@@ -1015,6 +1030,7 @@ function updatePool(){
 /* ---------- theme ---------- */
 function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
+  FEATS3.forEach(drawCaption);
   const bg=dark?"#060607":"#cdc9c3";
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.03:.02;
   MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
@@ -1063,7 +1079,8 @@ const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
   pos.set(Math.sin(pp*.08)*.25,1.65,z);
-  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1,z-8);
+  const end=clamp((pp-(PP_END-7))/7,0,1);
+  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1),z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
@@ -1174,7 +1191,8 @@ addEventListener("keydown",e=>{
 // near a studio door in the hall, offer to step inside
 function updateNear(){
   let n=-1;
-  if(mode==="hall"&&!jumping){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best){best=d;n=S.i}})}
+  // no studio button once you stand in front of the Instagram film at the end, so it never covers the film
+  if(mode==="hall"&&!jumping&&curPos.z>LED_Z+9.5){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best){best=d;n=S.i}})}
   if(n!==nearIdx){nearIdx=n;const b=$("#enterBtn");
     if(n>=0){const S=SETS[n],fa=lang==="fa",arrow=S.side<0?"←":"→";b.innerHTML=fa?`<span>${arrow}</span> ورود به ${S.s.name.fa}`:`<span>${arrow}</span> Enter ${S.s.name.en}`;b.style.setProperty("--b",S.s.c.acc);b.classList.add("show")}
     else b.classList.remove("show")}
@@ -1265,11 +1283,10 @@ function frame(now){
     MAT.logo.transparent=o<1;MAT.logo.opacity=o;MAT.logo.depthWrite=o>.98;if(MAT.wordmark)MAT.wordmark.opacity=o;
     if(MAT.halo)MAT.halo.opacity=(MAT.halo.userData.base||.5)*o; }
   updatePool();
-  ledTex.offset.x=(now*.00002)%1;
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
   if(useComposer)composer.render();else renderer.render(scene,camera);
-  updateAnchors();updateMap();updateFeatures();updateFrames(dt);
+  updateAnchors();updateMap();updateFrames(dt);
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350)}
   // automatic quality: drop expensive effects if the device struggles
@@ -1304,7 +1321,7 @@ function mergeStatic(){
 }
 
 /* ---------- start ---------- */
-build3D();buildPanels3D();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
+build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
 (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot);setTimeout(boot,2500);

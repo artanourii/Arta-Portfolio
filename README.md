@@ -45,7 +45,7 @@ Tips / نکته‌ها:
 Upload them to `videos/` with exactly these names / با همین اسم‌ها توی پوشه‌ی `videos` آپلود کن:
 
 - `logo-ad.mp4`: logo film, plays silently on a loop in the middle of Arta Studio / تیزر لوگو، وسط استودیوی آرتا، بی‌صدا
-- `instagram-ad.mp4`: Instagram film, plays with sound in front of the LED wall at the end of the hall; the sound rises as the visitor walks up / تیزر اینستاگرام، آخر راهرو، با صدا
+- `instagram-ad.mp4`: Instagram film, floats big at the end of the hall and plays with sound; the sound rises as the visitor walks up / تیزر اینستاگرام، آخر راهرو، با صدا
 
 Tapping either one opens it full screen with its own sound. Until a file is uploaded, its frame stays hidden. Settings are in `FEATURES` in `js/content.js`.
 Browsers only allow sound after the visitor has tapped or clicked somewhere on the page; until then the film plays muted with a "Tap for sound" label.
