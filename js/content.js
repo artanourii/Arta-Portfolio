@@ -23,7 +23,9 @@
    ========================================================= */
 const CONTACT = {
   whatsapp:{ display:"+98 901 137 7877", link:"https://wa.me/989011377877" },
-  instagram:{ display:"@artanourii", link:"https://www.instagram.com/artanourii" }
+  instagram:{ display:"@artanourii", link:"https://www.instagram.com/artanourii" },
+  // LinkedIn: paste your profile link here and the chip appears next to WhatsApp and Instagram
+  linkedin:{ display:"Arta Noori", link:"" }
 };
 /* Your own two films / دو ویدیوی شخصی:
    logoAd: plays silently on a loop in the middle of Arta Studio, between the panels

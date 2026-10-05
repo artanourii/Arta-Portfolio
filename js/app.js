@@ -6,11 +6,12 @@ const ICON = {
 };
 
 
-Object.assign(TX.en,{tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
+Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
   rhint:"Keep scrolling to pass the films and walk back out. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
-Object.assign(TX.fa,{tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
+Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
   rhint:"اسکرول کن تا از کنار فیلم‌ها رد شی و از استودیو بیای بیرون. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
+ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
 ICON.mute=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>`;
 ICON.moon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>`;
 const LOGO_SHAPES=[{"o":[[-0.0586,0.7931],[-0.0573,0.6891],[-0.0152,0.5758],[0.0257,0.5744],[0.027,0.5771],[-0.0494,0.7747]],"h":[]},{"o":[[-0.1943,0.9697],[-0.5843,0.004],[-0.5408,0.0053],[-0.4196,0.3057],[-0.193,0.3057],[-0.193,0.3373],[-0.1733,0.3399],[-0.1548,0.3399],[-0.1443,0.3373],[-0.1443,0.0],[-0.1061,0.0013],[-0.1061,0.3267],[-0.1047,0.3373],[-0.0995,0.3399],[-0.0586,0.3386],[-0.0586,0.307],[-0.056,0.3057],[0.0889,0.3057],[0.0942,0.2964],[0.2049,0.0053],[0.2484,0.004],[0.1877,0.1647],[0.0797,0.4387],[0.0389,0.4387],[0.0731,0.3478],[0.0718,0.3426],[-0.1034,0.3426],[-0.1061,0.3452],[-0.1061,0.9157],[-0.1034,0.917],[0.5527,0.0],[0.583,0.0],[0.5843,0.9987],[0.5448,0.9987],[0.5448,0.083],[0.5356,0.0922],[-0.1126,1.0],[-0.1443,0.9987],[-0.1443,0.3439],[-0.4051,0.3439],[-0.193,0.8682]],"h":[]}];
@@ -40,7 +41,7 @@ const phoneLike=()=>innerWidth<640;
 let Q=(TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike()?"mid":"high";
 const canvas=$("#gl");
 const renderer=new THREE.WebGLRenderer({canvas,antialias:Q==="high",powerPreference:"high-performance"});
-let DPR=Math.min(devicePixelRatio||1,Q==="high"?1.75:1.5);
+let DPR=Math.min(devicePixelRatio||1,Q==="high"?1.75:1.25);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high";renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
@@ -238,7 +239,7 @@ function beam(from,to,angle,color){
 const slots=[];
 function slot(from,to,color,intensity,angle,pen=.5,withBeam=true){
   slots.push({from,to,color:C(color),intensity,angle,pen});
-  if(withBeam)beam(from,to,angle*.62,color);
+  if(withBeam&&Q==="high")beam(from,to,angle*.62,color);
 }
 
 /* ---------- build the soundstage ---------- */
@@ -255,7 +256,27 @@ function build3D(){
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
   for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
-  const fw=bw.clone();fw.rotation.y=Math.PI;fw.position.z=10;scene.add(fw);
+  // the main studio building: facade with a big doorway, the ARTA NOORI sign above it, and the forecourt outside
+  MAT.facade=std("#18181c",.75,.15,{map:acousticTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
+  const DW=9,DH=7;
+  for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
+  scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
+  const trim=emissive("#e9c98d",2.4);
+  scene.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])scene.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
+  scene.add(box(36,.06,.06,trim,0,12.97,10.28));
+  const gr=mesh(new THREE.PlaneGeometry(60,40),MAT.ground,false);gr.rotation.x=-Math.PI/2;gr.position.set(0,.001,30.25);scene.add(gr);
+  const fsTex=canvasSign(2048,560,(g,W,H)=>{
+    rr(g,8,8,W-16,H-16,40);g.fillStyle="#0b0b0d";g.fill();g.lineWidth=10;g.strokeStyle="#e9c98d";g.stroke();
+    let x=90;if(FACADE_LOGO){const k=(H-140)/FACADE_LOGO.height;g.drawImage(FACADE_LOGO,x,70,FACADE_LOGO.width*k,H-140);x+=FACADE_LOGO.width*k+80}
+    g.fillStyle="#f3efe6";g.textBaseline="middle";g.textAlign="left";
+    g.font='700 190px "Unbounded", "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing="18px";g.fillText("ARTA NOORI",x,H*.42);
+    g.font='500 92px "Unbounded", "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing="40px";g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
+  });
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(10.2,2.79),new THREE.MeshBasicMaterial({map:fsTex}));fs.position.set(0,10.1,10.27);fs.userData.keep=true;scene.add(fs);
+  { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
+  // warm uplights washing the facade and the sign
+  for(const sd of [-1,1])slot(V(sd*7,.3,13.5),V(sd*2.5,9.5,10),"#ffd9a6",2.2,.42,.7);
+  slot(V(0,1,17),V(0,4,10),"#fff1dc",1.6,.5,.8,false);
   const cl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,HALL_MID);scene.add(cl);
   // overhead trusses + space lights
   for(const x of [-4.6,4.6]){const t=truss(HALL_LEN-20);t.rotation.y=Math.PI/2;t.position.set(x,8,HALL_MID);scene.add(t)}
@@ -363,6 +384,7 @@ function brandWall(s){
 // wordmarks use the site font once it has loaded
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>brandTex.forEach(t=>{if(!t.userData.img&&!t.userData.s.logo)drawBrand(t)}));
 const B3=(w,h,d,m,x,y,z)=>box(w,h,d,m,x,y,z);
+let FACADE_LOGO=null;
 /* ---------- brand logo images, shared by walls and signs ---------- */
 function loadLogo(s,cb){
   if(!s.logoImg)return;
@@ -569,11 +591,14 @@ function buildSet(s,i){
     const hd=truss(7.3);hd.position.set(0,5.1,rz);g.add(hd);
   }
   // walls: two side walls and a front wall with a door opening facing the hall
-  const wc=new THREE.Color(s.theme==="light"?s.c.bg2:s.c.bg2).lerp(new THREE.Color(s.theme==="light"?"#ffffff":"#000000"),s.theme==="light"?.25:.45);
-  const wm=std("#"+wc.getHexString(),.85,0);
-  const depth=3.5-back;for(const sd of [-1,1])g.add(B3(.12,4.8,depth,wm,sd*3.76,2.4,(3.5+back)/2));
-  for(const sd of [-1,1])g.add(B3(2.16,4.8,.14,wm,sd*2.68,2.4,3.45));
-  g.add(B3(3.2,1.8,.14,wm,0,3.9,3.45));
+  // inside: a calm tone from the set's backdrop; outside (the hall side): the brand colour
+  const wi=new THREE.Color(s.c.bg).lerp(new THREE.Color(s.theme==="light"?"#ffffff":"#000000"),s.theme==="light"?.1:.25);
+  const wm=std("#"+wi.getHexString(),.9,0);
+  const we=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color(s.c.bg),.4);
+  const wx=std("#"+we.getHexString(),.8,0);
+  const depth=3.5-back;for(const sd of [-1,1]){g.add(B3(.12,4.8,depth,wm,sd*3.76,2.4,(3.5+back)/2));g.add(B3(.02,4.8,depth+.16,wx,sd*3.83,2.4,(3.5+back)/2+.08))}
+  for(const sd of [-1,1]){g.add(B3(2.16,4.8,.14,wm,sd*2.68,2.4,3.45));g.add(B3(2.16,4.8,.02,wx,sd*2.68,2.4,3.53))}
+  g.add(B3(3.2,1.8,.14,wm,0,3.9,3.45));g.add(B3(3.2,1.8,.02,wx,0,3.9,3.53));
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
@@ -755,14 +780,17 @@ function buildOverlays(){
   const ig=chip("",{c:"ig",h:ICON.ig},t.ig,CONTACT.instagram.display,true,CONTACT.instagram.link);
   const lg=chip("lang-chip",{c:"mono",h:lang==="en"?"فا":"EN"},t.otherSmall,t.other,false);
   const lt=chip("light-chip",{c:"mono",h:dark?ICON.sun:ICON.moon},t.lightsLabel,dark?t.toLight:t.toDark,false);
+  const li=CONTACT.linkedin&&CONTACT.linkedin.link?chip("",{c:"li",h:ICON.li},t.li,CONTACT.linkedin.display,true,CONTACT.linkedin.link):"";
+  // contact chips float in front of the main building, before you walk in
   if(P){
-    anchor(wa,V(-.74,3.5,-6.0),1.36);anchor(ig,V(.74,3.5,-6.0),1.36);
-    anchor(lg,V(-.74,2.88,-6.0),1.36);anchor(lt,V(.74,2.88,-6.0),1.36);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,2.35,-6.4),1.9);
+    anchor(wa,V(-.9,3.7,16.5),1.5);anchor(ig,V(.9,3.7,16.5),1.5);
+    if(li)anchor(li,V(-.9,3.0,16.5),1.5);
+    anchor(lg,V(li?.9:-.9,3.0,16.5),1.5);anchor(lt,V(li?0:.9,li?2.3:3.0,16.5),1.5);
+    anchor(`<div class="tagline">${t.line}</div>`,V(0,8.0,10.6),4.2,{far:24});
   }else{
-    anchor(wa,V(-2.95,1.85,-6.0),1.3);anchor(ig,V(-2.95,1.25,-6.0),1.3);
-    anchor(lg,V(2.95,1.85,-6.0),1.3);anchor(lt,V(2.95,1.25,-6.0),1.3);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,2.42,-6.4),2.6);
+    anchor(wa,V(-3.4,2.6,16),1.5);anchor(ig,V(-3.4,1.9,16),1.5);if(li)anchor(li,V(-3.4,1.2,16),1.5);
+    anchor(lg,V(3.4,2.6,16),1.5);anchor(lt,V(3.4,1.9,16),1.5);
+    anchor(`<div class="tagline">${t.line}</div>`,V(0,8.0,10.6),6,{far:24});
   }
   anchor(`<div class="gate"><h2>${t.arch}</h2><p>${t.archSub}</p></div>`,V(0,5.6,-11),P?4.4:5.4,{far:22});
   const CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
@@ -771,7 +799,7 @@ function buildOverlays(){
     a.e.querySelector("button").addEventListener("click",()=>openSheet(p.id));
   });
   anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
-  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
+  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
   // your own films: logo film under the arch, Instagram film (with sound) in front of the LED wall
   feats.length=0;
   featureCard(FEATURES.logoAd,P?V(0,2.05,-11.8):V(0,2.0,-15),P?.68:1,14);
@@ -869,25 +897,27 @@ function updatePool(){
 /* ---------- theme ---------- */
 function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
-  const bg=dark?"#060607":"#ECEAE6";
+  const bg=dark?"#060607":"#cdc9c3";
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.03:.02;
-  MAT.floor.color=C(dark?"#070708":"#d6d3cf");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
-  MAT.wall.color=C(dark?"#141416":"#e7e5e1");MAT.ceil.color=C(dark?"#08080a":"#f3f2ef");
-  MAT.hallCyc.color=C(dark?"#1b1b1e":"#f6f5f2");MAT.plinth.color=C(dark?"#0c0c0d":"#f5f4f1");
+  MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
+  MAT.wall.color=C(dark?"#141416":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
+  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#e8e5e0");
+  MAT.facade.color=C(dark?"#18181c":"#2a2a2f");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
   MAT.logo.color=C(dark?"#f1eee8":"#0e0e0f");MAT.logo.roughness=dark?.32:.22;MAT.logo.metalness=dark?.08:.25;
   if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#0e0e0f");
-  MAT.truss.color=C(dark?"#8f9297":"#c9ccd1");
-  MAT.space.emissiveIntensity=dark?.18:2.4;
-  hemi.intensity=dark?.12:1.05;hemi.color=C(dark?"#cfd6e6":"#ffffff");hemi.groundColor=C(dark?"#1a1614":"#b9b4ae");
-  dir.intensity=dark?0:.55;
+  MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
+  // the ceiling work lights are switched off when the studio lights are on
+  MAT.space.emissiveIntensity=dark?.18:0;
+  hemi.intensity=dark?.12:.6;hemi.color=C(dark?"#cfd6e6":"#fff8ef");hemi.groundColor=C(dark?"#1a1614":"#8e8a84");
+  dir.intensity=dark?0:.28;
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.45:.06):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.06:.55});
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.3:.07);
   MAT.dust.opacity=dark?.55:.12;
-  lightMul=dark?.95:.6;
-  if(bloom){bloom.strength=dark?.7:.25;bloom.threshold=dark?.8:.94;bloom.radius=.45}
-  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.35;finalPass.uniforms.uExp.value=dark?1:1.04}
-  renderer.toneMappingExposure=dark?1:1.05;
+  lightMul=dark?.95:.5;
+  if(bloom){bloom.strength=dark?.7:.15;bloom.threshold=dark?.8:.96;bloom.radius=.45}
+  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1:.94}
+  renderer.toneMappingExposure=dark?1:.9;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
 }
 function toggleLight(){
@@ -896,81 +926,94 @@ function toggleLight(){
 }
 sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice){dark=e.matches;applyTheme();buildOverlays()}});
 
-/* ---------- camera path: one scroll line through the hall and every studio ----------
-   Scrolling forward walks down the hall. At each studio the camera turns to face the door,
-   walks in, dollies past the films, walks back out and turns down the hall again.
-   Scrolling backward plays the same path in reverse. */
+/* ---------- camera: walk the hall, step into a studio only when asked ----------
+   In the hall, scrolling walks forward and back past the studio doors. Near a studio a prompt
+   offers to go in; tapping it (or the studio's signs) walks in. Inside, scrolling moves down the
+   tunnel of films, past the brand wall and back out; scrolling back out of the start leaves too. */
 let mode="hall",p=0,pTarget=0,vel=0,drag=null,px=0,py=0,tx=0,ty=0;
-let setIdx=-1;
-const camPos=new THREE.Vector3(),camLook=new THREE.Vector3();
-let PATH=[],PATH_END=1;
+let setIdx=-1,sp=0,spTarget=0,lookYaw=0,lookPitch=0,nearIdx=-1;
+const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),curPos=new THREE.Vector3(),curLook=new THREE.Vector3();
+const PP0=-23.5;let PP_END=1;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
-  const z=.5-pp;
-  pos.set(Math.sin(pp*.08)*.25,1.65,z);
-  look.set(Math.sin(pp*.08)*.15,portrait()?1.75:1.45,z-8);
+  const z=.5-pp,out=clamp(-pp/18,0,1);  // outside the building the camera looks up at the facade
+  pos.set(Math.sin(pp*.08)*.25,1.65+out*.6,z);
+  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*3.2,z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
-  PATH=[];let u=0,pp=0;
-  const hallTo=pp1=>{if(pp1>pp){PATH.push({hall:true,u0:u,u1:u+(pp1-pp),pp0:pp,pp1});u+=pp1-pp;pp=pp1}};
-  const key=(a,b,len,set,ez=true)=>{PATH.push({u0:u,u1:u+len,a,b,set,ez});u+=len};
+  PP_END=.5-(LED_Z+8);
   SETS.forEach(S=>{
-    const ppA=.5-(S.z+3.2),ppD=.5-(S.z-2.6);
-    hallTo(ppA);
-    const A=pose((a,b)=>hallPose(ppA,a,b)),D=pose((a,b)=>hallPose(ppD,a,b));
+    const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
+    S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
+    const A=pose((a,b)=>hallPose(S.ppA,a,b)),D=pose((a,b)=>hallPose(S.ppD,a,b));
     const door=V(S.side*7.2,2.8,S.z);
     const Tin=pose((a,b)=>{a.set(0,1.65,S.z+.4);b.copy(door)}),Tout=pose((a,b)=>{a.set(0,1.65,S.z-.4);b.copy(door)});
     const P=portrait(),n=S.lay.length;
-    // in front of each film, looking at it, as the camera flies down the tunnel
     const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
     const lastZ=S.lay[n-1].z;
     const End=pose((a,b)=>{a.copy(S.W(V(0,1.62,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,2.7,S.back)))});
     const Back=pose((a,b)=>{a.copy(S.W(V(0,n>1?3.4:2.2,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,1.6,12)))});
     const Front=pose((a,b)=>{a.copy(S.W(V(0,2.3,5.4)));b.copy(S.W(V(0,1.6,14)))});
-    S.u={start:u};
-    key(A,Tin,3.5,S.i);                        // turn to face the studio
-    key(Tin,E[0],4.5,S.i);S.u.in=u;             // walk in
-    key(E[0],E[0],1.6,S.i);                     // hold on the first film
-    for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,S.i);key(E[j],E[j],1.2,S.i)}
-    key(E[n-1],End,n>1?3:2,S.i);key(End,End,1.2,S.i);   // past the last film, facing the brand wall
-    key(End,Back,3.2,S.i);                      // turn around
-    key(Back,Front,Math.max(3.5,(n-1)*1.6),S.i);   // fly back out over the tunnel
-    key(Front,Tout,3,S.i);
-    key(Tout,D,3.5,S.i);S.u.after=u;            // turn down the hall
-    pp=ppD;
+    key(A,Tin,3.5);                          // turn to face the studio
+    key(Tin,E[0],4.5);S.u={in:u};             // walk in
+    key(E[0],E[0],1.6);
+    for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);key(E[j],E[j],1.2)}
+    key(E[n-1],End,n>1?3:2);key(End,End,1.2);  // facing the brand wall
+    key(End,Back,3.2);                         // turn around
+    key(Back,Front,Math.max(3.5,(n-1)*1.6));   // fly back out over the films
+    key(Front,Tout,3);key(Tout,D,3.5);
+    S.path=path;S.len=u;
   });
-  hallTo(.5-(LED_Z+8));
-  PATH_END=u;
 }
-// camera pose at path position u; returns the studio index the camera is in, or -1 in the hall
-function poseAt(u,pos,look){
-  u=clamp(u,0,PATH_END);
-  let lo=0,hi=PATH.length-1;while(lo<hi){const m=(lo+hi)>>1;if(PATH[m].u1<u)lo=m+1;else hi=m}
-  const sg=PATH[lo];
-  const t=sg.u1>sg.u0?clamp((u-sg.u0)/(sg.u1-sg.u0),0,1):1;
-  if(sg.hall){hallPose(lerp(sg.pp0,sg.pp1,t),pos,look);return -1}
-  const e=sg.ez?t*t*(3-2*t):t;
-  pos.lerpVectors(sg.a.pos,sg.b.pos,e);look.lerpVectors(sg.a.look,sg.b.look,e);return sg.set;
+function poseIn(S,u,pos,look){
+  const P=S.path;u=clamp(u,0,S.len);
+  let lo=0,hi=P.length-1;while(lo<hi){const m=(lo+hi)>>1;if(P[m].u1<u)lo=m+1;else hi=m}
+  const sg=P[lo],t=sg.u1>sg.u0?clamp((u-sg.u0)/(sg.u1-sg.u0),0,1):1,e=sg.ez?t*t*(3-2*t):t;
+  pos.lerpVectors(sg.a.pos,sg.b.pos,e);look.lerpVectors(sg.a.look,sg.b.look,e);
 }
 let jumping=false;
-function goTo(v){
-  v=clamp(v,0,PATH_END);vel=0;
-  if(Math.abs(v-p)<=30||reduce){pTarget=v;return}
-  // long jumps fade through black instead of flying through every studio on the way
+function fadeJump(fn){
+  if(reduce){fn();snapCam=true;return}
   if(jumping)return;jumping=true;const f=$("#fade");f.style.opacity=1;
-  setTimeout(()=>{p=pTarget=v;setTimeout(()=>{f.style.opacity=0;jumping=false},90)},360);
+  setTimeout(()=>{fn();snapCam=true;setTimeout(()=>{f.style.opacity=0;jumping=false},90)},360);
 }
-function enterSet(i){goTo(SETS[i].u.in)}
-function exitSet(){if(setIdx>=0)goTo(SETS[setIdx].u.after+.8)}
-function switchSet(d){if(setIdx<0)return;goTo(SETS[(setIdx+d+SETS.length)%SETS.length].u.in)}
+let snapCam=true;
+function goTo(v){v=clamp(v,PP0,PP_END);vel=0;
+  const move=()=>{leaveSet();p=pTarget=v};
+  if(mode==="set"||Math.abs(v-p)>30)fadeJump(move);else{leaveSet();pTarget=v}}
+function leaveSet(){if(mode!=="set")return;mode="hall";setIdx=-1;$("#shud").classList.remove("show")}
+function enterSet(i){
+  const S=SETS[i];if(mode==="set"&&setIdx===i)return;vel=0;lookYaw=lookPitch=0;
+  const go=()=>{mode="set";setIdx=i;p=pTarget=S.ppA;sp=0;spTarget=S.u.in;showSetHud(S)};
+  // next to the door: turn and walk in; from further away fade over to the door first
+  if(mode==="hall"&&Math.abs(p-S.ppA)<10){go();sp=0}else fadeJump(go);
+}
+function exitSet(){if(mode!=="set")return;const S=SETS[setIdx];fadeJump(()=>{leaveSet();p=pTarget=S.ppA;lookYaw=lookPitch=0})}
+function switchSet(d){if(setIdx<0)return;enterSet((setIdx+d+SETS.length)%SETS.length)}
 function showSetHud(S){
   const t=T();$("#stitle").textContent=S.s.name[lang];$("#back").textContent=(lang==="fa"?"→ ":"← ")+t.back;
   $("#sprev").textContent=t.prev;$("#snext").textContent=t.next;$("#stip").textContent=t.rhint;$("#shud").classList.add("show");
 }
 $("#back").onclick=exitSet;$("#sprev").onclick=()=>switchSet(-1);$("#snext").onclick=()=>switchSet(1);
+$("#enterBtn").onclick=()=>{if(nearIdx>=0)enterSet(nearIdx)};
+// look up / down buttons on touch screens (hold to keep tilting, double-tap the screen area between to reset)
+for(const [id,d] of [["#lookUp",1],["#lookDown",-1]]){let iv=null;const b=$(id);if(!b)continue;
+  const stop=()=>{clearInterval(iv);iv=null};
+  b.addEventListener("pointerdown",e=>{e.preventDefault();lookPitch=clamp(lookPitch+d*.06,-.55,.55);stop();iv=setInterval(()=>{lookPitch=clamp(lookPitch+d*.03,-.55,.55)},40)});
+  ["pointerup","pointerleave","pointercancel"].forEach(n=>b.addEventListener(n,stop));}
+$("#lookReset")&&($("#lookReset").onclick=()=>{lookPitch=lookYaw=0});
 
-function moveBy(d){pTarget=clamp(pTarget+d,0,PATH_END)}
+function moveBy(d){
+  if(mode==="set"){
+    const S=SETS[setIdx];spTarget+=d;
+    // scrolling back past the door, or on past the end, steps back out into the hall
+    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA-.4;vel=0}
+    else if(spTarget>S.len+.4){leaveSet();p=pTarget=S.ppD+.6;vel=0}
+    return;
+  }
+  pTarget=clamp(pTarget+d,PP0,PP_END);
+}
 // while a film is open, scrolling back closes it; the short cooldown stops the same gesture from also moving the camera
 let playerShutAt=0;
 const backGesture=()=>{if(playerEl){closePlayer();playerShutAt=performance.now()}};
@@ -987,11 +1030,12 @@ addEventListener("pointerdown",e=>{
   drag={last:e.clientY,lastX:e.clientX};vel=0;
 },{passive:true});
 addEventListener("pointermove",e=>{
-  px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5;
+  if(e.pointerType==="mouse"){px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5}
   if(downXY&&Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>10)dragged=true;
   if(!drag)return;
   const dy=drag.last-e.clientY,dx=drag.lastX-e.clientX;drag.last=e.clientY;drag.lastX=e.clientX;
-  const d=(mode==="set"&&Math.abs(dx)>Math.abs(dy)?dx*(lang==="fa"?-1:1):dy)*(innerWidth<640?.03:.022);
+  if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw=clamp(lookYaw-dx*.004,-1,1);return}
+  const d=dy*(innerWidth<640?.03:.022);
   moveBy(d);vel=vel*.5+d*.5;
 },{passive:true});
 addEventListener("pointerup",e=>{
@@ -1006,22 +1050,31 @@ addEventListener("keydown",e=>{
   if($("#veil").classList.contains("show"))return;
   if(e.key==="ArrowDown"||e.key==="PageDown"||(e.key===" "&&!e.target.closest("button,a"))){moveBy(4);e.preventDefault()}
   if(e.key==="ArrowUp"||e.key==="PageUp"){moveBy(-4);e.preventDefault()}
-  if(mode==="set"&&e.key==="ArrowRight")moveBy(lang==="fa"?-3:3);if(mode==="set"&&e.key==="ArrowLeft")moveBy(lang==="fa"?3:-3);
-  if(e.key==="Home")goTo(0);if(e.key==="End")goTo(PATH_END);
+  if(e.key==="Enter"&&mode==="hall"&&nearIdx>=0&&!e.target.closest("button,a"))enterSet(nearIdx);
+  if(e.key==="Home")goTo(PP0);if(e.key==="End")goTo(PP_END);
 });
+
+// near a studio door in the hall, offer to step inside
+function updateNear(){
+  let n=-1;
+  if(mode==="hall"&&!jumping){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best){best=d;n=S.i}})}
+  if(n!==nearIdx){nearIdx=n;const b=$("#enterBtn");
+    if(n>=0){const S=SETS[n],fa=lang==="fa",arrow=S.side<0?"←":"→";b.innerHTML=fa?`<span>${arrow}</span> ورود به ${S.s.name.fa}`:`<span>${arrow}</span> Enter ${S.s.name.en}`;b.style.setProperty("--b",S.s.c.acc);b.classList.add("show")}
+    else b.classList.remove("show")}
+}
 
 /* ---------- map ---------- */
 let stops=[];
 function buildMap(){
-  const t=T();stops=[{l:t.stops.entrance,p:0},{l:t.stops.arta,p:9.5},{l:t.stops.hall,p:22.5}]
-    .concat(SETS.map(S=>({l:S.s.name[lang],p:S.u.in}))).concat([{l:t.stops.end,p:PATH_END}]);
+  const t=T();stops=[{l:t.stops.entrance,p:PP0},{l:t.stops.arta,p:9.5},{l:t.stops.hall,p:22.5}]
+    .concat(SETS.map(S=>({l:S.s.name[lang],p:S.ppA,set:S.i}))).concat([{l:t.stops.end,p:PP_END}]);
   const m=$("#map");m.innerHTML="";
-  stops.forEach((s,i)=>{const b=el(`<button aria-label="${s.l}"><i></i></button>`);b.onclick=()=>goTo(s.p);m.appendChild(b)});
+  stops.forEach((s,i)=>{const b=el(`<button aria-label="${s.l}"><i></i></button>`);b.onclick=()=>s.set!=null?enterSet(s.set):goTo(s.p);m.appendChild(b)});
   m.appendChild(el(`<span class="lbl" id="lbl"></span>`));
 }
 let lastStop=-1;
 function updateMap(){
-  let a=0;stops.forEach((s,i)=>{if(p>=s.p-3)a=i});
+  let a=0;if(mode==="set")a=stops.findIndex(s=>s.set===setIdx);else stops.forEach((s,i)=>{if(p>=s.p-3)a=i});
   if(a!==lastStop){lastStop=a;$("#map").querySelectorAll("button").forEach((b,i)=>b.classList.toggle("on",i===a));$("#lbl").textContent=stops[a].l}
   $(".hud").style.opacity=mode==="hall"?1:0;$(".hud").style.pointerEvents=mode==="hall"?"auto":"none";
   $("#map").style.opacity=mode==="hall"?1:0;$("#map").style.pointerEvents=mode==="hall"?"auto":"none";
@@ -1055,7 +1108,7 @@ function applyLang(){
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
-  buildOverlays();buildMap();lastStop=-1;applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
+  buildOverlays();buildMap();lastStop=-1;nearIdx=-2;applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
@@ -1082,18 +1135,21 @@ function frame(now){
   if(!drag&&Math.abs(vel)>.002&&!reduce){moveBy(vel*f);vel*=Math.pow(.92,f)}else if(!drag)vel=0;
   tx+=(px*.6-tx)*sm(.05);ty+=(-py*.5-ty)*sm(.05);
   p+=(pTarget-p)*(reduce?1:sm(.075));
-  const si=poseAt(p,camPos,camLook);
-  if(si!==setIdx){setIdx=si;mode=si>=0?"set":"hall";if(si>=0)showSetHud(SETS[si]);else $("#shud").classList.remove("show")}
-  camera.position.copy(camPos);camera.lookAt(camLook);
-  // gentle look-around that follows the pointer
-  camera.rotateY(-tx*.14);camera.rotateX(ty*.06);
+  if(mode==="set"){sp+=(spTarget-sp)*(reduce?1:sm(.075));poseIn(SETS[setIdx],sp,camPos,camLook)}else hallPose(p,camPos,camLook);
+  // the camera glides between poses, so stepping into or out of a studio never jumps
+  if(snapCam){curPos.copy(camPos);curLook.copy(camLook);snapCam=false}
+  else{curPos.lerp(camPos,reduce?1:sm(.14));curLook.lerp(camLook,reduce?1:sm(.14))}
+  camera.position.copy(curPos);camera.lookAt(curLook);
+  // gentle look-around: follows the mouse, or the visitor's swipes and look buttons on touch screens
+  camera.rotateY(-tx*.14+lookYaw);camera.rotateX(ty*.06+lookPitch);
+  updateNear();
   updatePool();
   ledTex.offset.x=(now*.00002)%1;
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFeatures();updateFrames(dt);
-  $("#hint").style.opacity=p<1.5&&mode==="hall"?1:0;
+  $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350)}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
@@ -1127,7 +1183,7 @@ function mergeStatic(){
 }
 
 /* ---------- start ---------- */
-build3D();mergeStatic();setupPool();setupPost(true);resize();
-buildPath();poseAt(0,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
+build3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
+buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
 (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot);setTimeout(boot,2500);
