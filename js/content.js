@@ -12,43 +12,96 @@
    Leave src:"" empty and the card shows "This film is on its way."
    اگه src خالی بمونه، کارت پیام «به‌زودی» نشون می‌ده.
    "r" is the aspect ratio: "9/16" vertical, "16/9" horizontal.
+
+   Brand logos / لوگوی برندها:
+   Put a transparent PNG or SVG in assets/brands and add logoImg:"assets/brands/snapp.png"
+   to that studio. It shows on the studio wall and the door sign.
+   لوگو رو بذار توی assets/brands و آدرسش رو با logoImg به استودیو اضافه کن.
+   c: brand colors. bg/bg2 = set backdrop, ink = text, acc = accent light.
    ========================================================= */
 const CONTACT = {
   whatsapp:{ display:"+98 901 137 7877", link:"https://wa.me/989011377877" },
   instagram:{ display:"@artanourii", link:"https://www.instagram.com/artanourii" }
 };
 const STUDIOS = [
-  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79",frame:"#D9A9A4",glow:"rgba(183,110,121,.55)"},
-   name:{en:"Beauty Video",fa:"Beauty Video"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
+  // 1. Asus Iran
+  {id:"asus", theme:"dark", c:{bg:"#0B0F14",bg2:"#1C2735",ink:"#EEF3F8",acc:"#2E8BFF"},logo:{d:"M23.904 10.788V9.522h-4.656c-.972 0-1.41.6-1.482 1.182v.018-1.2h-1.368v1.266h1.362zm-6.144.456l-1.368-.078v1.458c0 .456-.228.594-1.02.594H14.28c-.654 0-.93-.186-.93-.594v-1.596l-1.386-.102v1.812h-.03c-.078-.528-.276-1.14-1.596-1.23L6 11.22c0 .666.474 1.062 1.218 1.14l3.024.306c.24.018.414.09.414.288 0 .216-.18.24-.456.24H5.946V11.22l-1.386-.09v3.348h5.646c1.26 0 1.662-.654 1.722-1.2h.03c.156.864.912 1.2 2.19 1.2h1.41c1.494 0 2.202-.456 2.202-1.524zm4.398.258l-4.338-.258c0 .666.438 1.11 1.182 1.17l3.09.24c.24.018.384.078.384.276 0 .186-.168.258-.516.258h-4.212v1.29h4.302c1.356 0 1.95-.474 1.95-1.554 0-.972-.534-1.338-1.842-1.422zm-10.194-1.98h1.386v1.266h-1.386zM3.798 11.07l-1.506-.15L0 14.478h1.686zm7.914-1.548h-4.23c-.984 0-1.416.612-1.518 1.2v-1.2H3.618c-.33 0-.486.102-.642.33l-.648.936h9.384Z",vb:24},
+   name:{en:"Asus Iran",fa:"ایسوس ایران"},tag:{en:"Laptops and tech, made cinematic.",fa:"لپ‌تاپ و تکنولوژی، سینمایی."},
    videos:[
-     {t:{en:"Makeup transition",fa:"ترنزیشن میکاپ"},m:{en:"Transition video, 9:16",fa:"ویدیوی ترنزیشن، ۹:۱۶"},src:"",r:"9/16"},
-     {t:{en:"Beauty teaser",fa:"تیزر بیوتی"},m:{en:"Teaser, 9:16",fa:"تیزر، ۹:۱۶"},src:"",r:"9/16"}]},
-  {id:"ai", theme:"dark", c:{bg:"#0D0A24",bg2:"#1E1650",ink:"#ECE9FF",acc:"#5CE1E6",frame:"#3B2F8F",glow:"rgba(92,225,230,.45)"},
-   name:{en:"AI Lab",fa:"آزمایشگاه AI"},tag:{en:"Impossible shots, made real.",fa:"نماهای غیرممکن، واقعی‌شده."},
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 2. Aparat
+  {id:"aparat", theme:"dark", c:{bg:"#1A0710",bg2:"#4A0B23",ink:"#FFF0F5",acc:"#ED145B"},logo:{d:"M12.0014 1.5938C2.7317 1.5906-1.9119 12.7965 4.641 19.3515c2.975 2.976 7.4496 3.8669 11.3374 2.257 3.8877-1.61 6.4228-5.4036 6.4228-9.6116 0-5.7441-4.6555-10.4012-10.3997-10.4031zM6.11 6.783c.5011-2.5982 3.8927-3.2936 5.376-1.1028 1.4834 2.1907-.4216 5.0816-3.02 4.5822-1.6118-.3098-2.6668-1.868-2.356-3.4794zm4.322 8.9882c-.5045 2.5971-3.8965 3.288-5.377 1.0959-1.4807-2.1922.427-5.0807 3.0247-4.5789 1.612.3114 2.6655 1.8714 2.3524 3.483zm1.2605-2.405c-1.1528-.2231-1.4625-1.7273-.4917-2.3877.9708-.6604 2.256.18 2.0401 1.3343-.1347.7198-.8294 1.1924-1.5484 1.0533zm6.197 3.8375c-.501 2.5981-3.8927 3.2935-5.376 1.1028-1.4834-2.1908.4217-5.0817 3.0201-4.5822 1.6117.3097 2.6667 1.8679 2.356 3.4794zm-1.9662-5.5018c-2.5981-.501-3.2935-3.8962-1.1027-5.3795 2.1907-1.4834 5.0816.4216 4.5822 3.02-.3082 1.6132-1.8668 2.6701-3.4795 2.3595zm-2.3348 11.5618l2.2646.611c1.9827.5263 4.0167-.6542 4.5433-2.6368l.639-2.4016a11.3828 11.3828 0 0 1-7.4469 4.4274zM21.232 3.5985l-2.363-.6284a11.3757 11.3757 0 0 1 4.3538 7.619l.6495-2.4578c.5194-1.9804-.6615-4.0076-2.6403-4.5328zM.6713 13.8086l-.5407 2.04c-.5263 1.9826.6542 4.0166 2.6368 4.5432l2.1066.5618a11.3792 11.3792 0 0 1-4.2027-7.145zM10.3583.702L8.1498.1261C6.166-.4024 4.1296.7785 3.603 2.763l-.5512 2.082A11.3757 11.3757 0 0 1 10.3583.702Z",vb:24},
+   name:{en:"Aparat",fa:"آپارات"},tag:{en:"Video platform, video-first ideas.",fa:"پلتفرم ویدیو، ایده‌هایی از جنس ویدیو."},
    videos:[
-     {t:{en:"Gamer to soldier",fa:"از گیمر تا سرباز"},m:{en:"Single take, transformation",fa:"تک‌برداشت، تحول"},src:"",r:"9/16"},
-     {t:{en:"Racer to footballer",fa:"از راننده تا فوتبالیست"},m:{en:"Seedance 2.5, VFX",fa:"Seedance 2.5، VFX"},src:"",r:"9/16"},
-     {t:{en:"Face stretch reveal",fa:"کشیدن پوست صورت"},m:{en:"VFX, video to video",fa:"VFX، ویدیو به ویدیو"},src:"",r:"9/16"},
-     {t:{en:"Logo touch",fa:"لمس لوگو"},m:{en:"Kling 3, 3s",fa:"Kling 3، ۳ ثانیه"},src:"",r:"9/16"}]},
-  {id:"respina", theme:"dark", c:{bg:"#0A3A2D",bg2:"#0F6A5C",ink:"#EAF6F1",acc:"#D4AE57",frame:"#13836F",glow:"rgba(212,174,87,.45)"},
-   name:{en:"Respina",fa:"رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 3. Respina (colors approximate)
+  {id:"respina", theme:"dark", c:{bg:"#0A3A2D",bg2:"#0F6A5C",ink:"#EAF6F1",acc:"#D4AE57"},
+   name:{en:"Respina",fa:"داده پردازی رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
    videos:[
      {t:{en:"Company intro, 3D",fa:"معرفی شرکت، سه‌بعدی"},m:{en:"After Effects, 20s, 9:16",fa:"افترافکت، ۲۰ ثانیه، ۹:۱۶"},src:"",r:"9/16"},
      {t:{en:"Racetrack hero",fa:"پیست مسابقه"},m:{en:"Hyper-real still",fa:"تصویر هایپررئال"},src:"",r:"16/9"},
      {t:{en:"Track, top view",fa:"پیست از نمای بالا"},m:{en:"Logo on asphalt",fa:"لوگو روی آسفالت"},src:"",r:"16/9"}]},
-  {id:"mixland", theme:"dark", c:{bg:"#110F10",bg2:"#3B0B15",ink:"#F5ECE2",acc:"#C2183A",frame:"#5A1020",glow:"rgba(194,24,58,.5)"},
-   name:{en:"Mixland",fa:"میکس‌لند"},tag:{en:"Sour cherry jam that pours itself.",fa:"مربای آلبالویی که خودش ریخته می‌شه."},
+  // 4. Hamrahe Aval (colors approximate)
+  {id:"mci", theme:"dark", c:{bg:"#04263A",bg2:"#075A85",ink:"#EAF7FD",acc:"#20B7F0"},
+   name:{en:"Hamrahe Aval",fa:"همراه اول"},tag:{en:"Connecting a country, one spot at a time.",fa:"ارتباط یک کشور، تیزر به تیزر."},
    videos:[
-     {t:{en:"Sour cherry pour",fa:"ریزش مربای آلبالو"},m:{en:"AI video, 10s, 9:16",fa:"ویدیوی AI، ۱۰ ثانیه، ۹:۱۶"},src:"",r:"9/16"}]},
-  {id:"ucollective", theme:"light", c:{bg:"#F2F1EE",bg2:"#DAD8D2",ink:"#141414",acc:"#141414",frame:"#BEBBB3",glow:"rgba(20,20,20,.3)"},
-   name:{en:"U Collective",fa:"U Collective"},tag:{en:"One take. One brush. One logo.",fa:"یک برداشت. یک قلم‌مو. یک لوگو."},
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 5. Snapp (colors approximate)
+  {id:"snapp", theme:"dark", c:{bg:"#04261A",bg2:"#0A5236",ink:"#EFFFF6",acc:"#00D06F"},
+   name:{en:"Snapp",fa:"اسنپ"},tag:{en:"Rides, food and everything on the go.",fa:"سفر، غذا و هر چیزی در مسیر."},
    videos:[
-     {t:{en:"Ink samurai",fa:"سامورایی جوهر"},m:{en:"Seedance 2, single take, 15s",fa:"Seedance 2، تک‌برداشت، ۱۵ ثانیه"},src:"",r:"9/16"}]},
-  {id:"artanoori", theme:"dark", c:{bg:"#0C0C0C",bg2:"#242424",ink:"#F5F2EA",acc:"#F5F2EA",frame:"#3A3A3A",glow:"rgba(245,242,234,.3)"},
-   name:{en:"ARTA NOORI",fa:"ARTA NOORI"},tag:{en:"My own label, written in ink.",fa:"برند شخصی خودم، نوشته‌شده با جوهر."},
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 6. Azkivam (colors approximate)
+  {id:"azkivam", theme:"dark", c:{bg:"#0E1638",bg2:"#24357A",ink:"#EEF1FF",acc:"#5B7CFF"},
+   name:{en:"Azkivam",fa:"از کی وام"},tag:{en:"Loans made simple, on screen.",fa:"وام ساده، روی صفحه."},
    videos:[
-     {t:{en:"Ink calligraphy film",fa:"فیلم خوشنویسی جوهر"},m:{en:"Brand film, Seedance 2",fa:"فیلم برند، Seedance 2"},src:"",r:"9/16"},
-     {t:{en:"Lookbook",fa:"لوک‌بوک"},m:{en:"Four angles",fa:"چهار زاویه"},src:"",r:"9/16"}]}
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 7. Analiz Fix (colors approximate)
+  {id:"analizfix", theme:"dark", c:{bg:"#141414",bg2:"#2E2E2E",ink:"#F6F6F6",acc:"#FF7A1A"},
+   name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion.",fa:"عیب‌یابی و تعمیر، با زبان تصویر."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 8. Emarate Zarin (colors approximate)
+  {id:"emaratezarin", theme:"dark", c:{bg:"#15120C",bg2:"#3A2F18",ink:"#F7EFD9",acc:"#D4AF37"},
+   name:{en:"Emarate Zarin",fa:"امارت زرین"},tag:{en:"Architecture in gold light.",fa:"معماری در نور طلایی."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 9. Farmaniyeh Club (colors approximate)
+  {id:"farmaniyeh", theme:"dark", c:{bg:"#0C1A2A",bg2:"#1E3550",ink:"#EEF3FA",acc:"#C9A55B"},
+   name:{en:"Farmaniyeh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion.",fa:"ورزش و سبک زندگی، با حرکت آهسته."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 10. Dicardo (colors approximate)
+  {id:"dicardo", theme:"dark", c:{bg:"#1A0D12",bg2:"#3D1A26",ink:"#FBEFF2",acc:"#E04E6A"},
+   name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves.",fa:"استایلی که حرکت می‌کنه."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 11. Mahan Net (colors approximate)
+  {id:"mahannet", theme:"dark", c:{bg:"#08212B",bg2:"#0F4659",ink:"#EAFAFD",acc:"#29C4D9"},
+   name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts.",fa:"اینترنت پرسرعت، کات‌های سریع‌تر."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 12. Niro Motor (colors approximate)
+  {id:"niromotor", theme:"dark", c:{bg:"#120B0B",bg2:"#3A1212",ink:"#FBEDED",acc:"#E3262E"},
+   name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed.",fa:"موتور، قدرت و سرعت."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 13. IT Mall (colors approximate)
+  {id:"itmall", theme:"dark", c:{bg:"#120E24",bg2:"#2C2160",ink:"#F0EDFF",acc:"#8C6BFF"},
+   name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot.",fa:"هر گجت، یک نمای قهرمان."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+  // 14. Makeup & Beauty (colors approximate)
+  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},
+   name:{en:"Makeup & Beauty",fa:"میکاپ و بیوتی"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
+   videos:[
+     {t:{en:"Makeup transition",fa:"ترنزیشن میکاپ"},m:{en:"Transition video, 9:16",fa:"ویدیوی ترنزیشن، ۹:۱۶"},src:"",r:"9/16"},
+     {t:{en:"Beauty teaser",fa:"تیزر بیوتی"},m:{en:"Teaser, 9:16",fa:"تیزر، ۹:۱۶"},src:"",r:"9/16"}]},
+  // 15. My Tiktok Video
+  {id:"tiktok", theme:"dark", c:{bg:"#050505",bg2:"#161823",ink:"#FFFFFF",acc:"#FE2C55"},logo:{d:"M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z",vb:24},
+   name:{en:"My Tiktok Video",fa:"تیکتاک"},tag:{en:"Short, loud and made for the scroll.",fa:"کوتاه، پرانرژی و ساخته‌شده برای اسکرول."},
+   videos:[
+     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]}
 ];
 
 /* ---------- copy ---------- */
@@ -63,13 +116,13 @@ const TX = {
    {id:"about",k:"01",h:"About",p:"Who's behind the work.",
     body:`<h2>Arta Noori</h2><p>I make ad films where the idea does the heavy lifting. My strength is the concept, the edit and the VFX, not standing in front of the lens. In-shoot tricks, compositing, 3D motion and AI video turn a simple shoot into something people stop to watch.</p><p>One of my behind-the-scenes reels passed 1M views on Instagram.</p>`},
    {id:"resume",k:"02",h:"Résumé",p:"Experience and brands.",
-    body:`<h2>Résumé</h2><ul><li>Independent ad film creator<small><span class="ph">20XX</span> to now. Respina, Mixland, U Collective and more.</small></li><li>Founder, ARTA NOORI<small>Personal fashion label, from lookbook to brand film.</small></li><li>Instagram @artanourii<small>Portfolio of ad and commercial films. 1M+ views on a single reel.</small></li><li><span class="ph">Education or course</span><small>Add yours here.</small></li></ul>`},
+    body:`<h2>Résumé</h2><ul><li>Independent ad film creator<small><span class="ph">20XX</span> to now. Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp and more.</small></li><li>Founder, ARTA NOORI<small>Personal fashion label, from lookbook to brand film.</small></li><li>Instagram @artanourii<small>Portfolio of ad and commercial films. 1M+ views on a single reel.</small></li><li><span class="ph">Education or course</span><small>Add yours here.</small></li></ul>`},
    {id:"skills",k:"03",h:"Skills",p:"Tools and craft.",
     body:`<h2>Skills</h2><ul><li>Creative concepts and ad ideas</li><li>Editing, pacing and sound design</li><li>VFX and compositing</li><li>3D motion graphics<small>After Effects</small></li><li>AI video and image<small>Seedance 2 and 2.5, Kling 3, Google Gemini, Higgsfield</small></li></ul>`},
    {id:"services",k:"04",h:"Services",p:"What you can hire me for.",
     body:`<h2>Services</h2><ul><li>Ad concept and creative direction</li><li>Product hero videos</li><li>Single-take transformation films</li><li>Logo reveals and 3D brand intros</li><li>AI video production</li><li>Reels editing for Instagram and LinkedIn</li></ul>`},
    {id:"clients",k:"05",h:"Clients",p:"Brands I've worked with.",
-    body:`<h2>Clients</h2><ul><li>Respina<small>3D company intro, racetrack campaign imagery</small></li><li>Mixland<small>Sour cherry jam ad</small></li><li>U Collective<small>Single-take ink film</small></li><li>Your brand<small>Next door is empty.</small></li></ul>`}
+    body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarate Zarin</li><li>Farmaniyeh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Your brand<small>Next door is empty.</small></li></ul>`}
   ]},
  fa:{dir:"rtl",other:"English",otherSmall:"تغییر زبان",studio:"ARTA NOORI STUDIO",line:"تیزرهای تبلیغاتی که روی ایده، تدوین و VFX ساخته می‌شن.",
   scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف.",
@@ -81,12 +134,12 @@ const TX = {
    {id:"about",k:"۰۱",h:"درباره من",p:"کی پشت این کارهاست.",
     body:`<h2>آرتا نوری</h2><p>تیزر تبلیغاتی می‌سازم که بار اصلی‌اش روی ایده‌ست. قدرت من ایده، تدوین و VFX ـه، نه جلوی دوربین بودن. با ترفندهای حین فیلمبرداری، کامپوزیت، موشن سه‌بعدی و ویدیوی AI، یه فیلمبرداری ساده رو به چیزی تبدیل می‌کنم که آدم‌ها براش اسکرول رو نگه می‌دارن.</p><p>یکی از ریل‌های پشت‌صحنه‌ام توی اینستاگرام از یک میلیون بازدید گذشت.</p>`},
    {id:"resume",k:"۰۲",h:"رزومه",p:"سوابق و برندها.",
-    body:`<h2>رزومه</h2><ul><li>سازنده‌ی مستقل تیزر تبلیغاتی<small>از <span class="ph">۱۴XX</span> تا امروز. رسپینا، میکس‌لند، U Collective و برندهای دیگر.</small></li><li>بنیان‌گذار ARTA NOORI<small>برند شخصی پوشاک، از لوک‌بوک تا فیلم برند.</small></li><li>اینستاگرام ‎@artanourii<small>نمونه‌کارهای تبلیغاتی. بیش از یک میلیون بازدید برای یک ریل.</small></li><li><span class="ph">تحصیلات یا دوره</span><small>اینجا اضافه کن.</small></li></ul>`},
+    body:`<h2>رزومه</h2><ul><li>سازنده‌ی مستقل تیزر تبلیغاتی<small>از <span class="ph">۱۴XX</span> تا امروز. ایسوس ایران، آپارات، رسپینا، همراه اول، اسنپ و برندهای دیگر.</small></li><li>بنیان‌گذار ARTA NOORI<small>برند شخصی پوشاک، از لوک‌بوک تا فیلم برند.</small></li><li>اینستاگرام ‎@artanourii<small>نمونه‌کارهای تبلیغاتی. بیش از یک میلیون بازدید برای یک ریل.</small></li><li><span class="ph">تحصیلات یا دوره</span><small>اینجا اضافه کن.</small></li></ul>`},
    {id:"skills",k:"۰۳",h:"مهارت‌ها",p:"ابزار و تخصص.",
     body:`<h2>مهارت‌ها</h2><ul><li>ایده‌پردازی خلاق تبلیغاتی</li><li>تدوین، ریتم و طراحی صدا</li><li>VFX و کامپوزیت</li><li>موشن‌گرافیک سه‌بعدی<small>افترافکت</small></li><li>ویدیو و تصویر با هوش مصنوعی<small>Seedance 2 و 2.5، Kling 3، Google Gemini، Higgsfield</small></li></ul>`},
    {id:"services",k:"۰۴",h:"خدمات",p:"برای چه کارهایی می‌تونی منو بیاری.",
     body:`<h2>خدمات</h2><ul><li>ایده‌پردازی و کارگردانی خلاق تبلیغات</li><li>ویدیوی قهرمانِ محصول</li><li>فیلم تحول تک‌برداشت</li><li>رونمایی لوگو و اینترو سه‌بعدی برند</li><li>تولید ویدیو با هوش مصنوعی</li><li>تدوین ریل برای اینستاگرام و لینکدین</li></ul>`},
    {id:"clients",k:"۰۵",h:"مشتری‌ها",p:"برندهایی که باهاشون کار کردم.",
-    body:`<h2>مشتری‌ها</h2><ul><li>رسپینا<small>اینترو سه‌بعدی شرکت، تصاویر کمپین پیست</small></li><li>میکس‌لند<small>تیزر مربای آلبالو</small></li><li>U Collective<small>فیلم جوهر تک‌برداشت</small></li><li>برند تو<small>در بعدی خالیه.</small></li></ul>`}
+    body:`<h2>مشتری‌ها</h2><ul><li>ایسوس ایران</li><li>آپارات</li><li>داده پردازی رسپینا</li><li>همراه اول</li><li>اسنپ</li><li>از کی وام</li><li>آنالیز فیکس</li><li>امارت زرین</li><li>باشگاه فرمانیه</li><li>دیکاردو</li><li>ماهان نت</li><li>نیرو موتور</li><li>آی تی مال</li><li>برند تو<small>در بعدی خالیه.</small></li></ul>`}
   ]}
 };

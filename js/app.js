@@ -7,9 +7,9 @@ const ICON = {
 
 
 Object.assign(TX.en,{toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
-  rhint:"Scroll or swipe to dolly along the set. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
+  rhint:"Keep scrolling to pass the films and walk back out. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
 Object.assign(TX.fa,{toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
-  rhint:"اسکرول کن یا بکش تا دوربین روی ریل حرکت کنه. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
+  rhint:"اسکرول کن تا از کنار فیلم‌ها رد شی و از استودیو بیای بیرون. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.moon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>`;
 const LOGO_SHAPES=[{"o":[[-0.0586,0.7931],[-0.0573,0.6891],[-0.0152,0.5758],[0.0257,0.5744],[0.027,0.5771],[-0.0494,0.7747]],"h":[]},{"o":[[-0.1943,0.9697],[-0.5843,0.004],[-0.5408,0.0053],[-0.4196,0.3057],[-0.193,0.3057],[-0.193,0.3373],[-0.1733,0.3399],[-0.1548,0.3399],[-0.1443,0.3373],[-0.1443,0.0],[-0.1061,0.0013],[-0.1061,0.3267],[-0.1047,0.3373],[-0.0995,0.3399],[-0.0586,0.3386],[-0.0586,0.307],[-0.056,0.3057],[0.0889,0.3057],[0.0942,0.2964],[0.2049,0.0053],[0.2484,0.004],[0.1877,0.1647],[0.0797,0.4387],[0.0389,0.4387],[0.0731,0.3478],[0.0718,0.3426],[-0.1034,0.3426],[-0.1061,0.3452],[-0.1061,0.9157],[-0.1034,0.917],[0.5527,0.0],[0.583,0.0],[0.5843,0.9987],[0.5448,0.9987],[0.5448,0.083],[0.5356,0.0922],[-0.1126,1.0],[-0.1443,0.9987],[-0.1443,0.3439],[-0.4051,0.3439],[-0.193,0.8682]],"h":[]}];
@@ -242,26 +242,28 @@ function slot(from,to,color,intensity,angle,pen=.5,withBeam=true){
 
 /* ---------- build the soundstage ---------- */
 const SETS=[];const anchors=[];
-const SET0=-32,SETSTEP=9,DEPTH=84.5,LED_Z=-92;
+const SET0=-32,SETSTEP=9;
+// the hall grows with the number of studios
+const LED_Z=SET0-(STUDIOS.length-1)*SETSTEP-12,HALL_END=LED_Z-12,HALL_LEN=10-HALL_END,HALL_MID=(10+HALL_END)/2;
 function build3D(){
   // floor, reflection, walls, ceiling
-  const fl=mesh(new THREE.PlaneGeometry(36,124),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,-46);scene.add(fl);
+  const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,HALL_MID);scene.add(fl);
   if(Q==="high"&&THREE.Reflector){
-    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,124),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x555555});rf.userData.keep=true;
-    rf.rotation.x=-Math.PI/2;rf.position.set(0,0,-46);scene.add(rf);
+    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x555555});rf.userData.keep=true;
+    rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
-  for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(124,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,-46);scene.add(w)}
-  const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,-104);scene.add(bw);
+  for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
+  const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
   const fw=bw.clone();fw.rotation.y=Math.PI;fw.position.z=10;scene.add(fw);
-  const cl=mesh(new THREE.PlaneGeometry(36,124),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,-46);scene.add(cl);
+  const cl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,HALL_MID);scene.add(cl);
   // overhead trusses + space lights
-  for(const x of [-4.6,4.6]){const t=truss(104);t.rotation.y=Math.PI/2;t.position.set(x,8,-46);scene.add(t)}
-  for(let z=0;z>-100;z-=12){const t=truss(9.2);t.position.set(0,8,z);scene.add(t)}
-  for(let z=-2;z>-100;z-=8)for(const x of [-9,9]){
+  for(const x of [-4.6,4.6]){const t=truss(HALL_LEN-20);t.rotation.y=Math.PI/2;t.position.set(x,8,HALL_MID);scene.add(t)}
+  for(let z=0;z>HALL_END+4;z-=12){const t=truss(9.2);t.position.set(0,8,z);scene.add(t)}
+  for(let z=-2;z>HALL_END+4;z-=8)for(const x of [-9,9]){
     const s=mesh(new THREE.CylinderGeometry(.55,.55,.9,24,1,true),MAT.space,false);s.position.set(x,9.6,z);scene.add(s);
     scene.add(stick(V(x,10.05,z),V(x,13,z),.01,MAT.metal));
   }
-  for(let z=-6;z>-100;z-=12)for(const x of [-4.6,4.6]){
+  for(let z=-6;z>HALL_END+4;z-=12)for(const x of [-4.6,4.6]){
     const f=fresnel("#ffe9c4",0,true);f.position.set(x,7.8,z);f.rotation.x=Math.PI;scene.add(f);
   }
 
@@ -306,8 +308,8 @@ function build3D(){
   for(const x of [-7.6,7.6]){const t=truss(7);t.rotation.z=Math.PI/2;t.position.set(x,3.5,LED_Z);scene.add(t)}
 
   // haze particles
-  const N=Q==="high"?1400:700,pp=new Float32Array(N*3);
-  for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*20;pp[i*3+1]=Math.random()*7;pp[i*3+2]=4-Math.random()*100}
+  const N=Math.round((Q==="high"?1400:700)*Math.min(HALL_LEN/104,2)),pp=new Float32Array(N*3);
+  for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*20;pp[i*3+1]=Math.random()*7;pp[i*3+2]=4-Math.random()*(4-HALL_END)}
   const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(pp,3));
   MAT.dust=new THREE.PointsMaterial({size:.045,map:dotTex,transparent:true,opacity:.5,depthWrite:false,blending:THREE.AdditiveBlending,color:C("#ffe8c8")});
   dust=new THREE.Points(pg,MAT.dust);scene.add(dust);
@@ -327,6 +329,37 @@ function makeLogo(){
   const m=mesh(geo,MAT.logo);m.scale.setScalar(1.45);m.position.y=.01;
   const g=new THREE.Group();g.add(m);return g;
 }
+/* brand logo or wordmark drawn onto a canvas and hung on the set's back wall */
+const brandTex=[];
+function drawBrand(tex){
+  const {s,img}=tex.userData,cv=tex.image,g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.clearRect(0,0,W,H);g.fillStyle=s.c.ink;
+  if(img){const k=Math.min(W/img.width,H/img.height)*.92,w=img.width*k,h=img.height*k;g.drawImage(img,(W-w)/2,(H-h)/2,w,h)}
+  else if(s.logo){const vb=s.logo.vb||24,k=H*.8/vb;g.save();g.translate(W/2-vb*k/2,H*.1);g.scale(k,k);g.fill(new Path2D(s.logo.d));g.restore()}
+  else{
+    const name=s.name.en.toUpperCase();let fs=H*.42;
+    g.textAlign="center";g.textBaseline="middle";
+    const font=f=>`600 ${f}px Unbounded, "Helvetica Neue", Arial, sans-serif`;
+    g.font=font(fs);if("letterSpacing" in g)g.letterSpacing=(fs*.16)+"px";
+    while(g.measureText(name).width>W*.94&&fs>20){fs-=4;g.font=font(fs);if("letterSpacing" in g)g.letterSpacing=(fs*.16)+"px"}
+    g.fillText(name,W/2,H/2);
+  }
+  tex.needsUpdate=true;
+}
+function brandWall(s){
+  const cv=document.createElement("canvas");cv.width=1024;cv.height=400;
+  const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;tex.userData={s,img:null};
+  drawBrand(tex);brandTex.push(tex);
+  if(s.logoImg){const im=new Image();im.onload=()=>{
+    // a logo file only works when the site is served over http(s); skip it if the browser marks the canvas unsafe
+    const t=document.createElement("canvas");t.width=t.height=8;const tg=t.getContext("2d");tg.drawImage(im,0,0,8,8);
+    try{tg.getImageData(0,0,1,1);tex.userData.img=im;drawBrand(tex)}catch(e){}
+  };im.src=s.logoImg}
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.86),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+  m.userData.keep=true;return m;
+}
+// wordmarks use the site font once it has loaded
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>brandTex.forEach(t=>{if(!t.userData.img&&!t.userData.s.logo)drawBrand(t)}));
 function buildSet(s,i){
   const side=i%2===0?-1:1,z=SET0-i*SETSTEP;
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
@@ -345,9 +378,13 @@ function buildSet(s,i){
   slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6,.5,.6);
   const acc=new THREE.Color(s.c.acc).getHSL({}).l<.15?"#ffffff":s.c.acc;
   slot(W(V(0,4.9,2.4)),W(V(0,2.3,-1.25)),acc,2.2,.62,.7);
+  // brand wall: logo (or name) above the films, with a thin light line in the brand accent
+  const bw=brandWall(s);bw.position.set(0,3.12,-1.05);g.add(bw);
+  const line=box(2.8,.022,.02,emissive(s.c.acc,2.4),0,2.6,-1.0);line.userData.keep=true;g.add(line);
   // video positions along the set
-  const n=s.videos.length,sp=n<=1?0:n===2?2.2:n===3?1.9:1.6;
-  const xs=s.videos.map((_,j)=>(j-(n-1)/2)*sp);
+  // spaced by each frame's real width so vertical and horizontal films never overlap
+  const ws=s.videos.map(v=>v.r==="9/16"?.95:1.75),gap=.7,tot=ws.reduce((a,b)=>a+b,0)+gap*(ws.length-1);
+  let cx=-tot/2;const xs=ws.map(w=>{const c=cx+w/2;cx+=w+gap;return c});
   SETS.push({g,s,i,side,z,xs,W});
 }
 
@@ -355,16 +392,16 @@ function buildSet(s,i){
 const ovl=$("#ovl");
 function anchor(html,pos,meters,opt={}){
   const e=el(`<div class="ov">${html}</div>`);ovl.appendChild(e);
-  const a={e,pos,meters,zone:opt.zone||"hall",far:opt.far||16,near:opt.near||1.1,w:0};anchors.push(a);return a;
+  const a={e,pos,meters,zone:opt.zone||"hall",hideIn:opt.hideIn,far:opt.far||16,near:opt.near||1.1,w:0};anchors.push(a);return a;
 }
 function measure(){for(const a of anchors){a.e.style.transform="none";a.w=a.e.offsetWidth||1;a.h=a.e.offsetHeight||1}}
 const tmp=new THREE.Vector3();
 function updateAnchors(){
   const W=innerWidth,H=innerHeight,f=2*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2);
   camera.updateMatrixWorld();
-  const zoneNow=mode==="set"||mode==="toSet"?"set"+setIdx:"hall";
+  const zoneNow="set"+setIdx;
   for(const a of anchors){
-    let vis=a.zone==="hall"?(mode==="hall"||mode==="toHall"):a.zone===zoneNow;
+    let vis=(a.zone==="hall"||a.zone===zoneNow)&&a.hideIn!==setIdx;
     if(vis){
       tmp.copy(a.pos).applyMatrix4(camera.matrixWorldInverse);
       const d=-tmp.z;
@@ -373,7 +410,7 @@ function updateAnchors(){
         const ppm=H/(f*d),s=Math.min(a.meters*ppm/a.w,2.4);
         tmp.copy(a.pos).project(camera);
         const x=(tmp.x*.5+.5)*W,y=(-tmp.y*.5+.5)*H;
-        const o=clamp((a.far-d)/3,0,1)*clamp((d-a.near)/.9,0,1)*(mode==="toSet"||mode==="toHall"?tweenFade:1);
+        const o=clamp((a.far-d)/3,0,1)*clamp((d-a.near)/.9,0,1);
         if(o<.02||x<-a.w*s||x>W+a.w*s||y<-a.h*s||y>H+a.h*s)vis=false;
         else{
           a.e.style.transform=`translate3d(${(x-a.w*s/2).toFixed(1)}px,${(y-a.h*s/2).toFixed(1)}px,0) scale(${s.toFixed(4)})`;
@@ -409,10 +446,9 @@ function buildOverlays(){
     a.e.querySelector("button").addEventListener("click",()=>openSheet(p.id));
   });
   anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
-  // portrait screens are too narrow to see doors at the hall walls, so their signs float in the aisle just in front of each door
   SETS.forEach(S=>{
     const s=S.s,num=lang==="fa"?(S.i+1).toLocaleString("fa"):String(S.i+1).padStart(2,"0");
-    const a=anchor(`<button class="glass sign" style="--b:${s.c.acc==="#141414"||s.c.acc==="#F5F2EA"?s.c.frame:s.c.acc}"><span class="bar"></span><div class="n">${num}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,P?V(S.side*.3,2.2,S.z-.5):S.W(V(0,3.55,3.0)),P?1.45:1.7,{far:18});
+    const a=anchor(`<button class="glass sign" style="--b:${s.c.acc}"><span class="bar"></span><div class="n">${num}${s.logoImg?`<img class="blogo" src="${s.logoImg}" alt="">`:s.logo?`<svg class="blogo" viewBox="0 0 ${s.logo.vb||24} ${s.logo.vb||24}" aria-hidden="true"><path d="${s.logo.d}"/></svg>`:""}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,S.W(V(0,P?3.25:3.55,3.0)),P?1.45:1.7,{far:18,hideIn:S.i});
     a.e.querySelector("button").addEventListener("click",()=>enterSet(S.i));
     s.videos.forEach((v,j)=>{
       const vert=v.r==="9/16",wM=vert?.95:1.75;
@@ -506,51 +542,85 @@ function toggleLight(){
 }
 sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice){dark=e.matches;applyTheme();buildOverlays()}});
 
-/* ---------- camera, modes, input ---------- */
+/* ---------- camera path: one scroll line through the hall and every studio ----------
+   Scrolling forward walks down the hall. At each studio the camera turns to face the door,
+   walks in, dollies past the films, walks back out and turns down the hall again.
+   Scrolling backward plays the same path in reverse. */
 let mode="hall",p=0,pTarget=0,vel=0,drag=null,px=0,py=0,tx=0,ty=0;
-let setIdx=-1,dolly=0,dollyT=0,tween=null,tweenFade=1,hallP=0;
+let setIdx=-1;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3();
+let PATH=[],PATH_END=1;
+const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
-  const z=.5-pp,P=innerWidth/innerHeight<.85;
+  const z=.5-pp;
   pos.set(Math.sin(pp*.08)*.25,1.65,z);
-  look.set(Math.sin(pp*.08)*.15+tx*1.1,(P?1.75:1.45)+ty*.5,z-8);
+  look.set(Math.sin(pp*.08)*.15,portrait()?1.75:1.45,z-8);
 }
 function setPose(S,dx,pos,look){
-  const P=innerWidth/innerHeight<.85,dz=P?2.35:3.35;
-  pos.copy(S.W(V(dx,1.6,dz)));look.copy(S.W(V(dx*.92+tx*.4,1.52+ty*.25,-1.4)));
+  const dz=portrait()?2.95:3.35;
+  pos.copy(S.W(V(dx,1.6,dz)));look.copy(S.W(V(dx*.92,1.8,-1.4)));
 }
-function startTween(toPos,toLook,dur,done,fadeMode){
-  tween={fp:camera.position.clone(),fl:camLook.clone(),tp:toPos,tl:toLook,t0:performance.now(),dur:reduce?1:dur,done,fadeMode};
+const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
+function buildPath(){
+  PATH=[];let u=0,pp=0;
+  const hallTo=pp1=>{if(pp1>pp){PATH.push({hall:true,u0:u,u1:u+(pp1-pp),pp0:pp,pp1});u+=pp1-pp;pp=pp1}};
+  const key=(a,b,len,set,ez=true)=>{PATH.push({u0:u,u1:u+len,a,b,set,ez});u+=len};
+  SETS.forEach(S=>{
+    const ppA=.5-(S.z+3.2),ppD=.5-(S.z-2.6);
+    hallTo(ppA);
+    const A=pose((a,b)=>hallPose(ppA,a,b)),D=pose((a,b)=>hallPose(ppD,a,b));
+    const door=V(S.side*7.2,1.55,S.z);
+    const Tin=pose((a,b)=>{a.set(0,1.65,S.z+.4);b.copy(door)}),Tout=pose((a,b)=>{a.set(0,1.65,S.z-.4);b.copy(door)});
+    const E=S.xs.map(x=>pose((a,b)=>setPose(S,x,a,b)));
+    S.u={start:u};
+    key(A,Tin,3.5,S.i);                       // turn to face the studio
+    key(Tin,E[0],4.5,S.i);S.u.in=u;            // walk in
+    key(E[0],E[0],1.8,S.i);                    // hold on the first film
+    for(let j=1;j<E.length;j++){key(E[j-1],E[j],Math.max(2.6,Math.abs(S.xs[j]-S.xs[j-1])*1.5),S.i,false);key(E[j],E[j],1.2,S.i)}
+    key(E[E.length-1],Tout,4.5,S.i);          // walk back out
+    key(Tout,D,3.5,S.i);S.u.after=u;           // turn down the hall
+    pp=ppD;
+  });
+  hallTo(.5-(LED_Z+8));
+  PATH_END=u;
 }
-function enterSet(i){
-  if(tween)return;
-  const S=SETS[i];if(mode==="hall")hallP=pTarget;
-  setIdx=i;dolly=dollyT=S.xs[0];mode="toSet";vel=0;
-  const tp=new THREE.Vector3(),tl=new THREE.Vector3();setPose(S,dolly,tp,tl);
-  startTween(tp,tl,1600,()=>{mode="set"},"in");
-  showSetHud(S);
+// camera pose at path position u; returns the studio index the camera is in, or -1 in the hall
+function poseAt(u,pos,look){
+  u=clamp(u,0,PATH_END);
+  let lo=0,hi=PATH.length-1;while(lo<hi){const m=(lo+hi)>>1;if(PATH[m].u1<u)lo=m+1;else hi=m}
+  const sg=PATH[lo];
+  const t=sg.u1>sg.u0?clamp((u-sg.u0)/(sg.u1-sg.u0),0,1):1;
+  if(sg.hall){hallPose(lerp(sg.pp0,sg.pp1,t),pos,look);return -1}
+  const e=sg.ez?t*t*(3-2*t):t;
+  pos.lerpVectors(sg.a.pos,sg.b.pos,e);look.lerpVectors(sg.a.look,sg.b.look,e);return sg.set;
 }
-function exitSet(){
-  if(tween||mode!=="set")return;
-  const S=SETS[setIdx];hallP=clamp(-3.5-S.z,0,DEPTH);p=pTarget=hallP;
-  mode="toHall";const tp=new THREE.Vector3(),tl=new THREE.Vector3();hallPose(hallP,tp,tl);
-  startTween(tp,tl,1400,()=>{mode="hall";setIdx=-1},"out");
-  $("#shud").classList.remove("show");
+let jumping=false;
+function goTo(v){
+  v=clamp(v,0,PATH_END);vel=0;
+  if(Math.abs(v-p)<=30||reduce){pTarget=v;return}
+  // long jumps fade through black instead of flying through every studio on the way
+  if(jumping)return;jumping=true;const f=$("#fade");f.style.opacity=1;
+  setTimeout(()=>{p=pTarget=v;setTimeout(()=>{f.style.opacity=0;jumping=false},90)},360);
 }
-function switchSet(d){if(tween||mode!=="set")return;const n=(setIdx+d+SETS.length)%SETS.length;setIdx=n;mode="toSet";const S=SETS[n];dolly=dollyT=S.xs[0];
-  const tp=new THREE.Vector3(),tl=new THREE.Vector3();setPose(S,dolly,tp,tl);startTween(tp,tl,1800,()=>{mode="set"},"in");showSetHud(S)}
+function enterSet(i){goTo(SETS[i].u.in)}
+function exitSet(){if(setIdx>=0)goTo(SETS[setIdx].u.after+.8)}
+function switchSet(d){if(setIdx<0)return;goTo(SETS[(setIdx+d+SETS.length)%SETS.length].u.in)}
 function showSetHud(S){
   const t=T();$("#stitle").textContent=S.s.name[lang];$("#back").textContent=(lang==="fa"?"→ ":"← ")+t.back;
   $("#sprev").textContent=t.prev;$("#snext").textContent=t.next;$("#stip").textContent=t.rhint;$("#shud").classList.add("show");
 }
 $("#back").onclick=exitSet;$("#sprev").onclick=()=>switchSet(-1);$("#snext").onclick=()=>switchSet(1);
 
-function moveBy(d){
-  if(mode==="hall")pTarget=clamp(pTarget+d,0,DEPTH);
-  else if(mode==="set"){const S=SETS[setIdx];const lo=Math.min(...S.xs),hi=Math.max(...S.xs);dollyT=clamp(dollyT+d*(S.side<0?1:1)*.45,lo,hi)}
-}
-const UI=".hud,.map,.veil,.shud .top,.shud .bot,.player,#ovl a,#ovl button";
-addEventListener("wheel",e=>{if(e.target.closest(".sheet")||playerEl)return;e.preventDefault();const m=e.deltaMode===1?40:e.deltaMode===2?innerHeight:1;vel=0;moveBy(e.deltaY*m*.02)},{passive:false});
+function moveBy(d){pTarget=clamp(pTarget+d,0,PATH_END)}
+// while a film is open, scrolling back closes it; the short cooldown stops the same gesture from also moving the camera
+let playerShutAt=0;
+const backGesture=()=>{if(playerEl){closePlayer();playerShutAt=performance.now()}};
+addEventListener("wheel",e=>{
+  if(e.target.closest(".sheet"))return;e.preventDefault();
+  if(playerEl){if(e.deltaY<-4)backGesture();return}
+  // swallow the rest of the closing gesture, including trackpad momentum, until the wheel goes quiet
+  if(performance.now()-playerShutAt<450){playerShutAt=performance.now();return}
+  const m=e.deltaMode===1?40:e.deltaMode===2?innerHeight:1;vel=0;moveBy(e.deltaY*m*.02)},{passive:false});
 let downXY=null,dragged=false;
 addEventListener("pointerdown",e=>{
   downXY=[e.clientX,e.clientY];dragged=false;
@@ -565,28 +635,31 @@ addEventListener("pointermove",e=>{
   const d=(mode==="set"&&Math.abs(dx)>Math.abs(dy)?dx*(lang==="fa"?-1:1):dy)*(innerWidth<640?.03:.022);
   moveBy(d);vel=vel*.5+d*.5;
 },{passive:true});
-addEventListener("pointerup",()=>{drag=null;downXY=null},{passive:true});
+addEventListener("pointerup",e=>{
+  // swiping down on an open film closes it
+  if(playerEl&&downXY&&e.clientY-downXY[1]>70&&Math.abs(e.clientY-downXY[1])>Math.abs(e.clientX-downXY[0]))backGesture();
+  drag=null;downXY=null},{passive:true});
 addEventListener("pointercancel",()=>{drag=null;vel=0;downXY=null},{passive:true});
 addEventListener("click",e=>{if(dragged&&e.target.closest("#ovl")){e.preventDefault();e.stopPropagation();dragged=false}},true);
 addEventListener("keydown",e=>{
-  if(e.key==="Escape"){if(playerEl)return closePlayer();if($("#veil").classList.contains("show"))return closeSheet();if(mode==="set")return exitSet()}
-  if(playerEl||$("#veil").classList.contains("show"))return;
-  if(e.key==="ArrowDown"||e.key==="PageDown"||(e.key===" "&&!e.target.closest("button,a"))){moveBy(mode==="set"?3:4);e.preventDefault()}
-  if(e.key==="ArrowUp"||e.key==="PageUp"){moveBy(mode==="set"?-3:-4);e.preventDefault()}
-  if(mode==="set"&&e.key==="ArrowRight")moveBy(3);if(mode==="set"&&e.key==="ArrowLeft")moveBy(-3);
-  if(e.key==="Home"&&mode==="hall")goTo(0);if(e.key==="End"&&mode==="hall")goTo(DEPTH);
+  if(e.key==="Escape"){if(playerEl)return backGesture();if($("#veil").classList.contains("show"))return closeSheet();if(mode==="set")return exitSet()}
+  if(playerEl){if(e.key==="ArrowUp"||e.key==="PageUp")backGesture();return}
+  if($("#veil").classList.contains("show"))return;
+  if(e.key==="ArrowDown"||e.key==="PageDown"||(e.key===" "&&!e.target.closest("button,a"))){moveBy(4);e.preventDefault()}
+  if(e.key==="ArrowUp"||e.key==="PageUp"){moveBy(-4);e.preventDefault()}
+  if(mode==="set"&&e.key==="ArrowRight")moveBy(lang==="fa"?-3:3);if(mode==="set"&&e.key==="ArrowLeft")moveBy(lang==="fa"?3:-3);
+  if(e.key==="Home")goTo(0);if(e.key==="End")goTo(PATH_END);
 });
 
 /* ---------- map ---------- */
 let stops=[];
 function buildMap(){
   const t=T();stops=[{l:t.stops.entrance,p:0},{l:t.stops.arta,p:9.5},{l:t.stops.hall,p:22.5}]
-    .concat(SETS.map(S=>({l:S.s.name[lang],p:-3.5-S.z}))).concat([{l:t.stops.end,p:DEPTH}]);
+    .concat(SETS.map(S=>({l:S.s.name[lang],p:S.u.in}))).concat([{l:t.stops.end,p:PATH_END}]);
   const m=$("#map");m.innerHTML="";
-  stops.forEach((s,i)=>{const b=el(`<button aria-label="${s.l}"><i></i></button>`);b.onclick=()=>{if(mode==="set"){exitSet();setTimeout(()=>goTo(s.p),1500)}else goTo(s.p)};m.appendChild(b)});
+  stops.forEach((s,i)=>{const b=el(`<button aria-label="${s.l}"><i></i></button>`);b.onclick=()=>goTo(s.p);m.appendChild(b)});
   m.appendChild(el(`<span class="lbl" id="lbl"></span>`));
 }
-function goTo(v){pTarget=clamp(v,0,DEPTH);vel=0}
 let lastStop=-1;
 function updateMap(){
   let a=0;stops.forEach((s,i)=>{if(p>=s.p-3)a=i});
@@ -626,7 +699,7 @@ function applyLang(){
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
-$("#home").onclick=()=>{if(mode==="set"){exitSet();setTimeout(()=>goTo(0),1500)}else goTo(0)};
+$("#home").onclick=()=>goTo(0);
 
 /* ---------- resize ---------- */
 let lw=innerWidth,lh=innerHeight,rzT;
@@ -636,7 +709,8 @@ function resize(){
 }
 addEventListener("resize",()=>{resize();clearTimeout(rzT);rzT=setTimeout(()=>{
   const portraitChanged=(lw/lh<.85)!==(innerWidth/innerHeight<.85);
-  if(Math.abs(innerWidth-lw)>40||portraitChanged){lw=innerWidth;lh=innerHeight;buildOverlays()}else measure();
+  if(portraitChanged)buildPath();
+  if(Math.abs(innerWidth-lw)>40||portraitChanged){lw=innerWidth;lh=innerHeight;buildOverlays();buildMap();lastStop=-1}else measure();
 },180)});
 
 /* ---------- main loop ---------- */
@@ -647,19 +721,12 @@ function frame(now){
   const f=dt/16.667,sm=k=>1-Math.pow(1-k,f);
   if(!drag&&Math.abs(vel)>.002&&!reduce){moveBy(vel*f);vel*=Math.pow(.92,f)}else if(!drag)vel=0;
   tx+=(px*.6-tx)*sm(.05);ty+=(-py*.5-ty)*sm(.05);
-  if(tween){
-    const k=clamp((now-tween.t0)/tween.dur,0,1),e=ease(k);
-    camera.position.lerpVectors(tween.fp,tween.tp,e);camLook.lerpVectors(tween.fl,tween.tl,e);
-    // lift the camera in an arc so it glides over the aisle like a crane move
-    camera.position.y+=Math.sin(e*Math.PI)*.9;
-    tweenFade=tween.fadeMode==="in"?clamp((k-.55)/.45,0,1):clamp((k-.5)/.5,0,1);
-    if(k>=1){const d=tween.done;tween=null;tweenFade=1;d&&d()}
-  }else if(mode==="hall"){
-    p+=(pTarget-p)*(reduce?1:sm(.075));hallPose(p,camPos,camLook);camera.position.copy(camPos);
-  }else if(mode==="set"){
-    dolly+=(dollyT-dolly)*(reduce?1:sm(.08));setPose(SETS[setIdx],dolly,camPos,camLook);camera.position.lerp(camPos,reduce?1:sm(.2));
-  }
-  camera.lookAt(camLook);
+  p+=(pTarget-p)*(reduce?1:sm(.075));
+  const si=poseAt(p,camPos,camLook);
+  if(si!==setIdx){setIdx=si;mode=si>=0?"set":"hall";if(si>=0)showSetHud(SETS[si]);else $("#shud").classList.remove("show")}
+  camera.position.copy(camPos);camera.lookAt(camLook);
+  // gentle look-around that follows the pointer
+  camera.rotateY(-tx*.14);camera.rotateX(ty*.06);
   updatePool();
   ledTex.offset.x=(now*.00002)%1;
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
@@ -701,6 +768,6 @@ function mergeStatic(){
 
 /* ---------- start ---------- */
 build3D();mergeStatic();setupPool();setupPost(true);resize();
-hallPose(0,camPos,camLook);camera.position.copy(camPos);
+buildPath();poseAt(0,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
 (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot);setTimeout(boot,2500);

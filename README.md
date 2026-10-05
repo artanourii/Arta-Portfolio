@@ -17,6 +17,7 @@ My portfolio site: a cinematic 3D film studio built with three.js. Scrolling mov
 | `js/app.js` | 3D engine / موتور سه‌بعدی |
 | `css/style.css` | Styles / استایل‌ها |
 | `assets/logo-white.png`, `assets/logo-black.png` | Logo for dark mode and light mode / لوگو برای حالت تیره و روشن |
+| `assets/brands/` | Brand logos for the studios / لوگوی برندها |
 | `videos/` | Put your video files here / ویدیوها رو اینجا بذار |
 | `vendor/three/` | three.js r128, bundled so the site doesn't depend on a CDN |
 
@@ -60,5 +61,6 @@ Then open http://localhost:8000.
 ## Still needed / هنوز لازمه
 
 - Video files for each studio / ویدیوهای هر استودیو
-- Exact brand colors (`c:` in each studio; current ones are approximate) / کد رنگ دقیق برندها
+- Logos for 12 brands (Aparat, ASUS and TikTok are done): save a transparent PNG or SVG in `assets/brands/` and add `logoImg:"assets/brands/name.png"` to that studio in `js/content.js` / لوگوی ۱۲ برند
+- Exact brand colors for the studios marked "colors approximate" in `js/content.js` / کد رنگ دقیق برندها
 - Real info in the highlighted résumé spots: start year, project count, education / اطلاعات هایلایت‌شده‌ی رزومه

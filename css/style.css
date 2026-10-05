@@ -61,6 +61,8 @@ a{color:inherit;text-decoration:none}
 .sign{width:380px;padding:22px 24px;cursor:pointer;border:0;text-align:start}
 .sign .bar{position:absolute;inset-inline-start:0;top:0;bottom:0;width:6px;background:var(--b)}
 .sign .n{font:600 13px "Unbounded",sans-serif;letter-spacing:.18em;color:var(--muted)}
+.sign .n{display:flex;justify-content:space-between;align-items:center;min-height:30px}
+.sign .blogo{height:30px;width:auto;max-width:120px;fill:var(--text)}
 .sign h3{margin:6px 0 6px;font:800 32px/1.05 "Unbounded",sans-serif}
 [dir="rtl"] .sign h3{font-family:"Vazirmatn";font-size:32px}
 .sign p{margin:0 0 16px;color:var(--muted);font-size:16px;line-height:1.45}
@@ -101,6 +103,8 @@ a{color:inherit;text-decoration:none}
 .map button i{width:8px;height:8px;border-radius:50%;background:var(--muted);opacity:.55;transition:all .3s}
 .map button.on i{width:24px;border-radius:5px;background:var(--accent);opacity:1}
 .map .lbl{font-size:13px;font-weight:600;white-space:nowrap;padding:0 8px;min-width:96px;text-align:center}
+.map button{padding:7px 3px}
+@media (max-width:640px){.map{gap:2px;padding:6px 10px}.map button{padding:8px 2px}.map button i{width:6px;height:6px}.map button.on i{width:16px}.map .lbl{min-width:82px;font-size:12px;padding:0 6px;max-width:120px;overflow:hidden;text-overflow:ellipsis}}
 .hint{position:fixed;left:0;right:0;bottom:calc(76px + env(safe-area-inset-bottom,0px));text-align:center;font-size:14px;color:var(--muted);z-index:20;pointer-events:none;transition:opacity .5s}
 .hint i{display:block;width:2px;height:40px;margin:10px auto 0;background:linear-gradient(var(--accent),transparent);animation:drip 1.8s ease-in-out infinite}
 @keyframes drip{0%{transform:scaleY(.2);transform-origin:top}60%{transform:scaleY(1)}100%{opacity:0}}
