@@ -654,11 +654,11 @@ function drawCaption(F){
   g.clearRect(0,0,W,H);
   const fam=fa?'"Vazirmatn", Tahoma, sans-serif':'"Vazirmatn", "Helvetica Neue", Arial, sans-serif';
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";
-  g.shadowColor="rgba(0,0,0,.55)";g.shadowBlur=8;
+  g.shadowColor=dark?"rgba(0,0,0,.55)":"rgba(255,255,255,.6)";g.shadowBlur=8;
   const x=fa?W-34:34;
   // long titles shrink to fit the frame instead of being cut off
   const fit=(txt,wt,px)=>{g.font=`${wt} ${px}px ${fam}`;const m=g.measureText(txt).width,max=W-68;if(m>max)g.font=`${wt} ${px*max/m}px ${fam}`};
-  g.fillStyle="#ffffff";fit(v.t[lang],700,H*.36);g.fillText(v.t[lang],x,H*.5);
+  g.fillStyle=dark?"#ffffff":"#121014";fit(v.t[lang],700,H*.36);g.fillText(v.t[lang],x,H*.5);
   g.globalAlpha=.7;fit(v.m[lang],400,H*.25);g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
   F.capTex.needsUpdate=true;
 }
@@ -801,8 +801,8 @@ canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.styl
 const OCCLUDERS=[];
 const P3={panels:[],titles:[],pick:[]};
 const inkCol=()=>dark?{t:"#F2EEE7",m:"#A49FAA",a:"#E0BF7A"}:{t:"#16131A",m:"#5B5660",a:"#8F6A2A"};
-// text on the smoky glass is light in both modes, like iOS
-const glassInk=()=>({t:"#ffffff",m:"rgba(255,255,255,.74)",a:"#f0cf8a"});
+// text on the glass: black on the milky glass of light mode, white on the smoky glass of dark mode
+const glassInk=()=>dark?{t:"#ffffff",m:"rgba(255,255,255,.74)",a:"#f0cf8a"}:{t:"#121014",m:"rgba(18,16,20,.68)",a:"#8F6A2A"};
 function panelTex(w,h,draw){
   const cv=document.createElement("canvas");cv.width=w;cv.height=h;
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
@@ -842,7 +842,7 @@ void main(){
   vec2 suv=gl_FragCoord.xy/uRes,off=n*bend*bez*1.15*ppm/uRes;
   float lod=1.7+bend*1.8;   // soft frost, so text on the glass stays easy to read
   vec3 col=vec3(texture2D(tBack,suv+off*1.1,lod).r,texture2D(tBack,suv+off,lod).g,texture2D(tBack,suv+off*.9,lod).b);
-  col=col*mix(.7,.74,uDark)+.008;   // a light smoky tint: the scene behind reads a touch darker through the glass
+  col=uDark>.5?col*.74+.008:col*.9+.11;   // dark mode: smoky glass; light mode: milky glass, so black text reads on it
   // specular rim: thin and bright where the light (top left) catches it, a weaker kick on the opposite edge
   vec2 L=normalize(vec2(-.55,.85));float ld=dot(n,L);
   float rim=1.-smoothstep(0.,1.4/ppm+.0025,inside);
@@ -897,7 +897,7 @@ function liquidPanel(layout){
 }
 const LG_SLAB=new THREE.MeshPhysicalMaterial({color:C("#dfe6f0"),roughness:.03,metalness:.1,clearcoat:1,clearcoatRoughness:.03,transparent:true,opacity:.07,envMapIntensity:1.4,side:THREE.DoubleSide,depthWrite:false});
 LG_SLAB.userData.glass=true;
-const textShadow=(g,on)=>{g.shadowColor=on?"rgba(0,0,0,.45)":"transparent";g.shadowBlur=on?10:0}
+const textShadow=(g,on)=>{g.shadowColor=on?(dark?"rgba(0,0,0,.45)":"rgba(255,255,255,.6)"):"transparent";g.shadowBlur=on?10:0}
 function buildPanels3D(){
   TX.en.panels.forEach((_,i)=>{
     const LP=liquidPanel((g,measure)=>{
@@ -1084,7 +1084,7 @@ function updatePool(){
 function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
   GLASS.dark.value=dark?1:0;
-  FEATS3.forEach(drawCaption);
+  framesAll.forEach(drawCaption);
   const bg=dark?"#060607":"#cdc9c3";
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
   MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
