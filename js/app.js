@@ -364,11 +364,20 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>brandTex.f
 function buildSet(s,i){
   const side=i%2===0?-1:1,z=SET0-i*SETSTEP;
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
+  // films float one behind another down a tunnel into the set, alternating left and right,
+  // so the camera flies between them; sets with more films are built deeper
+  const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=1.2;
+  const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?0:(j%2===0?-1:1)*(vert?.85:1.25);
+    return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ}});
+  const back=Math.min(-1.25,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
-  const cy=mesh(cycGeo(7.4,3.4,1.25,4.8),cm);g.add(cy);
+  const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.z=-extra;g.add(cy);
   const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.004,3.38);g.add(edge);
-  for(const x of [-3.8,3.8]){const t=truss(5);t.rotation.z=Math.PI/2;t.position.set(x,2.5,2.6);g.add(t)}
-  const hd=truss(7.9);hd.position.set(0,5.1,2.6);g.add(hd);
+  // truss ribs along the tunnel
+  for(let rz=2.6;rz>back+.6;rz-=Math.max(DZ,2.6)){
+    for(const x of [-3.8,3.8]){const t=truss(5);t.rotation.z=Math.PI/2;t.position.set(x,2.5,rz);g.add(t)}
+    const hd=truss(7.9);hd.position.set(0,5.1,rz);g.add(hd);
+  }
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
   const rig=cameraRig(i%2===0);rig.position.set(-3.3,0,4.2);g.add(rig);
@@ -378,16 +387,118 @@ function buildSet(s,i){
   rig.lookAt(W(V(0,0,-.5)));rig.rotateY(Math.PI);
   slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6,.5,.6);
   const acc=new THREE.Color(s.c.acc).getHSL({}).l<.15?"#ffffff":s.c.acc;
-  slot(W(V(0,4.9,2.4)),W(V(0,2.3,-1.25)),acc,2.2,.62,.7);
-  // brand wall: logo (or name) above the films, with a thin light line in the brand accent
-  const bw=brandWall(s);bw.position.set(0,3.12,-1.05);g.add(bw);
-  const line=box(2.8,.022,.02,emissive(s.c.acc,2.4),0,2.6,-1.0);line.userData.keep=true;g.add(line);
-  // video positions along the set
-  // spaced by each frame's real width so vertical and horizontal films never overlap
-  const ws=s.videos.map(v=>v.r==="9/16"?.95:1.75),gap=.7,tot=ws.reduce((a,b)=>a+b,0)+gap*(ws.length-1);
-  let cx=-tot/2;const xs=ws.map(w=>{const c=cx+w/2;cx+=w+gap;return c});
-  SETS.push({g,s,i,side,z,xs,W});
+  slot(W(V(0,4.9,back+3.6)),W(V(0,2.3,back)),acc,2.2,.62,.7);
+  // brand wall at the end of the tunnel: logo (or name) with a thin light line in the brand accent
+  const bw=brandWall(s);bw.position.set(0,3.12,back+.2);g.add(bw);
+  const line=box(2.8,.022,.02,emissive(s.c.acc,2.4),0,2.6,back+.25);line.userData.keep=true;g.add(line);
+  // the films themselves, each in its own slab of glass with a soft key light
+  const frames=[],pick=[];
+  s.videos.forEach((v,j)=>{
+    const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=L.x===0?0:-Math.sign(L.x)*.22;F.ph=j*1.7+i;
+    F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;g.add(F.G);frames.push(F);
+    F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
+    slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6,.42,.8,false);
+  });
+  SETS.push({g,s,i,side,z,W,frames,pick,lay,back});
 }
+
+/* ---------- 3D glass frames: each film floats in a real slab of glass ---------- */
+const CAP_H=.24;
+function roundRect(w,h,r){const s=new THREE.Shape(),x=-w/2,y=-h/2;
+  s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
+function drawPoster(F){
+  const cv=F.posterCv,g=cv.getContext("2d"),W=cv.width,H=cv.height,s=F.s;
+  const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,s.c.bg2);bg.addColorStop(1,s.c.bg);g.fillStyle=bg;g.fillRect(0,0,W,H);
+  const gl=g.createRadialGradient(W*.3,H*.22,0,W*.3,H*.22,Math.max(W,H)*.7);gl.addColorStop(0,s.c.acc+"cc");gl.addColorStop(1,s.c.acc+"00");g.fillStyle=gl;g.fillRect(0,0,W,H);
+  if(F.posterImg){const im=F.posterImg,k=Math.max(W/im.width,H/im.height);g.drawImage(im,(W-im.width*k)/2,(H-im.height*k)/2,im.width*k,im.height*k)}
+  const r=Math.min(W,H)*.09;g.fillStyle="rgba(255,255,255,.18)";g.strokeStyle="rgba(255,255,255,.75)";g.lineWidth=r*.06;
+  g.beginPath();g.arc(W/2,H/2,r,0,Math.PI*2);g.fill();g.stroke();
+  g.fillStyle="#fff";g.beginPath();g.moveTo(W/2-r*.3,H/2-r*.42);g.lineTo(W/2+r*.48,H/2);g.lineTo(W/2-r*.3,H/2+r*.42);g.closePath();g.fill();
+  F.posterTex.needsUpdate=true;
+}
+function drawCaption(F){
+  const cv=F.capCv,g=cv.getContext("2d"),W=cv.width,H=cv.height,s=F.s,v=F.v,fa=lang==="fa";
+  g.clearRect(0,0,W,H);
+  const fam=fa?'"Vazirmatn", Tahoma, sans-serif':'"Vazirmatn", "Helvetica Neue", Arial, sans-serif';
+  if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";
+  const light=s.theme==="light";
+  g.fillStyle=light?"rgba(255,255,255,.72)":"rgba(8,8,10,.62)";g.beginPath();
+  const r=H*.22;g.moveTo(r,0);g.lineTo(W-r,0);g.quadraticCurveTo(W,0,W,r);g.lineTo(W,H-r);g.quadraticCurveTo(W,H,W-r,H);g.lineTo(r,H);g.quadraticCurveTo(0,H,0,H-r);g.lineTo(0,r);g.quadraticCurveTo(0,0,r,0);g.fill();
+  const x=fa?W-34:34;
+  g.fillStyle=light?s.c.ink:"#ffffff";g.font=`700 ${H*.36}px ${fam}`;g.fillText(v.t[lang],x,H*.5);
+  g.globalAlpha=.7;g.font=`400 ${H*.25}px ${fam}`;g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
+  F.capTex.needsUpdate=true;
+}
+const framesAll=[];
+function makeFrame(s,v,i){
+  const vert=v.r!=="16/9",w=vert?.95:1.75,h=vert?w*16/9:w*9/16,pad=.045,depth=.07;
+  const G=new THREE.Group(),F={s,v,G,w,h,set:i,video:null,vtex:null};
+  // glass slab with real thickness
+  const slabH=h+pad*2+CAP_H,shape=roundRect(w+pad*2,slabH,.06);
+  const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:6});
+  geo.translate(0,-CAP_H/2,-depth/2);
+  const glass=new THREE.MeshPhysicalMaterial({color:new THREE.Color(s.c.acc).lerp(new THREE.Color("#bfc7d2"),.55).convertSRGBToLinear(),
+    roughness:.04,metalness:.1,clearcoat:1,clearcoatRoughness:.04,transparent:true,opacity:.13,envMapIntensity:1.1,side:THREE.DoubleSide,depthWrite:false});
+  glass.userData.glass=true;
+  const slab=new THREE.Mesh(geo,glass);slab.renderOrder=2;G.add(slab);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.32}));G.add(edges);
+  // screen (poster until the film is ready)
+  F.posterCv=document.createElement("canvas");F.posterCv.width=vert?360:640;F.posterCv.height=vert?640:360;
+  F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;drawPoster(F);
+  F.screenMat=new THREE.MeshBasicMaterial({map:F.posterTex});
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(w,h),F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
+  // caption plate under the screen
+  F.capCv=document.createElement("canvas");F.capCv.width=1024;F.capCv.height=Math.round(1024*CAP_H/w);
+  F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
+  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false}));
+  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);G.add(cap);
+  // thin light line in the brand colour along the bottom edge
+  const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
+  if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
+  G.traverse(o=>{o.userData.keep=true;o.userData.frame=F});
+  framesAll.push(F);return F;
+}
+// films play on the glass only near the camera, and only from this site's own files (other hosts can't be drawn into 3D)
+const sameOrigin=src=>{try{return new URL(src,location.href).origin===location.origin}catch(e){return false}};
+let frameT=0;
+function updateFrames(dt){
+  frameT+=dt*.001;
+  const cp=camera.position;
+  for(const F of framesAll){
+    const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
+    F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
+    if(!F.v.src||!sameOrigin(F.v.src))continue;
+    F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
+    const want=F.set===setIdx&&d<8&&!(playerEl&&playerFrame===F)&&!document.hidden;
+    if(want&&!F.video){
+      const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
+      vd.addEventListener("error",()=>{F.v._bad=true});
+    }
+    if(F.video&&!F.v._bad){if(want&&F.video.paused)F.video.play().catch(()=>{});else if(!want&&!F.video.paused)F.video.pause()}
+  }
+}
+function refreshCaptions(){framesAll.forEach(drawCaption)}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refreshCaptions);
+// tap / click on a frame
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
+function pickFrame(x,y){
+  if(setIdx<0)return null;
+  ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(SETS[setIdx].pick,false)[0];return hit?hit.object.userData.frame:null;
+}
+function frameRect(F){
+  const xs=[],ys=[];F.screen.updateMatrixWorld();
+  for(const [a,b] of [[-1,-1],[1,-1],[1,1],[-1,1]]){tmp.set(a*F.w/2,b*F.h/2,0).applyMatrix4(F.screen.matrixWorld).project(camera);xs.push((tmp.x*.5+.5)*innerWidth);ys.push((-tmp.y*.5+.5)*innerHeight)}
+  const l=Math.min(...xs),t=Math.min(...ys);return {left:l,top:t,width:Math.max(...xs)-l,height:Math.max(...ys)-t};
+}
+let playerFrame=null;
+canvas.addEventListener("click",e=>{
+  if(dragged||playerEl)return;const F=pickFrame(e.clientX,e.clientY);if(!F)return;
+  playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);
+});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)?"pointer":""},{passive:true});
 
 /* ---------- overlays anchored to 3D points ---------- */
 const ovl=$("#ovl");
@@ -451,13 +562,6 @@ function buildOverlays(){
     const s=S.s,num=lang==="fa"?(S.i+1).toLocaleString("fa"):String(S.i+1).padStart(2,"0");
     const a=anchor(`<button class="glass sign" style="--b:${s.c.acc}"><span class="bar"></span><div class="n">${num}${s.logoImg?`<img class="blogo" src="${s.logoImg}" alt="">`:s.logo?`<svg class="blogo" viewBox="0 0 ${s.logo.vb||24} ${s.logo.vb||24}" aria-hidden="true"><path d="${s.logo.d}"/></svg>`:""}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,S.W(V(0,P?3.25:3.55,3.0)),P?1.45:1.7,{far:18,hideIn:S.i});
     a.e.querySelector("button").addEventListener("click",()=>enterSet(S.i));
-    s.videos.forEach((v,j)=>{
-      const vert=v.r==="9/16",wM=vert?.95:1.75;
-      const scr=v.src?`<video src="${v.src}" muted loop playsinline preload="metadata"></video>`:"";
-      const b=anchor(`<button class="glass vcard" style="width:${vert?300:520}px"><div class="screen" style="aspect-ratio:${v.r};--sa:${s.c.acc}aa;--sb:${s.c.bg2}">${scr}<div class="slot" ${v.src?'style="background:none"':""}><span class="play">${ICON.play}</span></div></div><div class="vcap"><b>${v.t[lang]}</b><span>${v.m[lang]}</span></div></button>`,S.W(V(S.xs[j],1.62,.15)),wM,{zone:"set"+S.i,far:9,near:.4});
-      const btn=b.e.querySelector("button");btn.addEventListener("click",()=>openPlayer(v,btn));
-      const vid=btn.querySelector("video");if(vid&&!TOUCH){btn.addEventListener("mouseenter",()=>vid.play().catch(()=>{}));btn.addEventListener("mouseleave",()=>vid.pause())}
-    });
   });
   const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
   // your own films: logo film under the arch, Instagram film (with sound) in front of the LED wall
@@ -483,7 +587,7 @@ function featureCard(f,pos,meters,range){
   const F={a,f,vid,pos,range,snd:btn.querySelector(".snd"),dead:false};
   // no file yet: keep the spot empty instead of showing a black frame
   vid.addEventListener("error",()=>{F.dead=true;a.dead=true});
-  btn.addEventListener("click",()=>{vid.pause();openPlayer(f,btn,vid.currentTime)});
+  btn.addEventListener("click",()=>{vid.pause();openPlayer(f,()=>btn.querySelector(".screen").getBoundingClientRect(),vid.currentTime)});
   feats.push(F);
 }
 function updateFeatures(){
@@ -569,7 +673,7 @@ function applyTheme(){
   hemi.intensity=dark?.12:1.05;hemi.color=C(dark?"#cfd6e6":"#ffffff");hemi.groundColor=C(dark?"#1a1614":"#b9b4ae");
   dir.intensity=dark?0:.55;
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.45:.06):(metal?1:.55)});
-  scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material))o.material.envMapIntensity=dark?.06:.55});
+  scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.06:.55});
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.3:.07);
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.6;
@@ -598,10 +702,6 @@ function hallPose(pp,pos,look){
   pos.set(Math.sin(pp*.08)*.25,1.65,z);
   look.set(Math.sin(pp*.08)*.15,portrait()?1.75:1.45,z-8);
 }
-function setPose(S,dx,pos,look){
-  const dz=portrait()?2.95:3.35;
-  pos.copy(S.W(V(dx,1.6,dz)));look.copy(S.W(V(dx*.92,1.8,-1.4)));
-}
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
   PATH=[];let u=0,pp=0;
@@ -613,14 +713,23 @@ function buildPath(){
     const A=pose((a,b)=>hallPose(ppA,a,b)),D=pose((a,b)=>hallPose(ppD,a,b));
     const door=V(S.side*7.2,1.55,S.z);
     const Tin=pose((a,b)=>{a.set(0,1.65,S.z+.4);b.copy(door)}),Tout=pose((a,b)=>{a.set(0,1.65,S.z-.4);b.copy(door)});
-    const E=S.xs.map(x=>pose((a,b)=>setPose(S,x,a,b)));
+    const P=portrait(),n=S.lay.length;
+    // in front of each film, looking at it, as the camera flies down the tunnel
+    const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
+    const lastZ=S.lay[n-1].z;
+    const End=pose((a,b)=>{a.copy(S.W(V(0,1.62,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,2.7,S.back)))});
+    const Back=pose((a,b)=>{a.copy(S.W(V(0,n>1?3.4:2.2,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,1.6,12)))});
+    const Front=pose((a,b)=>{a.copy(S.W(V(0,2.3,5.4)));b.copy(S.W(V(0,1.6,14)))});
     S.u={start:u};
-    key(A,Tin,3.5,S.i);                       // turn to face the studio
-    key(Tin,E[0],4.5,S.i);S.u.in=u;            // walk in
-    key(E[0],E[0],1.8,S.i);                    // hold on the first film
-    for(let j=1;j<E.length;j++){key(E[j-1],E[j],Math.max(2.6,Math.abs(S.xs[j]-S.xs[j-1])*1.5),S.i,false);key(E[j],E[j],1.2,S.i)}
-    key(E[E.length-1],Tout,4.5,S.i);          // walk back out
-    key(Tout,D,3.5,S.i);S.u.after=u;           // turn down the hall
+    key(A,Tin,3.5,S.i);                        // turn to face the studio
+    key(Tin,E[0],4.5,S.i);S.u.in=u;             // walk in
+    key(E[0],E[0],1.6,S.i);                     // hold on the first film
+    for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,S.i);key(E[j],E[j],1.2,S.i)}
+    key(E[n-1],End,n>1?3:2,S.i);key(End,End,1.2,S.i);   // past the last film, facing the brand wall
+    key(End,Back,3.2,S.i);                      // turn around
+    key(Back,Front,Math.max(3.5,(n-1)*1.6),S.i);   // fly back out over the tunnel
+    key(Front,Tout,3,S.i);
+    key(Tout,D,3.5,S.i);S.u.after=u;            // turn down the hall
     pp=ppD;
   });
   hallTo(.5-(LED_Z+8));
@@ -711,13 +820,13 @@ function updateMap(){
 }
 
 /* ---------- sheet & player ---------- */
-let lastFocus=null,playerEl=null,playerCard=null;
+let lastFocus=null,playerEl=null,playerRect=null;
 function openSheet(id){const p=T().panels.find(x=>x.id===id);lastFocus=document.activeElement;
   $("#sheetBody").innerHTML=`<div style="color:var(--accent);font-weight:600">${p.k}</div>`+p.body;$("#veil").classList.add("show");setTimeout(()=>$("#sheetX").focus(),50)}
 function closeSheet(){$("#veil").classList.remove("show");lastFocus&&lastFocus.focus&&lastFocus.focus()}
 $("#sheetX").onclick=closeSheet;$("#veil").addEventListener("click",e=>{if(e.target.id==="veil")closeSheet()});
-function openPlayer(v,card,startAt){
-  if(playerEl)return;playerCard=card.querySelector(".screen");const r=playerCard.getBoundingClientRect();
+function openPlayer(v,getRect,startAt){
+  if(playerEl)return;playerRect=getRect;const r=getRect();
   const pl=el(`<div class="player" role="dialog" aria-modal="true" aria-label="${v.t[lang]}"><button class="x" aria-label="${T().close}">✕</button><div class="ttl">${v.t[lang]}</div>
     ${v.src?`<video src="${v.src}" controls autoplay playsinline></video>`:`<div class="slot" style="--sa:#ffffff22;--sb:#111"><div><span class="play" style="margin:0 auto 18px">${ICON.play}</span>${T().soon}</div></div>`}</div>`);
   Object.assign(pl.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"});
@@ -727,7 +836,7 @@ function openPlayer(v,card,startAt){
 }
 function closePlayer(){
   if(!playerEl)return;const pl=playerEl;playerEl=null;const v=pl.querySelector("video");if(v)v.pause();
-  const r=playerCard.getBoundingClientRect();pl.classList.remove("full");
+  const r=playerRect();pl.classList.remove("full");playerFrame=null;
   Object.assign(pl.style,{left:r.left+"px",top:r.top+"px",width:Math.max(r.width,40)+"px",height:Math.max(r.height,40)+"px"});
   setTimeout(()=>pl.remove(),reduce?0:560);
 }
@@ -738,7 +847,7 @@ function applyLang(){
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
-  buildOverlays();buildMap();lastStop=-1;applyTheme();if(mode==="set")showSetHud(SETS[setIdx]);
+  buildOverlays();buildMap();lastStop=-1;applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
@@ -775,7 +884,7 @@ function frame(now){
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
   if(useComposer)composer.render();else renderer.render(scene,camera);
-  updateAnchors();updateMap();updateFeatures();
+  updateAnchors();updateMap();updateFeatures();updateFrames(dt);
   $("#hint").style.opacity=p<1.5&&mode==="hall"?1:0;
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350)}
   // automatic quality: drop expensive effects if the device struggles

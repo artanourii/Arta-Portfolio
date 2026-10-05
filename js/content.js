@@ -12,6 +12,8 @@
    Leave src:"" empty and the card shows "This film is on its way."
    اگه src خالی بمونه، کارت پیام «به‌زودی» نشون می‌ده.
    "r" is the aspect ratio: "9/16" vertical, "16/9" horizontal.
+   Optional cover image shown before the film plays: poster:"videos/mixland-01.jpg"
+   عکس کاور (اختیاری) که قبل از پخش روی قاب دیده می‌شه: poster
 
    Brand logos / لوگوی برندها:
    Put a transparent PNG or SVG in assets/brands and add logoImg:"assets/brands/snapp.png"
