@@ -89,7 +89,7 @@ const MAT={
   floor:std("#0b0b0c",.32,0,{map:concreteTex,transparent:true,opacity:.86}),
   wall:std("#121214",.92,0,{map:acousticTex}),ceil:std("#08080a",.95,0),
   hallCyc:std("#1b1b1e",.85,0),plinth:std("#0c0c0d",.28,.2),logo:std("#eeebe5",.32,.08),
-  tape:std("#e8c234",.7,0),tapeW:std("#e9e9e9",.7,0),truss:std("#9ea1a6",.35,.9),
+  tapeW:std("#e9e9e9",.7,0),truss:std("#9ea1a6",.35,.9),
   space:new THREE.MeshStandardMaterial({color:C("#ffffff"),emissive:C("#fff4e2"),emissiveIntensity:.2,roughness:.6}),
   chairCanvas:new THREE.MeshStandardMaterial({map:chairTex,roughness:.9}),
   monitor:new THREE.MeshBasicMaterial({map:monitorTex}),
@@ -212,7 +212,6 @@ function cycGeo(w,floorLen,r,h,seg=14){
   g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;
 }
 function cable(pts){const c=new THREE.CatmullRomCurve3(pts.map(p=>V(p[0],.012,p[1])));return mesh(new THREE.TubeGeometry(c,60,.011,6),MAT.rubber,false)}
-function tapeX(x,z,mat=MAT.tape){const g=new THREE.Group();for(const r of [.785,-.785]){const t=mesh(new THREE.PlaneGeometry(.32,.05),mat,false);t.rotation.x=-Math.PI/2;t.rotation.z=r;g.add(t)}g.position.set(x,.004,z);return g}
 
 /* volumetric light beam (additive cone) */
 const beams=[];
@@ -294,7 +293,7 @@ function build3D(){
   // soft light halo behind the logo, so the black logo of light mode stands out from the room
   const haloTex=canvasTex(256,256,(g,w,h)=>{const gr=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,"rgba(255,246,228,1)");gr.addColorStop(.45,"rgba(255,240,210,.45)");gr.addColorStop(1,"rgba(255,240,210,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
   MAT.halo=new THREE.MeshBasicMaterial({map:haloTex,transparent:true,depthWrite:false,opacity:.8,toneMapped:false,fog:false});
-  const halo=new THREE.Mesh(new THREE.PlaneGeometry(5.4,5.4),MAT.halo);halo.position.set(0,1.55,-6.95);halo.userData.keep=true;scene.add(halo);logo.traverse(o=>{o.userData.keep=true});OCCLUDERS.push(logo);
+  const halo=new THREE.Mesh(new THREE.PlaneGeometry(5.4,5.4),MAT.halo);halo.position.set(0,1.55,-7.4);halo.userData.keep=true;scene.add(halo);logo.traverse(o=>{o.userData.keep=true});OCCLUDERS.push(logo);
   const wmTex=new THREE.TextureLoader().load(WORDMARK);wmTex.encoding=THREE.sRGBEncoding;
   MAT.wordmark=new THREE.MeshBasicMaterial({map:wmTex,transparent:true,color:C("#f0eee8"),depthWrite:false,fog:false});
   const wm=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.23),MAT.wordmark);wm.position.set(0,.25,-5.645);scene.add(wm);
@@ -303,7 +302,6 @@ function build3D(){
   slot(L1.userData.lensWorld(),lt,"#fff1dc",3,.42,.55);slot(L2.userData.lensWorld(),lt,"#fff1dc",3,.42,.55);
   slot(V(0,7.6,-4.2),V(0,.6,-6.4),"#ffffff",1.3,.3,.6);
   const rig=cameraRig(false);rig.position.set(-1.7,0,-3.3);rig.lookAt(0,0,-6.4);rig.rotateY(Math.PI);scene.add(rig);
-  scene.add(tapeX(-1.7,-3.3),tapeX(0,-4.9,MAT.tapeW));
   scene.add(cable([[-2.7,-4.5],[-3.4,-3.6],[-3.8,-1],[-5,2]]),cable([[2.7,-4.5],[3.5,-3.4],[4.2,-1.2],[5.5,1.5]]),cable([[-1.7,-3.3],[-2.6,-2.4],[-3.8,-1]]));
 
   // Arta studio
@@ -320,7 +318,6 @@ function build3D(){
   const ct=V(-8.5,1.5,-16.6);sb1.userData.aim(ct);sb2.userData.aim(ct);lp.userData.aim(ct);
   slot(V(-4.6,2.0,-13.2),ct,"#fff6e8",2.2,.75,1,false);slot(V(-4.6,2.0,-20),ct,"#fff6e8",2.2,.75,1,false);
   slot(V(0,7.6,-16.6),V(-1,0,-16.6),"#ffe3b8",1.6,.45,.7);
-  scene.add(tapeX(2.9,-15.8),tapeX(0,-16.6,MAT.tapeW));
   scene.add(cable([[-4.6,-13.2],[-3.8,-11.8],[-5,-9],[-6.5,-6]]),cable([[-4.6,-20],[-3.6,-22.5],[-5.2,-25]]));
 
   // brand sets
@@ -1093,8 +1090,6 @@ function applyTheme(){
   MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
   MAT.wall.color=C(dark?"#1b1b1f":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#4a4744");MAT.plinth.roughness=dark?.28:.62;MAT.plinth.metalness=dark?.2:.05;
-  // light mode: the plinth is dark matt stone with a concrete grain rather than a glossy white block
-  if(MAT.plinth.map!==(dark?null:concreteTex)){MAT.plinth.map=dark?null:concreteTex;MAT.plinth.needsUpdate=true}
   MAT.facade.color=C(dark?"#18181c":"#2a2a2f");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
   MAT.logo.color=C(dark?"#f1eee8":"#121212");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
