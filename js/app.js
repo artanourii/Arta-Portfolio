@@ -7,9 +7,9 @@ const ICON = {
 
 
 Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
-  rhint:"Keep scrolling to pass the films and walk back out. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
+  rhint:"Scroll to walk in past the films. Scroll back to walk out. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
 Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
-  rhint:"اسکرول کن تا از کنار فیلم‌ها رد شی و از استودیو بیای بیرون. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
+  rhint:"اسکرول کن تا وارد شی و از کنار فیلم‌ها رد شی. با اسکرول برعکس برمی‌گردی بیرون. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
 ICON.mute=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>`;
@@ -45,7 +45,7 @@ let DPR=Math.min(devicePixelRatio||1,Q==="high"?1.75:1.25);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high";renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.05,220);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.12,220);
 const C=h=>new THREE.Color(h).convertSRGBToLinear();
 const pmrem=new THREE.PMREMGenerator(renderer);
 scene.environment=pmrem.fromScene(new THREE.RoomEnvironment(),.04).texture;
@@ -258,7 +258,7 @@ function build3D(){
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
   // the main studio building: facade with a big doorway, the ARTA NOORI sign above it, and the forecourt outside
   MAT.facade=std("#18181c",.75,.15,{map:acousticTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
-  const DW=9,DH=7;
+  const DW=9,DH=4.6;
   for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
   scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
   const trim=emissive("#e9c98d",2.4);
@@ -268,14 +268,16 @@ function build3D(){
   const fsTex=canvasSign(2048,560,(g,W,H)=>{
     rr(g,8,8,W-16,H-16,40);g.fillStyle="#0b0b0d";g.fill();g.lineWidth=10;g.strokeStyle="#e9c98d";g.stroke();
     let x=90;if(FACADE_LOGO){const k=(H-140)/FACADE_LOGO.height;g.drawImage(FACADE_LOGO,x,70,FACADE_LOGO.width*k,H-140);x+=FACADE_LOGO.width*k+80}
+    // text is sized to the space left beside the logo so it always fits whatever font the device uses
+    const room=W-x-90,fit=(txt,wt,px,sp)=>{let f=px;const set=()=>{g.font=`${wt} ${f}px "Unbounded", "Helvetica Neue", Arial, sans-serif`;if("letterSpacing" in g)g.letterSpacing=(f*sp)+"px"};set();while(g.measureText(txt).width>room&&f>30){f-=4;set()}};
     g.fillStyle="#f3efe6";g.textBaseline="middle";g.textAlign="left";
-    g.font='700 190px "Unbounded", "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing="18px";g.fillText("ARTA NOORI",x,H*.42);
-    g.font='500 92px "Unbounded", "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing="40px";g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
+    fit("ARTA NOORI",700,190,.09);g.fillText("ARTA NOORI",x,H*.42);
+    fit("STUDIO",500,92,.43);g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
   });
-  const fs=new THREE.Mesh(new THREE.PlaneGeometry(10.2,2.79),new THREE.MeshBasicMaterial({map:fsTex}));fs.position.set(0,10.1,10.27);fs.userData.keep=true;scene.add(fs);
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.02),new THREE.MeshBasicMaterial({map:fsTex}));fs.position.set(0,DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
   { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
   // warm uplights washing the facade and the sign
-  for(const sd of [-1,1])slot(V(sd*7,.3,13.5),V(sd*2.5,9.5,10),"#ffd9a6",2.2,.42,.7);
+  for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,DH+1.4,10),"#ffd9a6",2.2,.42,.7);
   slot(V(0,1,17),V(0,4,10),"#fff1dc",1.6,.5,.8,false);
   const cl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,HALL_MID);scene.add(cl);
   // overhead trusses + space lights
@@ -442,7 +444,7 @@ function drawHall(s,dir){return (g,W,H)=>{
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textBaseline="middle";g.fillStyle="#ffffff";
   g.textAlign=dir<0?"left":"right";fitText(g,s.name[lang],700,H*.32,x1-x0);g.fillText(s.name[lang],dir<0?x0:x1,ay);
 }}
-const hallPick=[];
+const hallPick=[],signMats=[];
 
 /* ---------- set dressing: every studio gets props that suit the brand ---------- */
 function decor(s,g,back){
@@ -602,9 +604,9 @@ function buildSet(s,i){
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
-  hb.position.set(0,3.58,3.565);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);
-  g.add(B3(3.04,1.02,.04,MAT.metal,0,3.58,3.52));
-  g.add(B3(2.6,.025,.025,emissive(s.c.acc,3),0,3.04,3.58));
+  hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
+  g.add(B3(3.04,1.02,.06,MAT.metal,0,3.58,3.6));
+  g.add(B3(2.6,.025,.025,emissive(s.c.acc,2),0,3.04,3.68));
   decor(s,g,back);
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
@@ -783,14 +785,14 @@ function buildOverlays(){
   const li=CONTACT.linkedin&&CONTACT.linkedin.link?chip("",{c:"li",h:ICON.li},t.li,CONTACT.linkedin.display,true,CONTACT.linkedin.link):"";
   // contact chips float in front of the main building, before you walk in
   if(P){
-    anchor(wa,V(-.9,3.7,16.5),1.5);anchor(ig,V(.9,3.7,16.5),1.5);
-    if(li)anchor(li,V(-.9,3.0,16.5),1.5);
-    anchor(lg,V(li?.9:-.9,3.0,16.5),1.5);anchor(lt,V(li?0:.9,li?2.3:3.0,16.5),1.5);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,8.0,10.6),4.2,{far:24});
+    anchor(wa,V(-.55,1.7,20),.98);anchor(ig,V(.55,1.7,20),.98);
+    if(li)anchor(li,V(-.55,1.1,20),.98);
+    anchor(lg,V(li?.55:-.55,1.1,20),.98);anchor(lt,V(li?0:.55,li?.5:1.1,20),.98);
+    anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),3.2,{far:24});
   }else{
     anchor(wa,V(-3.4,2.6,16),1.5);anchor(ig,V(-3.4,1.9,16),1.5);if(li)anchor(li,V(-3.4,1.2,16),1.5);
     anchor(lg,V(3.4,2.6,16),1.5);anchor(lt,V(3.4,1.9,16),1.5);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,8.0,10.6),6,{far:24});
+    anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});
   }
   anchor(`<div class="gate"><h2>${t.arch}</h2><p>${t.archSub}</p></div>`,V(0,5.6,-11),P?4.4:5.4,{far:22});
   const CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
@@ -913,6 +915,8 @@ function applyTheme(){
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.45:.06):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.06:.55});
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.3:.07);
+  // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
+  signMats.forEach(m=>m.color.setScalar(dark?.62:1));
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
   if(bloom){bloom.strength=dark?.7:.15;bloom.threshold=dark?.8:.96;bloom.radius=.45}
@@ -933,36 +937,28 @@ sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice)
 let mode="hall",p=0,pTarget=0,vel=0,drag=null,px=0,py=0,tx=0,ty=0;
 let setIdx=-1,sp=0,spTarget=0,lookYaw=0,lookPitch=0,nearIdx=-1;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),curPos=new THREE.Vector3(),curLook=new THREE.Vector3();
-const PP0=-23.5;let PP_END=1;
+let PP0=-20.5,PP_END=1;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
-  const z=.5-pp,out=clamp(-pp/18,0,1);  // outside the building the camera looks up at the facade
-  pos.set(Math.sin(pp*.08)*.25,1.65+out*.6,z);
-  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*3.2,z-8);
+  const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
+  pos.set(Math.sin(pp*.08)*.25,1.65,z);
+  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1,z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
-  PP_END=.5-(LED_Z+8);
+  // phones start a little further back so the whole sign over the door fits the narrow screen
+  PP0=portrait()?-24.5:-20.5;PP_END=.5-(LED_Z+8);
   SETS.forEach(S=>{
     const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
     S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
-    const A=pose((a,b)=>hallPose(S.ppA,a,b)),D=pose((a,b)=>hallPose(S.ppD,a,b));
-    const door=V(S.side*7.2,2.8,S.z);
-    const Tin=pose((a,b)=>{a.set(0,1.65,S.z+.4);b.copy(door)}),Tout=pose((a,b)=>{a.set(0,1.65,S.z-.4);b.copy(door)});
     const P=portrait(),n=S.lay.length;
+    // standing across the aisle at eye level, looking at the door and its name board
+    const Door=pose((a,b)=>{a.set(-S.side*(P?2.6:3.4),1.65,S.z);b.set(S.side*7.2,P?2.45:2.25,S.z)});
     const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
-    const lastZ=S.lay[n-1].z;
-    const End=pose((a,b)=>{a.copy(S.W(V(0,1.62,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,2.7,S.back)))});
-    const Back=pose((a,b)=>{a.copy(S.W(V(0,n>1?3.4:2.2,n>1?lastZ-1.1:lastZ+2.3)));b.copy(S.W(V(0,1.6,12)))});
-    const Front=pose((a,b)=>{a.copy(S.W(V(0,2.3,5.4)));b.copy(S.W(V(0,1.6,14)))});
-    key(A,Tin,3.5);                          // turn to face the studio
-    key(Tin,E[0],4.5);S.u={in:u};             // walk in
-    key(E[0],E[0],1.6);
+    key(Door,Door,.6);S.u={in:u};
+    key(Door,E[0],5);
     for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);key(E[j],E[j],1.2)}
-    key(E[n-1],End,n>1?3:2);key(End,End,1.2);  // facing the brand wall
-    key(End,Back,3.2);                         // turn around
-    key(Back,Front,Math.max(3.5,(n-1)*1.6));   // fly back out over the films
-    key(Front,Tout,3);key(Tout,D,3.5);
+    key(E[n-1],E[n-1],.8);
     S.path=path;S.len=u;
   });
 }
@@ -982,10 +978,10 @@ let snapCam=true;
 function goTo(v){v=clamp(v,PP0,PP_END);vel=0;
   const move=()=>{leaveSet();p=pTarget=v};
   if(mode==="set"||Math.abs(v-p)>30)fadeJump(move);else{leaveSet();pTarget=v}}
-function leaveSet(){if(mode!=="set")return;mode="hall";setIdx=-1;$("#shud").classList.remove("show")}
+function leaveSet(){if(mode!=="set")return;mode="hall";setIdx=-1;sp=spTarget=0;$("#shud").classList.remove("show")}
 function enterSet(i){
   const S=SETS[i];if(mode==="set"&&setIdx===i)return;vel=0;lookYaw=lookPitch=0;
-  const go=()=>{mode="set";setIdx=i;p=pTarget=S.ppA;sp=0;spTarget=S.u.in;showSetHud(S)};
+  const go=()=>{mode="set";setIdx=i;p=pTarget=S.ppA;sp=spTarget=0;showSetHud(S)};
   // next to the door: turn and walk in; from further away fade over to the door first
   if(mode==="hall"&&Math.abs(p-S.ppA)<10){go();sp=0}else fadeJump(go);
 }
@@ -1008,8 +1004,8 @@ function moveBy(d){
   if(mode==="set"){
     const S=SETS[setIdx];spTarget+=d;
     // scrolling back past the door, or on past the end, steps back out into the hall
-    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA-.4;vel=0}
-    else if(spTarget>S.len+.4){leaveSet();p=pTarget=S.ppD+.6;vel=0}
+    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA;vel=0}
+    else spTarget=Math.min(spTarget,S.len);
     return;
   }
   pTarget=clamp(pTarget+d,PP0,PP_END);
