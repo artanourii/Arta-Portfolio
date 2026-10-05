@@ -40,6 +40,16 @@ Tips / نکته‌ها:
 - Keep each file under about 20 MB. GitHub rejects files over 100 MB. / هر فایل زیر ۲۰ مگابایت باشه. گیت‌هاب فایل بالای ۱۰۰ مگ رو قبول نمی‌کنه.
 - A video hosted elsewhere also works: put its full URL in `src`. / لینک مستقیم ویدیو از جای دیگه هم کار می‌کنه.
 
+## Your own two films / دو ویدیوی شخصی
+
+Upload them to `videos/` with exactly these names / با همین اسم‌ها توی پوشه‌ی `videos` آپلود کن:
+
+- `logo-ad.mp4`: logo film, plays silently on a loop in the middle of Arta Studio / تیزر لوگو، وسط استودیوی آرتا، بی‌صدا
+- `instagram-ad.mp4`: Instagram film, plays with sound in front of the LED wall at the end of the hall; the sound rises as the visitor walks up / تیزر اینستاگرام، آخر راهرو، با صدا
+
+Tapping either one opens it full screen with its own sound. Until a file is uploaded, its frame stays hidden. Settings are in `FEATURES` in `js/content.js`.
+Browsers only allow sound after the visitor has tapped or clicked somewhere on the page; until then the film plays muted with a "Tap for sound" label.
+
 ## Publishing with GitHub Pages / انتشار
 
 1. Merge this branch into `main`. / این برنچ رو با `main` ادغام کن.
