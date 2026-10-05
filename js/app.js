@@ -40,8 +40,9 @@ if(!window.THREE||!(()=>{try{const c=document.createElement("canvas");return !!(
 const phoneLike=()=>innerWidth<640;
 let Q=(TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike()?"mid":"high";
 const canvas=$("#gl");
-const renderer=new THREE.WebGLRenderer({canvas,antialias:Q==="high",powerPreference:"high-performance"});
-let DPR=Math.min(devicePixelRatio||1,Q==="high"?1.75:1.25);
+// antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
+let DPR=Math.min(devicePixelRatio||1,Q==="high"?2:1.6);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high";renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
@@ -57,15 +58,18 @@ function canvasTex(w,h,draw,repeat){
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
   if(repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat[0],repeat[1])}return t;
 }
-const concreteTex=canvasTex(512,512,(g,w,h)=>{
+// polished concrete: fine soft grain and broad, blurred clouding (hard per-pixel noise read as pixelation)
+const concreteTex=canvasTex(1024,1024,(g,w,h)=>{
   g.fillStyle="#bdbdbd";g.fillRect(0,0,w,h);
+  for(let i=0;i<46;i++){const x=Math.random()*w,y=Math.random()*h,r=90+Math.random()*260,dk=Math.random()<.5;
+    const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,dk?"rgba(0,0,0,.05)":"rgba(255,255,255,.06)");gr.addColorStop(1,"rgba(0,0,0,0)");
+    for(const ox of [-w,0,w])for(const oy of [-h,0,h]){g.save();g.translate(ox,oy);g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore()}}
   const id=g.getImageData(0,0,w,h),d=id.data;
-  for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*26;d[i]+=n;d[i+1]+=n;d[i+2]+=n}
+  for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*9;d[i]+=n;d[i+1]+=n;d[i+2]+=n}
   g.putImageData(id,0,0);
-  for(let i=0;i<40;i++){g.fillStyle=`rgba(${Math.random()<.5?0:255},${Math.random()<.5?0:255},255,0)`;}
-  g.globalAlpha=.06;for(let i=0;i<70;i++){g.fillStyle=Math.random()<.5?"#000":"#fff";g.beginPath();g.arc(Math.random()*w,Math.random()*h,8+Math.random()*60,0,7);g.fill()}
-  g.globalAlpha=.18;g.strokeStyle="#000";g.lineWidth=2;g.strokeRect(0,0,w,h);
-},[10,36]);
+  if("filter" in g){g.filter="blur(.8px)";g.drawImage(g.canvas,0,0);g.filter="none"}
+  g.globalAlpha=.12;g.strokeStyle="#000";g.lineWidth=2;g.strokeRect(0,0,w,h);
+},[5,18]);
 const acousticTex=canvasTex(256,256,(g,w,h)=>{
   g.fillStyle="#9a9a9a";g.fillRect(0,0,w,h);
   for(let y=0;y<2;y++)for(let x=0;x<2;x++){
@@ -981,7 +985,7 @@ let activated=false;
 const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActive:activated;
 /* ---------- post processing ---------- */
 const FinalShader={
-  uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.035},uExp:{value:1}},
+  uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.012},uExp:{value:1}},
   vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
   fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uVig,uGrain,uExp;varying vec2 vUv;
     float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
@@ -989,14 +993,22 @@ const FinalShader={
       c=clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.,1.);
       c=pow(c,vec3(1./2.2));
       float d=distance(vUv,vec2(.5));c*=mix(1.,smoothstep(.9,.28,d),uVig);
-      c+=(h(vUv*vec2(1920.,1080.)+uTime)-.5)*uGrain;
+      c+=(h(gl_FragCoord.xy+fract(uTime)*97.)-.5)*uGrain;
       gl_FragColor=vec4(c,1.);}`
 };
 let composer=null,bloom=null,finalPass=null,useComposer=false;
 function setupPost(on){
   useComposer=on&&!!THREE.EffectComposer;
   if(useComposer&&!composer){
-    composer=new THREE.EffectComposer(renderer);composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight);
+    // the bloom chain renders into its own targets, which skip the canvas antialiasing; multisampled targets
+    // (WebGL2) keep edges smooth, and half-float keeps dark gradients free of banding
+    let rt;
+    if(renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget){
+      const hf=!!renderer.extensions.get("EXT_color_buffer_float");
+      rt=new THREE.WebGLMultisampleRenderTarget(innerWidth*DPR,innerHeight*DPR,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:hf?THREE.HalfFloatType:THREE.UnsignedByteType});
+      rt.samples=4;
+    }
+    composer=new THREE.EffectComposer(renderer,rt);composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight);
     composer.addPass(new THREE.RenderPass(scene,camera));
     bloom=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth*(Q==="high"?.6:.4),innerHeight*(Q==="high"?.6:.4)),.8,.5,.75);composer.addPass(bloom);
     finalPass=new THREE.ShaderPass(FinalShader);composer.addPass(finalPass);
@@ -1032,9 +1044,9 @@ function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
   FEATS3.forEach(drawCaption);
   const bg=dark?"#060607":"#cdc9c3";
-  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.03:.02;
+  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
   MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
-  MAT.wall.color=C(dark?"#141416":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
+  MAT.wall.color=C(dark?"#1b1b1f":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#4a4744");MAT.plinth.roughness=dark?.28:.62;MAT.plinth.metalness=dark?.2:.05;
   // light mode: the plinth is dark matt stone with a concrete grain rather than a glossy white block
   if(MAT.plinth.map!==(dark?null:concreteTex)){MAT.plinth.map=dark?null:concreteTex;MAT.plinth.needsUpdate=true}
@@ -1046,19 +1058,19 @@ function applyTheme(){
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
   MAT.space.emissiveIntensity=dark?.18:0;
-  hemi.intensity=dark?.12:.6;hemi.color=C(dark?"#cfd6e6":"#fff8ef");hemi.groundColor=C(dark?"#1a1614":"#8e8a84");
-  dir.intensity=dark?0:.28;
-  ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.45:.06):(metal?1:.55)});
-  scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.06:.55});
-  beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.3:.07);
+  hemi.intensity=dark?.2:.48;hemi.color=C(dark?"#cfd6e6":"#fff8ef");hemi.groundColor=C(dark?"#1a1614":"#8e8a84");
+  dir.intensity=dark?.06:.62;
+  ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.5:.1):(metal?1:.55)});
+  scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
+  beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.62:1));
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
   if(bloom){bloom.strength=dark?.7:.15;bloom.threshold=dark?.8:.96;bloom.radius=.45}
-  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1:.94}
-  renderer.toneMappingExposure=dark?1:.9;
+  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1.05:.97}
+  renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
 }
 function toggleLight(){
@@ -1294,7 +1306,7 @@ function frame(now){
   if(frames===160){const avg=acc/120;
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
-    if(avg>40){DPR=1;renderer.setPixelRatio(1)}
+    if(avg>40&&DPR>1){DPR=Math.max(1,DPR-.5);renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}
   }
   requestAnimationFrame(frame);
 }
