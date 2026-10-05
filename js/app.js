@@ -614,11 +614,9 @@ function buildSet(s,i){
   decor(s,g,back);
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
-  const rig=cameraRig(i%2===0);rig.position.set(-3.3,0,4.2);g.add(rig);
   g.updateMatrixWorld(true);
   const W=p=>g.localToWorld(p.clone());
   const tgt=W(V(0,1.4,-.4));fz.userData.aim(tgt);sb.userData.aim(tgt);
-  rig.lookAt(W(V(0,0,-.5)));rig.rotateY(Math.PI);
   const LI=s.theme==="light"?.4:1;
   slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6*LI,.5,.6,s.theme!=="light");
   const acc=new THREE.Color(s.c.acc).getHSL({}).l<.15?"#ffffff":s.c.acc;
