@@ -665,8 +665,7 @@ function drawCaption(F){
   const fam=fa?'"Vazirmatn", Tahoma, sans-serif':'"Vazirmatn", "Helvetica Neue", Arial, sans-serif';
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";
   const light=s.theme==="light";
-  g.fillStyle=light?"rgba(255,255,255,.72)":"rgba(8,8,10,.62)";g.beginPath();
-  const r=H*.22;g.moveTo(r,0);g.lineTo(W-r,0);g.quadraticCurveTo(W,0,W,r);g.lineTo(W,H-r);g.quadraticCurveTo(W,H,W-r,H);g.lineTo(r,H);g.quadraticCurveTo(0,H,0,H-r);g.lineTo(0,r);g.quadraticCurveTo(0,0,r,0);g.fill();
+  g.shadowColor=light?"rgba(255,255,255,.75)":"rgba(0,0,0,.6)";g.shadowBlur=8;
   const x=fa?W-34:34;
   g.fillStyle=light?s.c.ink:"#ffffff";g.font=`700 ${H*.36}px ${fam}`;g.fillText(v.t[lang],x,H*.5);
   g.globalAlpha=.7;g.font=`400 ${H*.25}px ${fam}`;g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
@@ -681,10 +680,16 @@ function makeFrame(s,v,i){
   const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:6});
   geo.translate(0,-CAP_H/2,-depth/2);
   const glass=new THREE.MeshPhysicalMaterial({color:new THREE.Color(s.c.acc).lerp(new THREE.Color("#bfc7d2"),.55).convertSRGBToLinear(),
-    roughness:.04,metalness:.1,clearcoat:1,clearcoatRoughness:.04,transparent:true,opacity:.13,envMapIntensity:1.1,side:THREE.DoubleSide,depthWrite:false});
+    roughness:.03,metalness:.1,clearcoat:1,clearcoatRoughness:.03,transparent:true,opacity:.07,envMapIntensity:1.3,side:THREE.DoubleSide,depthWrite:false});
   glass.userData.glass=true;
   const slab=new THREE.Mesh(geo,glass);slab.renderOrder=2;G.add(slab);
-  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.32}));G.add(edges);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));G.add(edges);
+  // liquid glass face: tinted body, sheen and bright rim, sitting just in front of the slab
+  { const pw=w+pad*2,ph=slabH,cv=document.createElement("canvas");cv.width=Math.round(pw*400);cv.height=Math.round(ph*400);
+    drawLiquid(cv.getContext("2d"),cv.width,cv.height,Math.min(cv.width,cv.height)*.09,s.theme!=="light");
+    const lt=new THREE.CanvasTexture(cv);lt.encoding=THREE.sRGBEncoding;lt.anisotropy=4;
+    const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:lt,transparent:true,depthWrite:false}));
+    lf.position.set(0,-CAP_H/2,depth/2+.006);lf.renderOrder=3;G.add(lf); }
   // screen (poster until the film is ready)
   F.posterCv=document.createElement("canvas");F.posterCv.width=vert?360:640;F.posterCv.height=vert?640:360;
   F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;drawPoster(F);
@@ -694,7 +699,7 @@ function makeFrame(s,v,i){
   F.capCv=document.createElement("canvas");F.capCv.width=1024;F.capCv.height=Math.round(1024*CAP_H/w);
   F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
   const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false}));
-  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);G.add(cap);
+  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
@@ -765,26 +770,63 @@ function glassSlab(w,h){
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.35}));
   const g=new THREE.Group();g.add(slab,edges);return g;
 }
+// iOS-style liquid glass drawn into a canvas: clear tinted body, top sheen, a bright specular rim
+// and a faint rainbow edge where the "glass" bends the light
+function drawLiquid(g,w,h,r,isDark){
+  g.save();rr(g,2,2,w-4,h-4,r);g.clip();
+  g.fillStyle=isDark?"rgba(30,32,42,.40)":"rgba(255,255,255,.34)";g.fillRect(0,0,w,h);
+  let gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,"rgba(255,255,255,.26)");gr.addColorStop(.42,"rgba(255,255,255,.04)");gr.addColorStop(1,"rgba(255,255,255,.10)");g.fillStyle=gr;g.fillRect(0,0,w,h);
+  gr=g.createRadialGradient(w*.18,-h*.15,0,w*.18,-h*.15,Math.max(w,h)*.75);gr.addColorStop(0,"rgba(255,255,255,.34)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h);
+  g.lineWidth=14;g.strokeStyle="rgba(255,255,255,.07)";rr(g,9,9,w-18,h-18,r-7);g.stroke();
+  g.restore();
+  // rims
+  g.lineWidth=3.5;gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"rgba(255,255,255,.98)");gr.addColorStop(.45,"rgba(255,255,255,.28)");gr.addColorStop(1,"rgba(255,255,255,.78)");g.strokeStyle=gr;rr(g,2,2,w-4,h-4,r);g.stroke();
+  g.lineWidth=2;gr=g.createLinearGradient(0,0,w,0);gr.addColorStop(0,"rgba(120,220,255,.35)");gr.addColorStop(.5,"rgba(255,255,255,0)");gr.addColorStop(1,"rgba(255,120,220,.35)");g.strokeStyle=gr;rr(g,6,6,w-12,h-12,r-4);g.stroke();
+}
+const PXM=620;  // canvas pixels per metre for floating panels
+function liquidPanel(layout){
+  // layout(g, measureOnly) returns {w,h} in px and draws when measureOnly is false
+  const cv=document.createElement("canvas");cv.width=cv.height=8;
+  const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.renderOrder=3;
+  const G=new THREE.Group();G.add(face);
+  let slab=null;
+  const redraw=()=>{
+    const m=layout(cv.getContext("2d"),true),W=Math.ceil(m.w),H=Math.ceil(m.h);
+    if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;tex.dispose()}
+    const g=cv.getContext("2d");g.clearRect(0,0,W,H);drawLiquid(g,W,H,Math.min(H*.32,64),dark);layout(g,false);tex.needsUpdate=true;
+    const wm=W/PXM,hm=H/PXM;face.geometry.dispose();face.geometry=new THREE.PlaneGeometry(wm,hm);face.position.z=.03;
+    // a very faint slab behind gives the glass some thickness when seen at an angle
+    if(slab){G.remove(slab);slab.geometry.dispose()}
+    const geo=new THREE.ExtrudeGeometry(roundRect(wm,hm,Math.min(hm*.32,.1)),{depth:.04,bevelEnabled:true,bevelThickness:.008,bevelSize:.008,bevelSegments:2,curveSegments:6});geo.translate(0,0,-.02);
+    slab=new THREE.Mesh(geo,LG_SLAB);slab.renderOrder=2;G.add(slab);
+    G.traverse(o=>{o.userData.keep=true});
+  };
+  return {G,face,tex:{userData:{redraw}},redraw};
+}
+const LG_SLAB=new THREE.MeshPhysicalMaterial({color:C("#dfe6f0"),roughness:.03,metalness:.1,clearcoat:1,clearcoatRoughness:.03,transparent:true,opacity:.07,envMapIntensity:1.4,side:THREE.DoubleSide,depthWrite:false});
+LG_SLAB.userData.glass=true;
+const textShadow=(g,on)=>{g.shadowColor=on?(dark?"rgba(0,0,0,.55)":"rgba(255,255,255,.7)"):"transparent";g.shadowBlur=on?10:0}
 function buildPanels3D(){
-  const W=1.25,H=.86;
   TX.en.panels.forEach((_,i)=>{
-    const G=glassSlab(W,H);
-    const tex=panelTex(800,550,(g,w,h)=>{
-      const p=T().panels[i],fa=lang==="fa",c=inkCol();
-      // a soft tinted plate behind the text keeps it readable over any background
-      g.fillStyle=dark?"rgba(10,10,14,.5)":"rgba(255,255,255,.55)";rr(g,0,0,w,h,48);g.fill();
-      if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";const x=fa?w-56:56;
-      g.fillStyle=c.a;g.font=`600 40px "Vazirmatn", sans-serif`;g.fillText(p.k,x,96);
-      g.fillStyle=c.t;g.font=fa?`800 76px "Vazirmatn", sans-serif`:`800 70px "Unbounded", "Vazirmatn", sans-serif`;g.fillText(p.h,x,196);
-      g.fillStyle=c.m;g.font=`400 38px "Vazirmatn", sans-serif`;g.fillText(p.p,x,272);
-      g.fillStyle=c.t;g.font=`600 38px "Vazirmatn", sans-serif`;const op=T().open;
-      const cx=fa?w-80:80,tx=fa?w-118:118;g.lineWidth=4;g.strokeStyle=c.t;g.beginPath();g.arc(cx,420,24,0,Math.PI*2);g.stroke();
-      g.fillRect(cx-11,418,22,4);g.fillRect(cx-2,409,4,22);g.fillText(op,tx,433);
+    const LP=liquidPanel((g,measure)=>{
+      const p=T().panels[i],fa=lang==="fa",c=inkCol(),pad=46,op=T().open;
+      const fK=`600 32px "Vazirmatn", sans-serif`,fT=fa?`800 64px "Vazirmatn", sans-serif`:`800 56px "Unbounded", "Vazirmatn", sans-serif`,fP=`400 32px "Vazirmatn", sans-serif`,fO=`600 30px "Vazirmatn", sans-serif`;
+      g.font=fT;const wt=g.measureText(p.h).width;g.font=fP;const wp=g.measureText(p.p).width;
+      const W=Math.max(wt,wp,300)+pad*2,H=pad*2+30+16+62+16+34+26+34;
+      if(measure)return {w:W,h:H};
+      if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";const x=fa?W-pad:pad;
+      textShadow(g,true);
+      g.fillStyle=c.a;g.font=fK;g.fillText(p.k,x,pad+28);
+      g.fillStyle=c.t;g.font=fT;g.fillText(p.h,x,pad+30+16+56);
+      g.fillStyle=c.m;g.font=fP;g.fillText(p.p,x,pad+30+16+62+16+30);
+      g.fillStyle=c.t;g.font=fO;textShadow(g,false);
+      const yy=H-pad-6,cx=fa?W-pad-17:pad+17;g.lineWidth=3;g.strokeStyle=c.t;g.beginPath();g.arc(cx,yy-10,17,0,Math.PI*2);g.stroke();
+      g.fillRect(cx-8,yy-11.5,16,3);g.fillRect(cx-1.5,yy-18,3,16);g.fillText(op,fa?cx-30:cx+30,yy);
+      return {w:W,h:H};
     });
-    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
-    face.position.z=.04;face.renderOrder=3;G.add(face);
-    G.traverse(o=>{o.userData.keep=true;o.userData.panel=i});P3.pick.push(face);
-    scene.add(G);P3.panels.push({G,tex,ph:i*1.3});
+    LP.face.userData.panel=i;P3.pick.push(LP.face);LP.redraw();
+    scene.add(LP.G);P3.panels.push({G:LP.G,tex:LP.tex,ph:i*1.3});
   });
   const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
     m.userData.keep=true;scene.add(m);P3.titles.push({m,tex});return m};
@@ -793,16 +835,24 @@ function buildPanels3D(){
     if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px";while(g.measureText(t[k1]).width>w*.94&&f>40){f-=6;g.font=ff();if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px"}
     g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
   P3.gate=title(heading("arch","archSub"),2048,420,5.4);
-  { const G=glassSlab(4.9,1.25),tex=panelTex(2048,522,(g,w,h)=>{g.fillStyle=dark?"rgba(10,10,14,.5)":"rgba(255,255,255,.55)";rr(g,0,0,w,h,90);g.fill();g.save();g.translate(0,25);heading("studios","studiosSub")(g,w,h*.92);g.restore()});
-    const face=new THREE.Mesh(new THREE.PlaneGeometry(4.9,1.25),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=.04;face.renderOrder=3;G.add(face);
-    G.traverse(o=>{o.userData.keep=true});scene.add(G);P3.titles.push({m:G,tex});P3.studios=G; }
+  // "The studios" heading in a liquid glass panel sized to its words
+  const SP=liquidPanel((g,measure)=>{
+    const t=T(),fa=lang==="fa",c=inkCol(),pad=56;
+    const fT=fa?`800 92px "Vazirmatn", sans-serif`:`800 80px "Unbounded", "Vazirmatn", sans-serif`,fS=`400 36px "Vazirmatn", sans-serif`;
+    g.font=fT;if("letterSpacing" in g)g.letterSpacing=fa?"0px":"8px";const wt=g.measureText(t.studios).width;g.font=fS;if("letterSpacing" in g)g.letterSpacing="0px";const ws=g.measureText(t.studiosSub).width;
+    const W=Math.max(wt,ws)+pad*2.4,H=pad*2+88+20+40;if(measure)return {w:W,h:H};
+    if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";textShadow(g,true);
+    g.fillStyle=c.t;g.font=fT;if("letterSpacing" in g)g.letterSpacing=fa?"0px":"8px";g.fillText(t.studios,W/2,pad+80);
+    if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=fS;g.fillText(t.studiosSub,W/2,pad+88+20+34);return {w:W,h:H};
+  });
+  SP.redraw();scene.add(SP.G);P3.titles.push({m:SP.G,tex:SP.tex});P3.studios=SP.G;
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
-  const P=portrait(),CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
-  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.76:1)});
+  const P=portrait(),CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,1.3,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
+  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.82:1)});
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
-  P3.studios.position.set(0,3.3,-25.5);P3.studios.scale.setScalar(P?.66:1);
+  P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
 }
 function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
