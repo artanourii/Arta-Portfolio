@@ -864,8 +864,8 @@ function buildOverlays(){
     anchor(lg,V(li?.55:-.55,1.1,20),.98);anchor(lt,V(li?0:.55,li?.5:1.1,20),.98);
     anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),3.2,{far:24});
   }else{
-    anchor(wa,V(-3.4,2.6,16),1.5);anchor(ig,V(-3.4,1.9,16),1.5);if(li)anchor(li,V(-3.4,1.2,16),1.5);
-    anchor(lg,V(3.4,2.6,16),1.5);anchor(lt,V(3.4,1.9,16),1.5);
+    anchor(wa,V(-2.75,2.55,15),1.35);anchor(ig,V(-2.75,1.92,15),1.35);if(li)anchor(li,V(-2.75,1.29,15),1.35);
+    anchor(lg,V(2.75,2.55,15),1.35);anchor(lt,V(2.75,1.92,15),1.35);
     anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});
   }
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)

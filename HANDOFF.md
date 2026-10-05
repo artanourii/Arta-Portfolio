@@ -20,5 +20,5 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 1. **Brand logos**: done for all brands with websites (files and colour codes in `assets/brands/`, see `assets/brands/BRANDS.md`). Analiz Fix and Emarat Zarrin were cut from their Instagram logos. Put a logo in `assets/brands/` and add `logoImg:"assets/brands/<name>.png"` to the studio in `js/content.js`; update its `c:` colours (bg, bg2 = set backdrop, ink = text, acc = accent light). `logoTint:true` recolours a one-colour logo in the set's ink colour.
 2. **Videos** for each studio: `videos/` + `src:"videos/<file>.mp4"` in `js/content.js`. Optional cover image: `poster:"videos/<file>.jpg"`.
 3. **logo-ad.mp4 and instagram-ad.mp4**: not uploaded yet; ask whether they are vertical (9:16) or horizontal (frames are 9:16 now, `r` in `FEATURES`).
-4. **Résumé info**: start year, number of projects, education (highlighted placeholders in the résumé panel).
+4. **Résumé**: filled in from LinkedIn (about, experience, skills, education).
 5. Publishing: merge to `main`, then GitHub Pages from `main` / root.
