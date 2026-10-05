@@ -356,33 +356,231 @@ function brandWall(s){
   const cv=document.createElement("canvas");cv.width=1024;cv.height=400;
   const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;tex.userData={s,img:null};
   drawBrand(tex);brandTex.push(tex);
-  if(s.logoImg){const im=new Image();im.onload=()=>{
-    // a logo file only works when the site is served over http(s); skip it if the browser marks the canvas unsafe
-    const t=document.createElement("canvas");t.width=t.height=8;const tg=t.getContext("2d");tg.drawImage(im,0,0,8,8);
-    try{tg.getImageData(0,0,1,1);tex.userData.img=im;drawBrand(tex)}catch(e){}
-  };im.src=s.logoImg}
+  loadLogo(s,()=>{tex.userData.img=s._img;drawBrand(tex)});
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.86),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
   m.userData.keep=true;return m;
 }
 // wordmarks use the site font once it has loaded
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>brandTex.forEach(t=>{if(!t.userData.img&&!t.userData.s.logo)drawBrand(t)}));
+const B3=(w,h,d,m,x,y,z)=>box(w,h,d,m,x,y,z);
+/* ---------- brand logo images, shared by walls and signs ---------- */
+function loadLogo(s,cb){
+  if(!s.logoImg)return;
+  if(s._img)return cb();
+  (s._cbs=s._cbs||[]).push(cb);if(s._loading)return;s._loading=true;
+  const im=new Image();im.onload=()=>{
+    // a logo file only works when the site is served over http(s); skip it if the browser marks the canvas unsafe
+    const t=document.createElement("canvas");t.width=t.height=8;const tg=t.getContext("2d");tg.drawImage(im,0,0,8,8);
+    try{tg.getImageData(0,0,1,1);s._img=im;s._cbs.forEach(f=>f())}catch(e){}
+  };im.src=s.logoImg;
+}
+// the logo drawn into its own canvas (recoloured when the brand asks for it), or null when there is no logo
+function logoCanvas(s,color,maxW,maxH){
+  const img=s._img;let cv=document.createElement("canvas"),g;
+  if(img){
+    const iw=img.naturalWidth||img.width||1000,ih=img.naturalHeight||img.height||400,k=Math.min(maxW/iw,maxH/ih);
+    cv.width=Math.max(1,Math.round(iw*k));cv.height=Math.max(1,Math.round(ih*k));g=cv.getContext("2d");g.drawImage(img,0,0,cv.width,cv.height);
+    if(s.logoTint){g.globalCompositeOperation="source-in";g.fillStyle=color;g.fillRect(0,0,cv.width,cv.height)}
+    return cv;
+  }
+  if(s.logo){const vb=s.logo.vb||24,k=Math.min(maxW,maxH)/vb;cv.width=cv.height=Math.round(vb*k);g=cv.getContext("2d");g.fillStyle=color;g.scale(k,k);g.fill(new Path2D(s.logo.d));return cv}
+  return null;
+}
+const signTex=[];
+function canvasSign(w,h,draw){
+  const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
+  t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");g.clearRect(0,0,w,h);draw(g,w,h);t.needsUpdate=true};
+  t.userData.redraw();signTex.push(t);return t;
+}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath()}
+const signFont=(wt,px)=>`${wt} ${px}px ${lang==="fa"?'"Vazirmatn", Tahoma':'"Unbounded", "Vazirmatn", "Helvetica Neue", Arial'}, sans-serif`;
+function fitText(g,text,wt,px,maxW){let f=px;g.font=signFont(wt,f);while(g.measureText(text).width>maxW&&f>14){f-=2;g.font=signFont(wt,f)}return f}
+// studio name board over the door: plate in the brand colour, logo and name
+function drawHeader(s,i){return (g,W,H)=>{
+  const light=s.theme==="light",fa=lang==="fa";
+  rr(g,6,6,W-12,H-12,34);g.fillStyle=light?s.c.bg:s.c.bg2;g.fill();g.lineWidth=8;g.strokeStyle=s.c.acc;g.stroke();
+  const lc=logoCanvas(s,s.c.ink,W*.3,H*.62);let tx=fa?W-60:60,tw=W-120;
+  if(lc){const lx=fa?W-60-lc.width:60;g.drawImage(lc,lx,(H-lc.height)/2);tw-=lc.width+40;tx=fa?lx-40:lx+lc.width+40}
+  if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="middle";g.fillStyle=s.c.ink;
+  fitText(g,s.name[lang],700,H*.3,tw);g.fillText(s.name[lang],tx,H*.44);
+  g.globalAlpha=.65;g.font=signFont(400,H*.13);g.fillText((fa?"استودیو ":"STUDIO ")+(fa?(i+1).toLocaleString("fa"):String(i+1).padStart(2,"0")),tx,H*.76);g.globalAlpha=1;
+}}
+// hanging hall sign with an arrow toward the studio; dir -1 = arrow left, 1 = arrow right
+function drawHall(s,dir){return (g,W,H)=>{
+  const fa=lang==="fa";
+  rr(g,4,4,W-8,H-8,26);g.fillStyle="rgba(14,14,18,.92)";g.fill();g.lineWidth=5;g.strokeStyle="rgba(255,255,255,.35)";g.stroke();
+  g.fillStyle=s.c.acc;rr(g,4,H-22,W-8,18,8);g.fill();
+  // arrow
+  const ax=dir<0?70:W-70,ay=H*.45;g.save();g.translate(ax,ay);g.scale(dir,1);g.fillStyle=s.c.acc==="#000000"?"#ffffff":s.c.acc;
+  g.beginPath();g.moveTo(40,-38);g.lineTo(-20,0);g.lineTo(40,38);g.lineTo(40,14);g.lineTo(-2,0);g.lineTo(40,-14);g.closePath();g.fill();g.restore();
+  const left=dir<0?140:40,right=dir<0?W-40:W-140;
+  const lc=logoCanvas(s,"#ffffff",H*.9,H*.5);let x0=left,x1=right;
+  if(lc){if(dir<0){g.drawImage(lc,x1-lc.width,ay-lc.height/2);x1-=lc.width+28}else{g.drawImage(lc,x0,ay-lc.height/2);x0+=lc.width+28}}
+  if("direction" in g)g.direction=fa?"rtl":"ltr";g.textBaseline="middle";g.fillStyle="#ffffff";
+  g.textAlign=dir<0?"left":"right";fitText(g,s.name[lang],700,H*.32,x1-x0);g.fillText(s.name[lang],dir<0?x0:x1,ay);
+}}
+const hallPick=[];
+
+/* ---------- set dressing: every studio gets props that suit the brand ---------- */
+function decor(s,g,back){
+  const c=s.c,M=(col,r=.55,m=0)=>std(col,r,m),E=(col,i=2.2)=>emissive(col,i);
+  const zN=.4,zF=back+1.1,along=n=>Array.from({length:n},(_,k)=>n===1?(zN+zF)/2:zN+(zF-zN)*k/(n-1));
+  const put=(o,x,y,z,ry=0)=>{o.position.set(x,y,z);o.rotation.y=ry;g.add(o);return o};
+  const G=()=>new THREE.Group(),face=sd=>sd<0?Math.PI/2:-Math.PI/2;   // turn a prop on a side wall to face the middle
+  const B=(w,h,d,m,x=0,y=0,z=0)=>box(w,h,d,m,x,y,z);
+  const C=(rt,rb,h,m,seg=24)=>cyl(rt,rb,h,m,seg);
+  const T=(R,r,m,arc=Math.PI*2)=>mesh(new THREE.TorusGeometry(R,r,12,48,arc),m);
+  const S=(r,m)=>mesh(new THREE.SphereGeometry(r,20,14),m);
+  const rack=(led)=>{const o=G();o.add(B(.62,2.1,.8,M("#14171c",.45,.4),0,1.05,0));const lm=E(led,2.6);
+    for(let k=0;k<9;k++)o.add(B(.46,.014,.012,lm,0,.3+k*.2,.405));return o};
+  const strip=(col,x,y,z,len,vertical=true)=>g.add(vertical?B(.03,len,.03,E(col,2.4),x,y,z):B(.03,.03,len,E(col,2.4),x,y,z));
+  switch(s.id){
+    case "asus":{ // tech showroom: laptops on display plinths, light strips on the walls
+      for(const sd of [-1,1])for(const z of along(3)){
+        const o=G();o.add(B(.9,.85,.6,M(c.bg2,.35,.3),0,.425,0));
+        o.add(B(.44,.02,.3,M("#2b313b",.3,.7),0,.86,.02));
+        const sc=B(.44,.29,.015,M("#101318",.3,.6),0,1.0,-.12);sc.rotation.x=-.25;o.add(sc);
+        const gl=B(.4,.25,.002,E(c.acc,1.6),0,1.0,-.11);gl.rotation.x=-.25;o.add(gl);
+        put(o,sd*2.9,0,z,face(sd));strip(c.acc,sd*3.68,1.9,z,3.2);
+      }break}
+    case "aparat":{ // cinema: rows of seats and film reels on the walls
+      for(const sd of [-1,1])for(const z of along(3))for(const dx of [0,.62]){
+        const o=G(),red=M("#8d1034",.85);o.add(B(.56,.4,.5,red,0,.2,0));o.add(B(.56,.62,.1,red,0,.62,.22));
+        o.add(B(.06,.5,.5,M("#2a0a14"),-.31,.3,0));o.add(B(.06,.5,.5,M("#2a0a14"),.31,.3,0));
+        put(o,sd*(2.55+dx),0,z);
+      }
+      for(const sd of [-1,1])for(const z of along(2)){const o=G();o.add(T(.42,.05,M("#d9d9d9",.3,.8)));
+        for(let k=0;k<5;k++){const sp=B(.03,.8,.03,M("#d9d9d9",.3,.8));sp.rotation.z=k*Math.PI/5;o.add(sp)}
+        const hub=C(.07,.07,.06,M(c.acc,.4));hub.rotation.x=Math.PI/2;o.add(hub);put(o,sd*3.64,2.9,z,face(sd))}
+      break}
+    case "respina":case "mahannet":{ // data centre: server racks with blinking lights
+      for(const sd of [-1,1])for(const z of along(s.id==="respina"?4:3))put(rack(c.acc),sd*3.25,0,z,face(sd));
+      if(s.id==="mahannet")for(const sd of [-1,1])for(let k=0;k<3;k++){ // wi-fi arcs on the walls
+        const a=T(.25+k*.22,.025,E(c.acc,2.6),Math.PI/2);a.rotation.z=Math.PI/4;put(a,sd*3.66,2.6,zF+.4,face(sd));}
+      break}
+    case "mci":{ // telecom: a cell mast and big phones on stands
+      const mast=G();const t=truss(4.4);t.rotation.z=Math.PI/2;t.position.y=2.2;mast.add(t);
+      for(let k=0;k<3;k++){const p=B(.12,.62,.26,M("#eef2f5",.4),Math.cos(k*2.1)*.32,3.9,Math.sin(k*2.1)*.32);p.rotation.y=-k*2.1;mast.add(p)}
+      mast.add(S(.07,E(c.acc,3)));mast.children[mast.children.length-1].position.y=4.5;put(mast,2.9,0,zF+.3);
+      for(const z of along(3)){const o=G();o.add(C(.22,.26,1.1,M(c.bg2,.4),20));o.children[0].position.y=.55;
+        o.add(B(.4,.8,.05,M("#111",.3,.5),0,1.55,0));o.add(B(.35,.7,.002,E(c.acc,1.4),0,1.55,.03));put(o,-2.95,0,z,face(-1))}
+      break}
+    case "snapp":{ // street: a car, cones and lane markings
+      const car=G(),body=M(c.acc,.35,.35);car.add(B(.95,.45,2.0,body,0,.48,0));car.add(B(.85,.38,1.05,M("#1b2130",.15,.7),0,.89,-.05));
+      for(const x of [-.5,.5])for(const z of [-.65,.65]){const w=C(.24,.24,.2,M("#0d0d0d",.9));w.rotation.z=Math.PI/2;w.position.set(x,.24,z);car.add(w)}
+      for(const x of [-.3,.3]){car.add(B(.18,.08,.02,E("#ffffff",3),x,.55,1.01));car.add(B(.18,.06,.02,E("#ff2a2a",2.4),x,.55,-1.01))}
+      put(car,2.75,0,(zN+zF)/2,.12);
+      for(const z of along(4)){const cone=mesh(new THREE.ConeGeometry(.16,.5,20),M("#ff7a1a",.6));put(cone,-3.0,.25,z)}
+      for(let z=3.0;z>back+.8;z-=.9)g.add(B(.1,.006,.48,E("#ffffff",1.1),0,.012,z));
+      break}
+    case "azkivam":{ // finance: stacks of coins and big cards
+      const gold=M("#e8b44a",.3,.85);
+      for(const sd of [-1,1])for(const z of along(3)){const o=G();o.add(B(.8,.7,.8,M(c.bg2,.5),0,.35,0));
+        [[-.18,-.15,9],[.17,.12,14],[.12,-.2,6]].forEach(([x,zz,n])=>{for(let k=0;k<n;k++){const cn=C(.14,.14,.035,gold,28);cn.position.set(x,.72+k*.036,zz);o.add(cn)}});
+        put(o,sd*2.95,0,z)}
+      [c.acc,"#FB953E"].forEach((col,k)=>{const cd=B(.86,.54,.02,M(col,.3,.2),0,0,0);cd.rotation.set(-.3,0,k?.15:-.15);put(cd,(k?1:-1)*3.2,2.5,zF+.5,face(k?1:-1))});
+      break}
+    case "analizfix":{ // repair shop: workbench with phones, tool wall
+      const bench=G();bench.add(B(.7,.06,1.8,M("#3a2f28",.7),0,.9,0));for(const x of [-.3,.3])for(const z of [-.8,.8])bench.add(B(.05,.9,.05,M("#222"),x,.45,z));
+      for(let k=0;k<4;k++){bench.add(B(.18,.015,.34,M("#111",.3,.5),(k%2?.12:-.12),.94,-.6+k*.4));bench.add(B(.16,.002,.3,E(c.acc,1.3),(k%2?.12:-.12),.95,-.6+k*.4))}
+      put(bench,2.85,0,(zN+zF)/2);
+      const board=G();board.add(B(.04,1.3,2.0,M("#2b2b2b",.8),0,1.9,0));
+      const sd1=G();sd1.add(C(.06,.06,.4,M(c.acc,.5)));sd1.children[0].position.y=.2;sd1.add(C(.015,.015,.6,M("#cfd4da",.3,.9)));sd1.children[1].position.y=.7;sd1.rotation.x=Math.PI/2;sd1.position.set(.05,2.1,-.4);board.add(sd1);
+      const wr=G();wr.add(B(.06,.7,.08,M("#cfd4da",.3,.9)));wr.add(T(.1,.03,M("#cfd4da",.3,.9)));wr.children[1].position.y=.42;wr.children[1].rotation.y=Math.PI/2;wr.position.set(.05,1.8,.45);board.add(wr);
+      put(board,-3.66,0,(zN+zF)/2);
+      break}
+    case "emaratezarin":{ // classical: columns and a fountain
+      const stone=M("#e9dfc6",.6),gold=M(c.acc,.35,.7);
+      for(const sd of [-1,1])for(const z of along(3)){const o=G();o.add(B(.55,.16,.55,stone,0,.08,0));
+        const sh=C(.17,.2,3.2,stone,22);sh.position.y=1.76;o.add(sh);o.add(B(.55,.16,.55,gold,0,3.44,0));put(o,sd*3.25,0,z)}
+      const f=G();f.add(C(.75,.8,.35,stone,32));f.children[0].position.y=.18;f.add(C(.68,.68,.02,E("#7fb9e6",1.2),32));f.children[1].position.y=.36;
+      const pl=C(.1,.14,.8,stone,16);pl.position.y=.75;f.add(pl);const bw=C(.36,.2,.14,gold,24);bw.position.y=1.2;f.add(bw);put(f,2.2,0,zF+.2);
+      break}
+    case "farmaniyeh":{ // gym: dumbbell racks, bench and barbell
+      const steel=M("#2a2a2a",.4,.6),plate=M(c.acc,.6);
+      for(const z of along(2)){const r=G();r.add(B(.5,.6,1.5,steel,0,.3,0));
+        for(let k=0;k<4;k++){const db=G();const bar=C(.025,.025,.36,M("#bbb",.3,.9));bar.rotation.z=Math.PI/2;db.add(bar);
+          for(const x of [-.16,.16]){const h=C(.08,.08,.08,M("#151515",.7));h.rotation.z=Math.PI/2;h.position.x=x;db.add(h)}
+          db.rotation.y=Math.PI/2;db.position.set(0,.66,-.55+k*.37);r.add(db)}
+        put(r,-3.1,0,z)}
+      const bench=G();bench.add(B(.35,.1,1.2,M("#151515",.6),0,.45,0));bench.add(B(.05,.4,.05,steel,0,.2,.45));bench.add(B(.05,.4,.05,steel,0,.2,-.45));
+      for(const z of [-.55,.55])bench.add(B(.06,1.1,.06,steel,0,.55,z));
+      const bb=C(.025,.025,1.6,M("#c8c8c8",.3,.9));bb.rotation.x=Math.PI/2;bb.position.y=1.1;bench.add(bb);
+      for(const z of [-.7,.7]){const p=C(.22,.22,.05,plate,28);p.rotation.x=Math.PI/2;p.position.set(0,1.1,z);bench.add(p)}
+      put(bench,2.8,0,(zN+zF)/2);
+      for(const z of along(3)){const kb=G();kb.add(S(.16,M("#1a1a1a",.6,.3)));kb.children[0].position.y=.16;const hd=T(.09,.022,M("#1a1a1a",.6,.3),Math.PI);hd.position.y=.3;kb.add(hd);put(kb,3.3,0,z)}
+      break}
+    case "dicardo":{ // gifts and digital cards
+      const cols=[c.acc,"#FFF212","#1049DC","#C7C5EE"];
+      for(const sd of [-1,1])for(const [k,z] of along(4).entries()){const sz=.35+((k*7+(sd>0?3:0))%4)*.12,o=G(),col=cols[(k+(sd>0?2:0))%4];
+        o.add(B(sz,sz,sz,M(col,.5),0,sz/2,0));o.add(B(sz+.01,sz+.01,.06,M("#ffffff",.4),0,sz/2,0));o.add(B(.06,sz+.01,sz+.01,M("#ffffff",.4),0,sz/2,0));
+        put(o,sd*(3.0-(k%2)*.3),0,z,k*.4)}
+      for(const sd of [-1,1])for(const z of along(2)){const cd=B(.62,.4,.015,E(sd<0?c.acc:"#1049DC",1.4));cd.rotation.set(-.2,face(sd)*.6,.1*sd);put(cd,sd*2.9,2.7,z)}
+      break}
+    case "niromotor":{ // workshop: tyre stacks and an engine on a turntable
+      for(const sd of [-1,1])for(const z of along(2)){const st=G();for(let k=0;k<4;k++){const t=T(.3,.12,M("#111",.9));t.rotation.x=Math.PI/2;t.position.y=.12+k*.24;st.add(t)}put(st,sd*3.15,0,z)}
+      const eng=G();eng.add(C(.9,.9,.1,M(c.bg2,.5),40));eng.children[0].position.y=.05;eng.add(T(.9,.02,E(c.acc,2.5)));eng.children[1].rotation.x=Math.PI/2;eng.children[1].position.y=.1;
+      const blk=M("#6f7a88",.4,.75);eng.add(B(.8,.5,.55,blk,0,.4,0));eng.add(B(.85,.12,.25,M("#b5272e",.4,.4),0,.71,0));
+      const pu=C(.16,.16,.06,M("#333",.4,.6));pu.rotation.z=Math.PI/2;pu.position.set(.45,.42,0);eng.add(pu);put(eng,2.4,0,zF+.6);
+      break}
+    case "itmall":{ // gadget store: shelves with products and light under each shelf
+      for(const sd of [-1,1])for(const z of along(2)){const sh=G(),wood=M("#e8ecf3",.5);
+        for(const x of [-.7,.7])sh.add(B(.04,2.2,.4,wood,x,1.1,0));
+        for(let k=0;k<4;k++){const y=.3+k*.55;sh.add(B(1.44,.03,.4,wood,0,y,0));sh.add(B(1.3,.012,.012,E(c.acc,2),0,y-.03,.18));
+          for(let j=0;j<4;j++){const tall=(j+k)%2?.22:.14;sh.add(B(.16,tall,.1,M(j%2?"#1c2434":"#ffffff",.4,.2),-.5+j*.33,y+tall/2+.015,0))}}
+        put(sh,sd*3.45,0,z,face(sd))}
+      break}
+    case "beauty":{ // vanity: bulb mirror, table and giant lipstick
+      const v=G();v.add(B(.04,1.2,1.0,M("#dfe7ee",.04,.95),0,1.75,0));const bulb=E("#fff3d6",2.8);
+      for(let k=0;k<6;k++){const sp=S(.045,bulb);sp.position.set(.03,1.17+k*.23,-.56);v.add(sp);const sp2=sp.clone();sp2.position.z=.56;v.add(sp2)}
+      for(let k=0;k<4;k++){const sp=S(.045,bulb);sp.position.set(.03,2.4,-.36+k*.24);v.add(sp)}
+      v.add(B(.5,.05,1.2,M("#f6efe9",.4),.25,.8,0));put(v,-3.62,0,(zN+zF)/2);
+      const ls=G();ls.add(C(.13,.13,.5,M("#d6b06a",.25,.9),24));ls.children[0].position.y=.25;ls.add(C(.11,.11,.35,M(c.acc,.35),24));ls.children[1].position.y=.67;
+      const tip=mesh(new THREE.ConeGeometry(.11,.18,24),M(c.acc,.35));tip.position.y=.93;ls.add(tip);ls.scale.setScalar(1.6);put(ls,2.9,0,zF+.5);
+      const pb=G();pb.add(B(.3,.36,.3,new THREE.MeshPhysicalMaterial({color:C("#f4d7df"),roughness:.05,transparent:true,opacity:.5,clearcoat:1}),0,.18,0));pb.add(C(.06,.06,.1,M("#d6b06a",.25,.9)));pb.children[1].position.y=.41;pb.scale.setScalar(1.8);put(pb,3.1,0,zN);
+      break}
+    case "tiktok":{ // creator room: ring light on a tripod and neon strips
+      for(const sd of [-1,1]){const rl=G();rl.add(T(.42,.035,E("#ffffff",3)));rl.children[0].position.y=1.7;
+        rl.add(B(.09,.17,.01,M("#111",.3,.5),0,1.7,0));const pole=C(.015,.015,1.7,M("#222",.4,.6));pole.position.y=.85;rl.add(pole);
+        for(let k=0;k<3;k++){const lg=C(.012,.012,.8,M("#222",.4,.6));lg.position.set(Math.cos(k*2.1)*.22,.33,Math.sin(k*2.1)*.22);lg.rotation.set(Math.sin(k*2.1)*.5,0,-Math.cos(k*2.1)*.5);rl.add(lg)}
+        put(rl,sd*2.9,0,(zN+zF)/2,face(sd))}
+      for(const z of along(3)){strip("#25F4EE",-3.68,2.0,z,3.4);strip("#FE2C55",3.68,2.0,z,3.4)}
+      strip("#25F4EE",-3.68,4.4,(zN+zF)/2,Math.abs(zF-zN)+1.2,false);strip("#FE2C55",3.68,4.4,(zN+zF)/2,Math.abs(zF-zN)+1.2,false);
+      break}
+  }
+}
+
 function buildSet(s,i){
   const side=i%2===0?-1:1,z=SET0-i*SETSTEP;
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
   // films float one behind another down a tunnel into the set, alternating left and right,
   // so the camera flies between them; sets with more films are built deeper
-  const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=1.2;
+  const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=.5;
   const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
     return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ}});
-  const back=Math.min(-1.25,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
+  const back=Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
   const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.z=-extra;g.add(cy);
   const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.004,3.38);g.add(edge);
   // truss ribs along the tunnel
   for(let rz=2.6;rz>back+.6;rz-=Math.max(DZ,2.6)){
-    for(const x of [-3.8,3.8]){const t=truss(5);t.rotation.z=Math.PI/2;t.position.set(x,2.5,rz);g.add(t)}
-    const hd=truss(7.9);hd.position.set(0,5.1,rz);g.add(hd);
+    for(const x of [-3.5,3.5]){const t=truss(5);t.rotation.z=Math.PI/2;t.position.set(x,2.5,rz);g.add(t)}
+    const hd=truss(7.3);hd.position.set(0,5.1,rz);g.add(hd);
   }
+  // walls: two side walls and a front wall with a door opening facing the hall
+  const wc=new THREE.Color(s.theme==="light"?s.c.bg2:s.c.bg2).lerp(new THREE.Color(s.theme==="light"?"#ffffff":"#000000"),s.theme==="light"?.25:.45);
+  const wm=std("#"+wc.getHexString(),.85,0);
+  const depth=3.5-back;for(const sd of [-1,1])g.add(B3(.12,4.8,depth,wm,sd*3.76,2.4,(3.5+back)/2));
+  for(const sd of [-1,1])g.add(B3(2.16,4.8,.14,wm,sd*2.68,2.4,3.45));
+  g.add(B3(3.2,1.8,.14,wm,0,3.9,3.45));
+  g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
+  // name board over the door, facing the hall
+  const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
+  hb.position.set(0,3.58,3.565);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);
+  g.add(B3(3.04,1.02,.04,MAT.metal,0,3.58,3.52));
+  g.add(B3(2.6,.025,.025,emissive(s.c.acc,3),0,3.04,3.58));
+  decor(s,g,back);
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
   const rig=cameraRig(i%2===0);rig.position.set(-3.3,0,4.2);g.add(rig);
@@ -405,6 +603,13 @@ function buildSet(s,i){
     F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
     slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
+  // hanging sign over the aisle before the studio, arrow pointing to its door (both faces)
+  const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
+  const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
+  const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,-side)),transparent:true}));bk.rotation.y=Math.PI;bk.position.z=-.03;
+  [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m)});
+  hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
+  loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
   SETS.push({g,s,i,side,z,W,frames,pick,lay,back});
 }
 
@@ -485,7 +690,7 @@ function updateFrames(dt){
     if(F.video&&!F.v._bad){if(want&&F.video.paused)F.video.play().catch(()=>{});else if(!want&&!F.video.paused)F.video.pause()}
   }
 }
-function refreshCaptions(){framesAll.forEach(drawCaption)}
+function refreshCaptions(){framesAll.forEach(drawCaption);signTex.forEach(t=>t.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refreshCaptions);
 // tap / click on a frame
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
@@ -500,11 +705,13 @@ function frameRect(F){
   const l=Math.min(...xs),t=Math.min(...ys);return {left:l,top:t,width:Math.max(...xs)-l,height:Math.max(...ys)-t};
 }
 let playerFrame=null;
+function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(hallPick,false)[0];return h&&h.distance<26?h.object.userData.enter:-1}
 canvas.addEventListener("click",e=>{
-  if(dragged||playerEl)return;const F=pickFrame(e.clientX,e.clientY);if(!F)return;
-  playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);
+  if(dragged||playerEl)return;const F=pickFrame(e.clientX,e.clientY);
+  if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
+  const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0?"pointer":""},{passive:true});
 
 /* ---------- overlays anchored to 3D points ---------- */
 const ovl=$("#ovl");
@@ -564,11 +771,6 @@ function buildOverlays(){
     a.e.querySelector("button").addEventListener("click",()=>openSheet(p.id));
   });
   anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
-  SETS.forEach(S=>{
-    const s=S.s,num=lang==="fa"?(S.i+1).toLocaleString("fa"):String(S.i+1).padStart(2,"0");
-    const a=anchor(`<button class="glass sign" style="--b:${s.c.acc}"><span class="bar"></span><div class="n">${num}${s.logoImg?`<span class="bchip" style="background:${s.c.bg}"><img src="${s.logoImg}" alt=""${s.logoTint?` style="filter:brightness(0) invert(1)"`:""}></span>`:s.logo?`<svg class="blogo" viewBox="0 0 ${s.logo.vb||24} ${s.logo.vb||24}" aria-hidden="true"><path d="${s.logo.d}"/></svg>`:""}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,S.W(V(0,P?3.25:3.55,3.0)),P?1.45:1.7,{far:18,hideIn:S.i});
-    a.e.querySelector("button").addEventListener("click",()=>enterSet(S.i));
-  });
   const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
   // your own films: logo film under the arch, Instagram film (with sound) in front of the LED wall
   feats.length=0;
@@ -717,7 +919,7 @@ function buildPath(){
     const ppA=.5-(S.z+3.2),ppD=.5-(S.z-2.6);
     hallTo(ppA);
     const A=pose((a,b)=>hallPose(ppA,a,b)),D=pose((a,b)=>hallPose(ppD,a,b));
-    const door=V(S.side*7.2,1.55,S.z);
+    const door=V(S.side*7.2,2.8,S.z);
     const Tin=pose((a,b)=>{a.set(0,1.65,S.z+.4);b.copy(door)}),Tout=pose((a,b)=>{a.set(0,1.65,S.z-.4);b.copy(door)});
     const P=portrait(),n=S.lay.length;
     // in front of each film, looking at it, as the camera flies down the tunnel
