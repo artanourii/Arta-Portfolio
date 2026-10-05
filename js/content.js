@@ -14,17 +14,15 @@
    "r" is the aspect ratio: "9/16" vertical, "16/9" horizontal.
    ========================================================= */
 const CONTACT = {
-  whatsapp:{ display:"+98 9XX XXX XXXX", link:"https://wa.me/989000000000" },
+  whatsapp:{ display:"+98 901 137 7877", link:"https://wa.me/989011377877" },
   instagram:{ display:"@artanourii", link:"https://www.instagram.com/artanourii" }
 };
 const STUDIOS = [
   {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79",frame:"#D9A9A4",glow:"rgba(183,110,121,.55)"},
    name:{en:"Beauty Studio",fa:"استودیو بیوتی"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
    videos:[
-     {t:{en:"Beauty film 01",fa:"فیلم بیوتی ۱"},m:{en:"Skincare, 9:16",fa:"مراقبت پوست، ۹:۱۶"},src:"",r:"9/16"},
-     {t:{en:"Beauty film 02",fa:"فیلم بیوتی ۲"},m:{en:"Makeup, 9:16",fa:"آرایشی، ۹:۱۶"},src:"",r:"9/16"},
-     {t:{en:"Beauty film 03",fa:"فیلم بیوتی ۳"},m:{en:"Fragrance, 9:16",fa:"عطر، ۹:۱۶"},src:"",r:"9/16"},
-     {t:{en:"Beauty film 04",fa:"فیلم بیوتی ۴"},m:{en:"Product hero, 9:16",fa:"نمای قهرمان محصول، ۹:۱۶"},src:"",r:"9/16"}]},
+     {t:{en:"Makeup transition",fa:"ترنزیشن میکاپ"},m:{en:"Transition video, 9:16",fa:"ویدیوی ترنزیشن، ۹:۱۶"},src:"",r:"9/16"},
+     {t:{en:"Beauty teaser",fa:"تیزر بیوتی"},m:{en:"Teaser, 9:16",fa:"تیزر، ۹:۱۶"},src:"",r:"9/16"}]},
   {id:"ai", theme:"dark", c:{bg:"#0D0A24",bg2:"#1E1650",ink:"#ECE9FF",acc:"#5CE1E6",frame:"#3B2F8F",glow:"rgba(92,225,230,.45)"},
    name:{en:"AI Lab",fa:"آزمایشگاه AI"},tag:{en:"Impossible shots, made real.",fa:"نماهای غیرممکن، واقعی‌شده."},
    videos:[

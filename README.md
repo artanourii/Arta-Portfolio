@@ -59,8 +59,6 @@ Then open http://localhost:8000.
 
 ## Still needed / هنوز لازمه
 
-- WhatsApp number (`CONTACT.whatsapp` in `js/content.js`) / شماره‌ی واتس‌اپ
 - Video files for each studio / ویدیوهای هر استودیو
 - Exact brand colors (`c:` in each studio; current ones are approximate) / کد رنگ دقیق برندها
 - Real info in the highlighted résumé spots: start year, project count, education / اطلاعات هایلایت‌شده‌ی رزومه
-- Real titles for the Beauty studio films / عنوان واقعی کارهای Beauty
