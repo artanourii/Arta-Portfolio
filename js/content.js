@@ -40,8 +40,8 @@ const FEATURES = {
 };
 
 const STUDIOS = [
-  // 1. Asus Iran
-  {id:"asus", theme:"dark", c:{bg:"#0B0F14",bg2:"#1C2735",ink:"#EEF3F8",acc:"#2E8BFF"},logo:{d:"M23.904 10.788V9.522h-4.656c-.972 0-1.41.6-1.482 1.182v.018-1.2h-1.368v1.266h1.362zm-6.144.456l-1.368-.078v1.458c0 .456-.228.594-1.02.594H14.28c-.654 0-.93-.186-.93-.594v-1.596l-1.386-.102v1.812h-.03c-.078-.528-.276-1.14-1.596-1.23L6 11.22c0 .666.474 1.062 1.218 1.14l3.024.306c.24.018.414.09.414.288 0 .216-.18.24-.456.24H5.946V11.22l-1.386-.09v3.348h5.646c1.26 0 1.662-.654 1.722-1.2h.03c.156.864.912 1.2 2.19 1.2h1.41c1.494 0 2.202-.456 2.202-1.524zm4.398.258l-4.338-.258c0 .666.438 1.11 1.182 1.17l3.09.24c.24.018.384.078.384.276 0 .186-.168.258-.516.258h-4.212v1.29h4.302c1.356 0 1.95-.474 1.95-1.554 0-.972-.534-1.338-1.842-1.422zm-10.194-1.98h1.386v1.266h-1.386zM3.798 11.07l-1.506-.15L0 14.478h1.686zm7.914-1.548h-4.23c-.984 0-1.416.612-1.518 1.2v-1.2H3.618c-.33 0-.486.102-.642.33l-.648.936h9.384Z",vb:24},
+  // 1. Asus Iran (logo and colors from the official site)
+  {id:"asus", theme:"dark", c:{bg:"#0E1116",bg2:"#202734",ink:"#F2F5F8",acc:"#009C49"},logoImg:"assets/brands/asus-iran.png",logoTint:true,
    name:{en:"Asus Iran",fa:"ایسوس ایران"},tag:{en:"Laptops and tech, made cinematic.",fa:"لپ‌تاپ و تکنولوژی، سینمایی."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
@@ -50,25 +50,25 @@ const STUDIOS = [
    name:{en:"Aparat",fa:"آپارات"},tag:{en:"Video platform, video-first ideas.",fa:"پلتفرم ویدیو، ایده‌هایی از جنس ویدیو."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 3. Respina (colors approximate)
-  {id:"respina", theme:"dark", c:{bg:"#0A3A2D",bg2:"#0F6A5C",ink:"#EAF6F1",acc:"#D4AE57"},
+  // 3. Respina (logo and colors from the official site)
+  {id:"respina", theme:"dark", c:{bg:"#06262B",bg2:"#0B4C55",ink:"#EAF7F8",acc:"#008B9E"},logoImg:"assets/brands/respina.svg",
    name:{en:"Respina",fa:"داده پردازی رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
    videos:[
      {t:{en:"Company intro, 3D",fa:"معرفی شرکت، سه‌بعدی"},m:{en:"After Effects, 20s, 9:16",fa:"افترافکت، ۲۰ ثانیه، ۹:۱۶"},src:"",r:"9/16"},
      {t:{en:"Racetrack hero",fa:"پیست مسابقه"},m:{en:"Hyper-real still",fa:"تصویر هایپررئال"},src:"",r:"16/9"},
      {t:{en:"Track, top view",fa:"پیست از نمای بالا"},m:{en:"Logo on asphalt",fa:"لوگو روی آسفالت"},src:"",r:"16/9"}]},
-  // 4. Hamrahe Aval (colors approximate)
-  {id:"mci", theme:"dark", c:{bg:"#04263A",bg2:"#075A85",ink:"#EAF7FD",acc:"#20B7F0"},
+  // 4. Hamrahe Aval (logo and colors from the official site)
+  {id:"mci", theme:"light", c:{bg:"#F4F8FB",bg2:"#D3E9F6",ink:"#010101",acc:"#0095DA"},logoImg:"assets/brands/mci.svg",
    name:{en:"Hamrahe Aval",fa:"همراه اول"},tag:{en:"Connecting a country, one spot at a time.",fa:"ارتباط یک کشور، تیزر به تیزر."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 5. Snapp (colors approximate)
-  {id:"snapp", theme:"dark", c:{bg:"#04261A",bg2:"#0A5236",ink:"#EFFFF6",acc:"#00D06F"},
+  // 5. Snapp (logo and colors from the official site)
+  {id:"snapp", theme:"dark", c:{bg:"#161A26",bg2:"#252A3C",ink:"#FFFFFF",acc:"#00D170"},logoImg:"assets/brands/snapp.svg",
    name:{en:"Snapp",fa:"اسنپ"},tag:{en:"Rides, food and everything on the go.",fa:"سفر، غذا و هر چیزی در مسیر."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 6. Azkivam (colors approximate)
-  {id:"azkivam", theme:"dark", c:{bg:"#0E1638",bg2:"#24357A",ink:"#EEF1FF",acc:"#5B7CFF"},
+  // 6. Azkivam (logo and colors from the official site)
+  {id:"azkivam", theme:"light", c:{bg:"#F3F5FD",bg2:"#DCE2FA",ink:"#242B35",acc:"#364FD9"},logoImg:"assets/brands/azkivam.svg",
    name:{en:"Azkivam",fa:"از کی وام"},tag:{en:"Loans made simple, on screen.",fa:"وام ساده، روی صفحه."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
@@ -82,28 +82,28 @@ const STUDIOS = [
    name:{en:"Emarate Zarin",fa:"امارت زرین"},tag:{en:"Architecture in gold light.",fa:"معماری در نور طلایی."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 9. Farmaniyeh Club (colors approximate)
-  {id:"farmaniyeh", theme:"dark", c:{bg:"#0C1A2A",bg2:"#1E3550",ink:"#EEF3FA",acc:"#C9A55B"},
+  // 9. Farmaniyeh Club (logo and colors from the official site)
+  {id:"farmaniyeh", theme:"light", c:{bg:"#F2F0EE",bg2:"#DEDAD6",ink:"#25282A",acc:"#D94D20"},logoImg:"assets/brands/farmanieh-club.png",
    name:{en:"Farmaniyeh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion.",fa:"ورزش و سبک زندگی، با حرکت آهسته."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 10. Dicardo (colors approximate)
-  {id:"dicardo", theme:"dark", c:{bg:"#1A0D12",bg2:"#3D1A26",ink:"#FBEFF2",acc:"#E04E6A"},
+  // 10. Dicardo (logo and colors from the official site)
+  {id:"dicardo", theme:"dark", c:{bg:"#070525",bg2:"#1C1458",ink:"#F3F0FF",acc:"#AC33ED"},logoImg:"assets/brands/dicardo.png",
    name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves.",fa:"استایلی که حرکت می‌کنه."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 11. Mahan Net (colors approximate)
-  {id:"mahannet", theme:"dark", c:{bg:"#08212B",bg2:"#0F4659",ink:"#EAFAFD",acc:"#29C4D9"},
+  // 11. Mahan Net (logo and colors from the official site)
+  {id:"mahannet", theme:"light", c:{bg:"#F7F5F4",bg2:"#E7E1DE",ink:"#000000",acc:"#FF2401"},logoImg:"assets/brands/mahan-net.png",
    name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts.",fa:"اینترنت پرسرعت، کات‌های سریع‌تر."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 12. Niro Motor (colors approximate)
-  {id:"niromotor", theme:"dark", c:{bg:"#120B0B",bg2:"#3A1212",ink:"#FBEDED",acc:"#E3262E"},
+  // 12. Niro Motor (logo and colors from the official site)
+  {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
    name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed.",fa:"موتور، قدرت و سرعت."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 13. IT Mall (colors approximate)
-  {id:"itmall", theme:"dark", c:{bg:"#120E24",bg2:"#2C2160",ink:"#F0EDFF",acc:"#8C6BFF"},
+  // 13. IT Mall (logo and colors from the official site)
+  {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
    name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot.",fa:"هر گجت، یک نمای قهرمان."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},

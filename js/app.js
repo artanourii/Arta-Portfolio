@@ -335,7 +335,12 @@ const brandTex=[];
 function drawBrand(tex){
   const {s,img}=tex.userData,cv=tex.image,g=cv.getContext("2d"),W=cv.width,H=cv.height;
   g.clearRect(0,0,W,H);g.fillStyle=s.c.ink;
-  if(img){const k=Math.min(W/img.width,H/img.height)*.92,w=img.width*k,h=img.height*k;g.drawImage(img,(W-w)/2,(H-h)/2,w,h)}
+  if(img){
+    const iw=img.naturalWidth||img.width||1000,ih=img.naturalHeight||img.height||400,k=Math.min(W/iw,H/ih)*.92,w=iw*k,h=ih*k;
+    g.drawImage(img,(W-w)/2,(H-h)/2,w,h);
+    // single-colour logos (e.g. a black logo on a dark set) are recoloured in the set's text colour
+    if(s.logoTint){g.globalCompositeOperation="source-in";g.fillStyle=s.c.ink;g.fillRect(0,0,W,H);g.globalCompositeOperation="source-over"}
+  }
   else if(s.logo){const vb=s.logo.vb||24,k=H*.8/vb;g.save();g.translate(W/2-vb*k/2,H*.1);g.scale(k,k);g.fill(new Path2D(s.logo.d));g.restore()}
   else{
     const name=s.name.en.toUpperCase();let fs=H*.42;
@@ -367,7 +372,7 @@ function buildSet(s,i){
   // films float one behind another down a tunnel into the set, alternating left and right,
   // so the camera flies between them; sets with more films are built deeper
   const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=1.2;
-  const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?0:(j%2===0?-1:1)*(vert?.85:1.25);
+  const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
     return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ}});
   const back=Math.min(-1.25,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
@@ -385,9 +390,10 @@ function buildSet(s,i){
   const W=p=>g.localToWorld(p.clone());
   const tgt=W(V(0,1.4,-.4));fz.userData.aim(tgt);sb.userData.aim(tgt);
   rig.lookAt(W(V(0,0,-.5)));rig.rotateY(Math.PI);
-  slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6,.5,.6);
+  const LI=s.theme==="light"?.4:1;
+  slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6*LI,.5,.6,s.theme!=="light");
   const acc=new THREE.Color(s.c.acc).getHSL({}).l<.15?"#ffffff":s.c.acc;
-  slot(W(V(0,4.9,back+3.6)),W(V(0,2.3,back)),acc,2.2,.62,.7);
+  slot(W(V(0,4.9,back+3.6)),W(V(0,2.3,back)),acc,2.2*LI,.62,.7);
   // brand wall at the end of the tunnel: logo (or name) with a thin light line in the brand accent
   const bw=brandWall(s);bw.position.set(0,3.12,back+.2);g.add(bw);
   const line=box(2.8,.022,.02,emissive(s.c.acc,2.4),0,2.6,back+.25);line.userData.keep=true;g.add(line);
@@ -397,7 +403,7 @@ function buildSet(s,i){
     const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=L.x===0?0:-Math.sign(L.x)*.22;F.ph=j*1.7+i;
     F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;g.add(F.G);frames.push(F);
     F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
-    slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6,.42,.8,false);
+    slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
   SETS.push({g,s,i,side,z,W,frames,pick,lay,back});
 }
@@ -560,7 +566,7 @@ function buildOverlays(){
   anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
   SETS.forEach(S=>{
     const s=S.s,num=lang==="fa"?(S.i+1).toLocaleString("fa"):String(S.i+1).padStart(2,"0");
-    const a=anchor(`<button class="glass sign" style="--b:${s.c.acc}"><span class="bar"></span><div class="n">${num}${s.logoImg?`<img class="blogo" src="${s.logoImg}" alt="">`:s.logo?`<svg class="blogo" viewBox="0 0 ${s.logo.vb||24} ${s.logo.vb||24}" aria-hidden="true"><path d="${s.logo.d}"/></svg>`:""}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,S.W(V(0,P?3.25:3.55,3.0)),P?1.45:1.7,{far:18,hideIn:S.i});
+    const a=anchor(`<button class="glass sign" style="--b:${s.c.acc}"><span class="bar"></span><div class="n">${num}${s.logoImg?`<span class="bchip" style="background:${s.c.bg}"><img src="${s.logoImg}" alt=""${s.logoTint?` style="filter:brightness(0) invert(1)"`:""}></span>`:s.logo?`<svg class="blogo" viewBox="0 0 ${s.logo.vb||24} ${s.logo.vb||24}" aria-hidden="true"><path d="${s.logo.d}"/></svg>`:""}</div><h3>${s.name[lang]}</h3><p>${s.tag[lang]}</p><div class="row"><span>${t.films(s.videos.length)}</span><b>${t.enter}</b></div></button>`,S.W(V(0,P?3.25:3.55,3.0)),P?1.45:1.7,{far:18,hideIn:S.i});
     a.e.querySelector("button").addEventListener("click",()=>enterSet(S.i));
   });
   const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});

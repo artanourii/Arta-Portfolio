@@ -63,6 +63,8 @@ a{color:inherit;text-decoration:none}
 .sign .n{font:600 13px "Unbounded",sans-serif;letter-spacing:.18em;color:var(--muted)}
 .sign .n{display:flex;justify-content:space-between;align-items:center;min-height:30px}
 .sign .blogo{height:30px;width:auto;max-width:120px;fill:var(--text)}
+.sign .bchip{display:inline-flex;align-items:center;padding:5px 9px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+.sign .bchip img{height:22px;width:auto;max-width:110px;display:block}
 .sign h3{margin:6px 0 6px;font:800 32px/1.05 "Unbounded",sans-serif}
 [dir="rtl"] .sign h3{font-family:"Vazirmatn";font-size:32px}
 .sign p{margin:0 0 16px;color:var(--muted);font-size:16px;line-height:1.45}
