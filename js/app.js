@@ -249,7 +249,7 @@ function build3D(){
   const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,HALL_MID);scene.add(fl);
   if(Q==="high"&&THREE.Reflector){
     const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x555555});rf.userData.keep=true;
-    rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);
+    rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);floorMirror=rf;
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
   for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
@@ -341,7 +341,7 @@ function build3D(){
   hemi=new THREE.HemisphereLight(C("#cfd6e6"),C("#2a2420"),.25);scene.add(hemi);
   dir=new THREE.DirectionalLight(C("#ffffff"),0);dir.position.set(3,10,4);scene.add(dir);
 }
-let dust,hemi,dir;
+let dust,hemi,dir,floorMirror=null;
 function makeLogo(){
   const shapes=LOGO_SHAPES.map(s=>{
     const sh=new THREE.Shape(s.o.map(p=>new THREE.Vector2(p[0],p[1])));
@@ -680,10 +680,8 @@ function makeFrame(s,v,i){
   const slab=new THREE.Mesh(geo,glass);slab.renderOrder=2;G.add(slab);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));G.add(edges);
   // liquid glass face: tinted body, sheen and bright rim, sitting just in front of the slab
-  { const pw=w+pad*2,ph=slabH,cv=document.createElement("canvas");cv.width=Math.round(pw*400);cv.height=Math.round(ph*400);
-    drawLiquid(cv.getContext("2d"),cv.width,cv.height,Math.min(cv.width,cv.height)*.09,s.theme!=="light");
-    const lt=new THREE.CanvasTexture(cv);lt.encoding=THREE.sRGBEncoding;lt.anisotropy=4;
-    const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:lt,transparent:true,depthWrite:false}));
+  { const pw=w+pad*2,ph=slabH;
+    const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),liquidMat(pw,ph,.075));
     lf.position.set(0,-CAP_H/2,depth/2+.006);lf.renderOrder=3;G.add(lf); }
   // screen (poster until the film is ready)
   F.posterCv=document.createElement("canvas");F.posterCv.width=vert?360:640;F.posterCv.height=vert?640:360;
@@ -699,7 +697,7 @@ function makeFrame(s,v,i){
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
   G.traverse(o=>{o.userData.keep=true;o.userData.frame=F});
-  framesAll.push(F);return F;
+  addGlass(G,Math.max(w,h));framesAll.push(F);return F;
 }
 // films play on the glass only near the camera, and only from this site's own files (other hosts can't be drawn into 3D)
 const sameOrigin=src=>{try{return new URL(src,location.href).origin===location.origin}catch(e){return false}};
@@ -822,30 +820,75 @@ function glassSlab(w,h){
 }
 // iOS-style liquid glass drawn into a canvas: clear tinted body, top sheen, a bright specular rim
 // and a faint rainbow edge where the "glass" bends the light
-function drawLiquid(g,w,h,r,isDark){
-  g.save();rr(g,2,2,w-4,h-4,r);g.clip();
-  g.fillStyle=isDark?"rgba(30,32,42,.40)":"rgba(255,255,255,.34)";g.fillRect(0,0,w,h);
-  let gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,"rgba(255,255,255,.26)");gr.addColorStop(.42,"rgba(255,255,255,.04)");gr.addColorStop(1,"rgba(255,255,255,.10)");g.fillStyle=gr;g.fillRect(0,0,w,h);
-  gr=g.createRadialGradient(w*.18,-h*.15,0,w*.18,-h*.15,Math.max(w,h)*.75);gr.addColorStop(0,"rgba(255,255,255,.34)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h);
-  g.lineWidth=14;g.strokeStyle="rgba(255,255,255,.07)";rr(g,9,9,w-18,h-18,r-7);g.stroke();
-  g.restore();
-  // rims
-  g.lineWidth=3.5;gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"rgba(255,255,255,.98)");gr.addColorStop(.45,"rgba(255,255,255,.28)");gr.addColorStop(1,"rgba(255,255,255,.78)");g.strokeStyle=gr;rr(g,2,2,w-4,h-4,r);g.stroke();
-  g.lineWidth=2;gr=g.createLinearGradient(0,0,w,0);gr.addColorStop(0,"rgba(120,220,255,.35)");gr.addColorStop(.5,"rgba(255,255,255,0)");gr.addColorStop(1,"rgba(255,120,220,.35)");g.strokeStyle=gr;rr(g,6,6,w-12,h-12,r-4);g.stroke();
+/* ---------- real liquid glass (like iOS 26) ----------
+   Each frame the scene is drawn once without the glass into a small mipmapped texture. Glass surfaces sample
+   it at their own screen position: clear in the middle, bending the scene in like a lens toward the rim,
+   with a little colour fringing, a bright specular edge and a soft frost. Nothing is painted on, so the glass
+   always shows what is really behind it, in light and dark mode alike. */
+const GLASS={res:new THREE.Vector2(1,1),groups:[],dark:{value:1},rt:null,tick:0,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),sph:new THREE.Sphere()};
+{ const sz=Q==="high"?1024:512,hf=renderer.capabilities.isWebGL2&&!!renderer.extensions.get("EXT_color_buffer_float");
+  GLASS.rt=new THREE.WebGLRenderTarget(sz,sz,{minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:hf?THREE.HalfFloatType:THREE.UnsignedByteType,generateMipmaps:true}); }
+const GLASS_VS=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const GLASS_FS=`uniform sampler2D tBack,tText;uniform vec2 uRes,uSize;uniform float uRad,uHasText,uDark,uOpacity;varying vec2 vUv;
+float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+void main(){
+  vec2 hb=uSize*.5,p=(vUv-.5)*uSize;
+  float d=sdRR(p,hb,uRad),aa=max(fwidth(d),1e-5),mask=1.-smoothstep(-aa,aa,d);
+  if(mask<.002)discard;
+  float inside=max(-d,0.),bez=max(min(uRad*1.25,min(hb.x,hb.y)*.6),.025);
+  vec2 g=vec2(sdRR(p+vec2(.002,0.),hb,uRad)-sdRR(p-vec2(.002,0.),hb,uRad),sdRR(p+vec2(0.,.002),hb,uRad)-sdRR(p-vec2(0.,.002),hb,uRad));
+  vec2 n=g/max(length(g),1e-6);
+  float ppm=1./max(length(fwidth(p))*.7071,1e-6);   // screen pixels per metre on this surface
+  float e=1.-smoothstep(0.,bez,inside),bend=e*e*(3.-2.*e);
+  // lens: toward the rim the glass pulls in the scene from just beyond its edge
+  vec2 suv=gl_FragCoord.xy/uRes,off=n*bend*bez*1.15*ppm/uRes;
+  float lod=1.7+bend*1.8;   // soft frost, so text on the glass stays easy to read
+  vec3 col=vec3(texture2D(tBack,suv+off*1.1,lod).r,texture2D(tBack,suv+off,lod).g,texture2D(tBack,suv+off*.9,lod).b);
+  col=col*1.07+mix(.05,.035,uDark);
+  // specular rim: thin and bright where the light (top left) catches it, a weaker kick on the opposite edge
+  vec2 L=normalize(vec2(-.55,.85));float ld=dot(n,L);
+  float rim=1.-smoothstep(0.,1.4/ppm+.0025,inside);
+  col+=rim*(.16+.85*pow(max(ld,0.),1.6)+.4*pow(max(-ld,0.),2.));
+  col+=exp(-inside/(bez*.45))*.1*max(ld,0.);
+  if(uHasText>.5){vec4 t=texture2D(tText,vUv);col=mix(col,pow(t.rgb,vec3(2.2)),t.a);}
+  gl_FragColor=vec4(col,mask*uOpacity);
+  #include <encodings_fragment>
+}`;
+function liquidMat(w,h,r,textTex){
+  const m=new THREE.ShaderMaterial({uniforms:{tBack:{value:GLASS.rt.texture},tText:{value:textTex||null},uHasText:{value:textTex?1:0},uRes:{value:GLASS.res},
+    uSize:{value:new THREE.Vector2(w,h)},uRad:{value:r},uDark:GLASS.dark,uOpacity:{value:1}},vertexShader:GLASS_VS,fragmentShader:GLASS_FS,
+    transparent:true,depthWrite:false,extensions:{derivatives:true}});
+  m.userData.glass=true;return m;
+}
+// a glass object (panel or film frame) is left out of the backdrop it samples
+function addGlass(G,r=2){GLASS.groups.push({G,r})}
+function renderBackdrop(){
+  renderer.getDrawingBufferSize(GLASS.res);
+  if(Q!=="high"&&(GLASS.tick++&1))return;   // phones refresh the backdrop every other frame
+  GLASS.pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);GLASS.fr.setFromProjectionMatrix(GLASS.pm);
+  const vis=[];
+  for(const o of GLASS.groups){if(!o.G.visible||!o.G.parent)continue;o.G.getWorldPosition(GLASS.sph.center);GLASS.sph.radius=o.r*o.G.scale.x;
+    if(GLASS.sph.center.distanceTo(camera.position)<40&&GLASS.fr.intersectsSphere(GLASS.sph))vis.push(o.G)}
+  if(!vis.length)return;
+  const hidden=[];for(const o of GLASS.groups)if(o.G.visible){o.G.visible=false;hidden.push(o.G)}
+  const rf=floorMirror,rfv=rf&&rf.visible;if(rf)rf.visible=false;
+  renderer.setRenderTarget(GLASS.rt);renderer.render(scene,camera);renderer.setRenderTarget(null);
+  if(rf)rf.visible=rfv;hidden.forEach(G=>G.visible=true);
 }
 const PXM=620;  // canvas pixels per metre for floating panels
 function liquidPanel(layout){
   // layout(g, measureOnly) returns {w,h} in px and draws when measureOnly is false
   const cv=document.createElement("canvas");cv.width=cv.height=8;
   const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
-  const face=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.renderOrder=3;
-  const G=new THREE.Group();G.add(face);
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(1,1),liquidMat(1,1,.1,tex));face.renderOrder=3;
+  const G=new THREE.Group();G.add(face);addGlass(G);
   let slab=null;
   const redraw=()=>{
     const m=layout(cv.getContext("2d"),true),W=Math.ceil(m.w),H=Math.ceil(m.h);
     if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;tex.dispose()}
-    const g=cv.getContext("2d");g.clearRect(0,0,W,H);drawLiquid(g,W,H,Math.min(H*.32,64),dark);layout(g,false);tex.needsUpdate=true;
+    const g=cv.getContext("2d");g.clearRect(0,0,W,H);layout(g,false);tex.needsUpdate=true;
     const wm=W/PXM,hm=H/PXM;face.geometry.dispose();face.geometry=new THREE.PlaneGeometry(wm,hm);face.position.z=.03;
+    face.material.uniforms.uSize.value.set(wm,hm);face.material.uniforms.uRad.value=Math.min(hm*.32,.1);
     // a very faint slab behind gives the glass some thickness when seen at an angle
     if(slab){G.remove(slab);slab.geometry.dispose()}
     const geo=new THREE.ExtrudeGeometry(roundRect(wm,hm,Math.min(hm*.32,.1)),{depth:.04,bevelEnabled:true,bevelThickness:.008,bevelSize:.008,bevelSegments:2,curveSegments:6});geo.translate(0,0,-.02);
@@ -1042,6 +1085,7 @@ function updatePool(){
 /* ---------- theme ---------- */
 function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
+  GLASS.dark.value=dark?1:0;
   FEATS3.forEach(drawCaption);
   const bg=dark?"#060607":"#cdc9c3";
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
@@ -1297,6 +1341,7 @@ function frame(now){
   updatePool();
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
+  renderBackdrop();
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;

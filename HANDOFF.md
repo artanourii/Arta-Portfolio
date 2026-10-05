@@ -22,3 +22,7 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 3. **logo-ad.mp4 and instagram-ad.mp4**: done (both 9:16, converted from HEVC to H.264 1080×1920 with ffmpeg, about 14 MB each, posters `videos/*.jpg`). Always convert to H.264: HEVC does not play in every browser.
 4. **Résumé**: filled in from LinkedIn (about, experience, skills, education).
 5. Publishing: merge to `main`, then GitHub Pages from `main` / root.
+
+## Liquid glass
+
+3D glass (Arta Studio panels, the Studios heading, every film frame) is a real refraction shader (`liquidMat` / `renderBackdrop` in `js/app.js`): the scene is drawn once per frame without the glass into a small mipmapped texture, and each glass surface samples it at its own screen position, bending it like a lens toward the rim, with colour fringing, frost and a specular edge. It looks the same in light and dark mode; only the text colour changes. HTML glass (`.glass` in `css/style.css`) follows the same idea with `backdrop-filter`.
