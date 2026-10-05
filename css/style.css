@@ -1,18 +1,18 @@
 /* ARTA NOORI STUDIO */
 :root{
   --bg:#ECEAE6;--text:#16131A;--muted:#5B5660;--line:rgba(20,15,25,.12);--accent:#8F6A2A;
-  --glass:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,.12) 55%,rgba(255,255,255,.2));
+  --glass:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.04) 55%,rgba(255,255,255,.12)),rgba(12,12,16,.14);
   --glass-line:rgba(255,255,255,.85);--glass-shadow:0 24px 60px -24px rgba(30,20,40,.45);
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#060607;--text:#F2EEE7;--muted:#A49FAA;--line:rgba(242,238,231,.12);--accent:#E0BF7A;
-  --glass:linear-gradient(160deg,rgba(255,255,255,.17),rgba(255,255,255,.06) 55%,rgba(255,255,255,.12));
+  --glass:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03) 55%,rgba(255,255,255,.09)),rgba(8,8,12,.22);
   --glass-line:rgba(255,255,255,.6);--glass-shadow:0 24px 60px -20px rgba(0,0,0,.8);
 }}
 :root[data-theme="dark"]{
   --bg:#060607;--text:#F2EEE7;--muted:#A49FAA;--line:rgba(242,238,231,.12);--accent:#E0BF7A;
-  --glass:linear-gradient(160deg,rgba(255,255,255,.17),rgba(255,255,255,.06) 55%,rgba(255,255,255,.12));
+  --glass:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03) 55%,rgba(255,255,255,.09)),rgba(8,8,12,.22);
   --glass-line:rgba(255,255,255,.6);--glass-shadow:0 24px 60px -20px rgba(0,0,0,.8);
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -32,7 +32,9 @@ a{color:inherit;text-decoration:none}
 .glass{background:var(--glass);border:0;border-radius:22px;position:relative;overflow:hidden;
   box-shadow:inset 1.5px 1.5px 0 -.5px var(--glass-line),inset -1.5px -1.5px 0 -.5px rgba(255,255,255,.45),inset 0 0 0 1px rgba(255,255,255,.18),
     inset 0 0 22px rgba(255,255,255,.1),var(--glass-shadow);
-  -webkit-backdrop-filter:blur(7px) saturate(185%) brightness(1.1);backdrop-filter:blur(7px) saturate(185%) brightness(1.1)}
+  -webkit-backdrop-filter:blur(7px) saturate(185%) brightness(.9);backdrop-filter:blur(7px) saturate(185%) brightness(.9)}
+/* text on the smoky glass is light in both modes */
+.glass{--text:#fff;--muted:rgba(255,255,255,.74);--bg:#141418;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3)}
 .glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.3) 46%,transparent 62%);transform:translateX(-130%);transition:transform 1s cubic-bezier(.2,.7,.1,1)}
 @media (hover:hover){.glass:hover::after{transform:translateX(130%)}}
@@ -191,9 +193,9 @@ a{color:inherit;text-decoration:none}
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 1px 1px 0 2px rgba(255,255,255,.35),inset -6px -6px 18px rgba(255,255,255,.06),
     inset 0 0 0 4px rgba(150,220,255,.07),var(--glass-shadow);
   -webkit-backdrop-filter:blur(18px) saturate(185%) brightness(1.08);backdrop-filter:blur(18px) saturate(185%) brightness(1.08)}
-:root{--lg-body:rgba(255,255,255,.3)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lg-body:rgba(255,255,255,.09)}}
-:root[data-theme="dark"]{--lg-body:rgba(255,255,255,.09)}
+:root{--lg-body:rgba(255,255,255,.22)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lg-body:rgba(8,8,12,.3)}}
+:root[data-theme="dark"]{--lg-body:rgba(8,8,12,.3)}
 .sheet::-webkit-scrollbar{width:6px}.sheet::-webkit-scrollbar-thumb{background:rgba(127,127,127,.4);border-radius:3px}
 .sheet::-webkit-scrollbar-track{background:transparent}
 .snd3{position:static}
