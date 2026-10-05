@@ -797,7 +797,7 @@ function buildOverlays(){
   anchor(`<div class="gate"><h2>${t.arch}</h2><p>${t.archSub}</p></div>`,V(0,5.6,-11),P?4.4:5.4,{far:22});
   const CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
   t.panels.forEach((p,i)=>{
-    const a=anchor(`<button class="glass card" data-panel="${p.id}"><div class="k">${p.k}</div><h3>${p.h}</h3><p>${p.p}</p><span class="open">${t.open}</span></button>`,V(...CP[i]),P?.95:1.25);
+    const a=anchor(`<button class="glass card" data-panel="${p.id}"><div class="k">${p.k}</div><h3>${p.h}</h3><p>${p.p}</p><span class="open">${t.open}</span></button>`,V(...CP[i]),P?.95:1.25,{far:9.5});
     a.e.querySelector("button").addEventListener("click",()=>openSheet(p.id));
   });
   anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
@@ -941,8 +941,10 @@ let PP0=-20.5,PP_END=1;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
-  pos.set(Math.sin(pp*.08)*.25,1.65,z);
-  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1,z-8);
+  // in the lobby the walk curves to the right of the AN logo plinth instead of through it
+  const by=k=>2.6*Math.exp(-Math.pow((k-6.9)/2.6,2)),side=by(pp),ahead=by(pp+8)*.5;
+  pos.set(Math.sin(pp*.08)*.25+side,1.65,z);
+  look.set(Math.sin(pp*.08)*.15+ahead,(portrait()?1.75:1.45)+out*1.1,z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
