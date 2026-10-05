@@ -125,7 +125,7 @@ a{color:inherit;text-decoration:none}
 .veil{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(18px + env(safe-area-inset-bottom,0px));
   background:color-mix(in srgb,var(--bg) 50%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity .35s}
 .veil.show{opacity:1;pointer-events:auto}
-.sheet{width:min(680px,100%);max-height:100%;overflow:auto;padding:clamp(24px,5vw,44px);transform:scale(.93) translateY(18px);transition:transform .45s cubic-bezier(.2,.8,.1,1);touch-action:pan-y;user-select:text;-webkit-user-select:text}
+.sheet{width:min(680px,100%);max-height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:clamp(24px,5vw,44px);transform:scale(.93) translateY(18px);transition:transform .45s cubic-bezier(.2,.8,.1,1);touch-action:pan-y;user-select:text;-webkit-user-select:text}
 .veil.show .sheet{transform:none}
 .sheet h2{margin:4px 0 18px;font:800 clamp(28px,5vw,42px)/1.1 "Unbounded",sans-serif}
 [dir="rtl"] .sheet h2{font-family:"Vazirmatn"}
@@ -181,3 +181,15 @@ a{color:inherit;text-decoration:none}
   .shud .pill{height:40px;font-size:13px;padding:0 13px}
 }
 @media (prefers-reduced-motion:reduce){.enter-btn.show{animation:none}}
+
+/* the open panel as liquid glass: clearer body, top sheen, bright rim and a faint rainbow edge */
+.sheet.glass{border-radius:34px;border:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.05) 42%,rgba(255,255,255,.1)),var(--lg-body);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 1px 1px 0 2px rgba(255,255,255,.35),inset -6px -6px 18px rgba(255,255,255,.06),
+    inset 0 0 0 4px rgba(150,220,255,.07),var(--glass-shadow);
+  -webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%)}
+:root{--lg-body:rgba(255,255,255,.36)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lg-body:rgba(28,30,40,.42)}}
+:root[data-theme="dark"]{--lg-body:rgba(28,30,40,.42)}
+.sheet::-webkit-scrollbar{width:6px}.sheet::-webkit-scrollbar-thumb{background:rgba(127,127,127,.4);border-radius:3px}
+.sheet::-webkit-scrollbar-track{background:transparent}
