@@ -292,8 +292,8 @@ function build3D(){
   }
 
   // entrance
-  const pl=box(3.3,.5,1.5,MAT.plinth,0,.25,-6.4);scene.add(pl);
-  const logo=makeLogo();logo.position.set(0,.5,-6.4);scene.add(logo);
+  const pl=box(3.3,.5,1.5,MAT.plinth,0,.25,-6.4);scene.add(pl);pl.userData.keep=true;OCCLUDERS.push(pl);
+  const logo=makeLogo();logo.position.set(0,.5,-6.4);scene.add(logo);logo.traverse(o=>{o.userData.keep=true});OCCLUDERS.push(logo);
   const wmTex=new THREE.TextureLoader().load(WORDMARK);wmTex.encoding=THREE.sRGBEncoding;
   MAT.wordmark=new THREE.MeshBasicMaterial({map:wmTex,transparent:true,color:C("#f0eee8"),depthWrite:false,fog:false});
   const wm=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.23),MAT.wordmark);wm.position.set(0,.25,-5.645);scene.add(wm);
@@ -702,6 +702,7 @@ const sameOrigin=src=>{try{return new URL(src,location.href).origin===location.o
 let frameT=0;
 function updateFrames(dt){
   frameT+=dt*.001;
+  P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
   const cp=camera.position;
   for(const F of framesAll){
     const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
@@ -734,11 +735,78 @@ function frameRect(F){
 let playerFrame=null;
 function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(hallPick,false)[0];return h&&h.distance<26?h.object.userData.enter:-1}
 canvas.addEventListener("click",e=>{
-  if(dragged||playerEl)return;const F=pickFrame(e.clientX,e.clientY);
+  if(dragged||playerEl)return;
+  if(mode==="hall"){const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
+  const F=pickFrame(e.clientX,e.clientY);
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
+
+/* ---------- Arta Studio panels and floating titles as real 3D objects ----------
+   They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
+const OCCLUDERS=[];
+const P3={panels:[],titles:[],pick:[]};
+const inkCol=()=>dark?{t:"#F2EEE7",m:"#A49FAA",a:"#E0BF7A"}:{t:"#16131A",m:"#5B5660",a:"#8F6A2A"};
+function panelTex(w,h,draw){
+  const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
+  t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");g.clearRect(0,0,w,h);draw(g,w,h);t.needsUpdate=true};
+  return t;
+}
+function glassSlab(w,h){
+  const geo=new THREE.ExtrudeGeometry(roundRect(w,h,.06),{depth:.05,bevelEnabled:true,bevelThickness:.01,bevelSize:.01,bevelSegments:3,curveSegments:6});geo.translate(0,0,-.025);
+  const m=new THREE.MeshPhysicalMaterial({color:C("#cfd4dc"),roughness:.05,metalness:.1,clearcoat:1,clearcoatRoughness:.05,transparent:true,opacity:.16,envMapIntensity:1.2,side:THREE.DoubleSide,depthWrite:false});
+  m.userData.glass=true;const slab=new THREE.Mesh(geo,m);slab.renderOrder=2;
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.35}));
+  const g=new THREE.Group();g.add(slab,edges);return g;
+}
+function buildPanels3D(){
+  const W=1.25,H=.86;
+  TX.en.panels.forEach((_,i)=>{
+    const G=glassSlab(W,H);
+    const tex=panelTex(800,550,(g,w,h)=>{
+      const p=T().panels[i],fa=lang==="fa",c=inkCol();
+      // a soft tinted plate behind the text keeps it readable over any background
+      g.fillStyle=dark?"rgba(10,10,14,.5)":"rgba(255,255,255,.55)";rr(g,0,0,w,h,48);g.fill();
+      if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";const x=fa?w-56:56;
+      g.fillStyle=c.a;g.font=`600 40px "Vazirmatn", sans-serif`;g.fillText(p.k,x,96);
+      g.fillStyle=c.t;g.font=fa?`800 76px "Vazirmatn", sans-serif`:`800 70px "Unbounded", "Vazirmatn", sans-serif`;g.fillText(p.h,x,196);
+      g.fillStyle=c.m;g.font=`400 38px "Vazirmatn", sans-serif`;g.fillText(p.p,x,272);
+      g.fillStyle=c.t;g.font=`600 38px "Vazirmatn", sans-serif`;const op=T().open;
+      const cx=fa?w-80:80,tx=fa?w-118:118;g.lineWidth=4;g.strokeStyle=c.t;g.beginPath();g.arc(cx,420,24,0,Math.PI*2);g.stroke();
+      g.fillRect(cx-11,418,22,4);g.fillRect(cx-2,409,4,22);g.fillText(op,tx,433);
+    });
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+    face.position.z=.04;face.renderOrder=3;G.add(face);
+    G.traverse(o=>{o.userData.keep=true;o.userData.panel=i});P3.pick.push(face);
+    scene.add(G);P3.panels.push({G,tex,ph:i*1.3});
+  });
+  const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+    m.userData.keep=true;scene.add(m);P3.titles.push({m,tex});return m};
+  const heading=(k1,k2)=>(g,w,h)=>{const c=inkCol(),fa=lang==="fa",t=T();g.textAlign="center";g.textBaseline="middle";if("direction" in g)g.direction=fa?"rtl":"ltr";
+    g.fillStyle=c.t;let f=150;const ff=()=>fa?`800 ${f}px "Vazirmatn", sans-serif`:`800 ${f}px "Unbounded", "Vazirmatn", sans-serif`;g.font=ff();
+    if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px";while(g.measureText(t[k1]).width>w*.94&&f>40){f-=6;g.font=ff();if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px"}
+    g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
+  P3.gate=title(heading("arch","archSub"),2048,420,5.4);
+  P3.studios=title(heading("studios","studiosSub"),2048,420,4.6);
+}
+// positions depend on the screen shape; text depends on language and light mode
+function layoutPanels3D(){
+  const P=portrait(),CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
+  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.76:1)});
+  P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
+  P3.studios.position.set(0,3.3,-25.5);P3.studios.scale.setScalar(P?.66:1);
+}
+function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
+function pickPanel(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(P3.pick,false)[0];return h&&h.distance<12?h.object.userData.panel:-1}
+// HTML overlays left in the scene hide when something solid (the lobby logo) stands between them and the camera
+const occRay=new THREE.Raycaster(),occDir=new THREE.Vector3();
+function occluded(pos){
+  if(!OCCLUDERS.length)return false;occDir.copy(pos).sub(camera.position);const d=occDir.length();occDir.normalize();
+  occRay.set(camera.position,occDir);occRay.far=d;return occRay.intersectObjects(OCCLUDERS,true).length>0;
+}
 
 /* ---------- overlays anchored to 3D points ---------- */
 const ovl=$("#ovl");
@@ -763,7 +831,7 @@ function updateAnchors(){
         tmp.copy(a.pos).project(camera);
         const x=(tmp.x*.5+.5)*W,y=(-tmp.y*.5+.5)*H;
         const o=clamp((a.far-d)/3,0,1)*clamp((d-a.near)/.9,0,1);
-        if(o<.02||x<-a.w*s||x>W+a.w*s||y<-a.h*s||y>H+a.h*s)vis=false;
+        if(o<.02||x<-a.w*s||x>W+a.w*s||y<-a.h*s||y>H+a.h*s||occluded(a.pos))vis=false;
         else{
           a.e.style.transform=`translate3d(${(x-a.w*s/2).toFixed(1)}px,${(y-a.h*s/2).toFixed(1)}px,0) scale(${s.toFixed(4)})`;
           a.e.style.opacity=o.toFixed(3);a.e.style.zIndex=Math.round(1000-d*10);
@@ -794,13 +862,8 @@ function buildOverlays(){
     anchor(lg,V(3.4,2.6,16),1.5);anchor(lt,V(3.4,1.9,16),1.5);
     anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});
   }
-  anchor(`<div class="gate"><h2>${t.arch}</h2><p>${t.archSub}</p></div>`,V(0,5.6,-11),P?4.4:5.4,{far:22});
-  const CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,2.1,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,2.5,-20.2]];
-  t.panels.forEach((p,i)=>{
-    const a=anchor(`<button class="glass card" data-panel="${p.id}"><div class="k">${p.k}</div><h3>${p.h}</h3><p>${p.p}</p><span class="open">${t.open}</span></button>`,V(...CP[i]),P?.95:1.25,{far:9.5});
-    a.e.querySelector("button").addEventListener("click",()=>openSheet(p.id));
-  });
-  anchor(`<div class="studios-h"><h2>${t.studios}</h2><p>${t.studiosSub}</p></div>`,V(0,3.3,-25.5),P?3:4.6,{far:20});
+  // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
+  if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
   const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,V(0,P?.9:.95,LED_Z+1.6),P?2.6:4.6,{far:22});
   // your own films: logo film under the arch, Instagram film (with sound) in front of the LED wall
   feats.length=0;
@@ -917,6 +980,7 @@ function applyTheme(){
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.3:.07);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.62:1));
+  if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
   if(bloom){bloom.strength=dark?.7:.15;bloom.threshold=dark?.8:.96;bloom.radius=.45}
@@ -1181,7 +1245,7 @@ function mergeStatic(){
 }
 
 /* ---------- start ---------- */
-build3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
+build3D();buildPanels3D();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
 (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot);setTimeout(boot,2500);
