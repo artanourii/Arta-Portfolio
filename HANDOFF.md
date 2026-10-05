@@ -11,13 +11,13 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 
 - Entrance with the 3D AN logo; WhatsApp (+98 901 137 7877) and Instagram (@artanourii) chips; language switch (English default, Persian RTL); dark/light mode with the white/black logo files in `assets/`.
 - Arta Studio: floating panels (about, résumé, skills, services, clients) and the logo film (`videos/logo-ad.mp4`, silent loop).
-- One continuous scroll path down a hall of 15 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarate Zarin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup & Beauty, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
+- One continuous scroll path down a hall of 15 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup & Beauty, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
 - Tapping a frame opens the film full screen with sound; Esc, ✕, reverse scroll or swipe down closes it.
 - End of hall: LED wall with the Instagram film (`videos/instagram-ad.mp4`), which plays with sound as the visitor walks up (muted with a "Tap for sound" label until the visitor has tapped or clicked once).
 
 ## Still open
 
-1. **Brand logos**: done for all brands with websites (files and colour codes in `assets/brands/`, see `assets/brands/BRANDS.md`). Still missing: Analiz Fix and Emarate Zarin (no websites; Arta will send logo images / Instagram pages). Put a logo in `assets/brands/` and add `logoImg:"assets/brands/<name>.png"` to the studio in `js/content.js`; update its `c:` colours (bg, bg2 = set backdrop, ink = text, acc = accent light). `logoTint:true` recolours a one-colour logo in the set's ink colour.
+1. **Brand logos**: done for all brands with websites (files and colour codes in `assets/brands/`, see `assets/brands/BRANDS.md`). Analiz Fix and Emarat Zarrin were cut from their Instagram logos. Put a logo in `assets/brands/` and add `logoImg:"assets/brands/<name>.png"` to the studio in `js/content.js`; update its `c:` colours (bg, bg2 = set backdrop, ink = text, acc = accent light). `logoTint:true` recolours a one-colour logo in the set's ink colour.
 2. **Videos** for each studio: `videos/` + `src:"videos/<file>.mp4"` in `js/content.js`. Optional cover image: `poster:"videos/<file>.jpg"`.
 3. **logo-ad.mp4 and instagram-ad.mp4**: not uploaded yet; ask whether they are vertical (9:16) or horizontal (frames are 9:16 now, `r` in `FEATURES`).
 4. **Résumé info**: start year, number of projects, education (highlighted placeholders in the résumé panel).

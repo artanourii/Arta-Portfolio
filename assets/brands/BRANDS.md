@@ -121,3 +121,22 @@
 | Accent (Green CTA) | `#009C49` |
 | Dark | `#202734` |
 | Navy | `#1C2434` |
+
+## 11. Analiz Fix — آنالیز فیکس
+- **Website:** — (no site; logo from Arta, cut from the Instagram profile picture)
+- **Logo:** `analiz-fix.png` (PNG, round, transparent outside the circle)
+
+| Role | HEX |
+|---|---|
+| Primary (Orange) | `#ED8232` |
+| Orange dark | `#EA632B` |
+| Blue-violet (dots, ring) | `#5C74B2` |
+
+## 12. Emarat Zarrin — امارت زرین
+- **Website:** — (no site; logo from Arta, cut from the Instagram profile picture)
+- **Logo:** `emarat-zarrin.png` (PNG, round navy disc)
+
+| Role | HEX |
+|---|---|
+| Navy | `#162D4D` |
+| Gold | `#D9C080` |

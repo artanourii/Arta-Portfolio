@@ -72,14 +72,14 @@ const STUDIOS = [
    name:{en:"Azkivam",fa:"از کی وام"},tag:{en:"Loans made simple, on screen.",fa:"وام ساده، روی صفحه."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 7. Analiz Fix (colors approximate)
-  {id:"analizfix", theme:"dark", c:{bg:"#141414",bg2:"#2E2E2E",ink:"#F6F6F6",acc:"#FF7A1A"},
+  // 7. Analiz Fix (logo and colors from the brand's Instagram logo)
+  {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
    name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion.",fa:"عیب‌یابی و تعمیر، با زبان تصویر."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 8. Emarate Zarin (colors approximate)
-  {id:"emaratezarin", theme:"dark", c:{bg:"#15120C",bg2:"#3A2F18",ink:"#F7EFD9",acc:"#D4AF37"},
-   name:{en:"Emarate Zarin",fa:"امارت زرین"},tag:{en:"Architecture in gold light.",fa:"معماری در نور طلایی."},
+  // 8. Emarat Zarrin (logo and colors from the brand's Instagram logo)
+  {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.png",
+   name:{en:"Emarat Zarrin",fa:"امارت زرین"},tag:{en:"Architecture in gold light.",fa:"معماری در نور طلایی."},
    videos:[
      {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
   // 9. Farmaniyeh Club (logo and colors from the official site)
