@@ -1089,7 +1089,7 @@ function applyTheme(){
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
   MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
   MAT.wall.color=C(dark?"#1b1b1f":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
-  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#4a4744");MAT.plinth.roughness=dark?.28:.62;MAT.plinth.metalness=dark?.2:.05;
+  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#0e0e10");MAT.plinth.roughness=dark?.28:.55;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#18181c":"#2a2a2f");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
   MAT.logo.color=C(dark?"#f1eee8":"#121212");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
@@ -1102,6 +1102,8 @@ function applyTheme(){
   dir.intensity=dark?.06:.62;
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.5:.1):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
+  // black plinth: in light mode it barely mirrors the bright room, so its top stays black instead of grey
+  MAT.plinth.envMapIntensity=dark?.06:.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.62:1));
