@@ -674,6 +674,18 @@ function decor(s,g,back){
       const tip=mesh(new THREE.ConeGeometry(.11,.18,24),M(c.acc,.35));tip.position.y=.93;ls.add(tip);ls.scale.setScalar(1.6);put(ls,2.9,0,zF+.5);
       const pb=G();pb.add(B(.3,.36,.3,new THREE.MeshPhysicalMaterial({color:C("#f4d7df"),roughness:.05,transparent:true,opacity:.5,clearcoat:1}),0,.18,0));pb.add(C(.06,.06,.1,M("#d6b06a",.25,.9)));pb.children[1].position.y=.41;pb.scale.setScalar(1.8);put(pb,3.1,0,zN);
       break}
+    case "dreamsalon":{ // hair salon: two styling stations, each a round lit mirror over a counter with a salon chair
+      for(const sd of [-1,1]){const st=G();
+        st.add(B(.5,.06,1.3,M("#f6f1f4",.35),.25,.82,0));st.add(B(.46,.8,.04,M("#f6f1f4",.5),.24,.4,.62));st.add(B(.46,.8,.04,M("#f6f1f4",.5),.24,.4,-.62));
+        const ring=T(.42,.03,E("#fff1e0",2.6));ring.rotation.y=Math.PI/2;ring.position.set(.02,1.75,0);st.add(ring);
+        const mir=mesh(new THREE.CircleGeometry(.4,40),M("#dfe7ee",.04,.95));mir.rotation.y=Math.PI/2;mir.position.set(.03,1.75,0);st.add(mir);
+        const ch=G();ch.add(C(.22,.26,.06,M("#1a1a1c",.3,.6),24));ch.children[0].position.y=.03;
+        const post=C(.05,.05,.42,M("#c9c9cf",.2,.9));post.position.y=.27;ch.add(post);
+        ch.add(B(.55,.12,.55,M(c.acc,.55),0,.52,0));ch.add(B(.1,.5,.55,M(c.acc,.55),-.24,.82,0));
+        for(const az of [-1,1])ch.add(B(.45,.06,.08,M("#1a1a1c",.4,.4),0,.68,az*.28));
+        ch.position.x=1.05;ch.rotation.y=Math.PI;st.add(ch);
+        put(st,sd*3.6,0,(zN+zF)/2+sd*.9,face(sd))}
+      break}
     case "tiktok":{ // creator room: ring light on a tripod and neon strips
       for(const sd of [-1,1]){const rl=G();rl.add(T(.42,.035,E("#ffffff",3)));rl.children[0].position.y=1.7;
         rl.add(B(.09,.17,.01,M("#111",.3,.5),0,1.7,0));const pole=C(.015,.015,1.7,M("#222",.4,.6));pole.position.y=.85;rl.add(pole);
