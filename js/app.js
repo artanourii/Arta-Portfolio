@@ -588,10 +588,23 @@ function buildSet(s,i){
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
   // films float one behind another down a tunnel into the set, alternating left and right,
   // so the camera flies between them; sets with more films are built deeper
-  const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=.5;
-  const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
-    return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ}});
-  const back=Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
+  // a studio with many films (more than four) becomes a deep room where smaller frames float scattered at
+  // different heights and depths on both sides of the camera's path
+  const n=s.videos.length,many=n>4,Z0=.5;
+  let lay,DZ;
+  if(!many){
+    DZ=n>1?Math.min(2.6,9.1/(n-1)):0;
+    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
+      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ,sc:1}});
+  }else{
+    const sc=Math.max(.58,1-(n-4)*.022),zEnd=-8.2;DZ=(Z0-zEnd)/(n-1);
+    const lanes=[[-2.3,1.3],[1.9,2.6],[-1.5,2.8],[2.5,1.2],[-2.7,2.2],[1.4,1.55],[-1.9,1.05],[2.25,2.05]];
+    const rnd=(j,k)=>{const x=Math.sin((j+1)*12.9898+k*78.233)*43758.5453;return x-Math.floor(x)};
+    const xs=portrait()?.55:1;   // narrow screens: the films float closer to the middle so they stay in view
+    lay=s.videos.map((v,j)=>{const q=lanes[j%lanes.length];
+      return {x:(q[0]+(rnd(j,1)-.5)*.4)*xs,vert:v.r!=="16/9",y:q[1]+(rnd(j,2)-.5)*.25,z:Z0-j*DZ+(rnd(j,3)-.5)*DZ*.5,sc}});
+  }
+  const back=Math.max(-10.2,Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4)),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
   const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.z=-extra;g.add(cy);
   const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.004,3.38);g.add(edge);
@@ -631,11 +644,13 @@ function buildSet(s,i){
   // the films themselves, each in its own slab of glass with a soft key light
   const frames=[],pick=[];
   s.videos.forEach((v,j)=>{
-    const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=L.x===0?0:-Math.sign(L.x)*.22;F.ph=j*1.7+i;
-    F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;g.add(F.G);frames.push(F);
+    const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=L.x===0?0:-Math.sign(L.x)*(many?.42:.22);F.ph=j*1.7+i;
+    F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;F.G.scale.setScalar(L.sc);g.add(F.G);frames.push(F);
     F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
-    slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
+    if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
+  // a deep room is lit by a few soft lights along its length instead of one per film
+  if(many)for(let k=0;k<3;k++){const lz=Z0-(k+.5)*(Z0-lay[n-1].z)/3;slot(W(V(0,4.8,lz+1.2)),W(V(0,1.4,lz-.6)),"#fff4e6",1.8*LI,.7,.8,false)}
   // hanging sign over the aisle before the studio, arrow pointing to its door (both faces)
   const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
@@ -1165,9 +1180,22 @@ function buildPath(){
     const Door=pose((a,b)=>{a.set(-S.side*(P?2.6:3.4),1.65,S.z);b.set(S.side*7.2,P?2.45:2.25,S.z)});
     const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
     key(Door,Door,.6);S.u={in:u};
-    key(Door,E[0],5);
-    for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);key(E[j],E[j],1.2)}
-    key(E[n-1],E[n-1],.8);
+    if(n>4){
+      // many films: one smooth glide down the middle of the room, glancing toward each film as it passes,
+      // all the way to the last one
+      const lk=P?.75:.3;
+      const C=S.lay.map(L=>pose((a,b)=>{a.copy(S.W(V(L.x*.1,1.7,L.z+2.4)));b.copy(S.W(V(L.x*lk,L.y*.55+.7,L.z-1.4)))}));
+      // the walk ends squarely in front of the last film
+      const L=S.lay[n-1],End=pose((a,b)=>{a.copy(S.W(V(L.x*.45,L.y*.5+.85,L.z+(P?2.3:1.9))));b.copy(S.W(V(L.x,L.y,L.z)))});
+      key(Door,C[0],5);
+      for(let j=1;j<n-1;j++)key(C[j-1],C[j],1.15,false);
+      key(C[n-2],End,1.6);
+      key(End,End,.8);
+    }else{
+      key(Door,E[0],5);
+      for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);key(E[j],E[j],1.2)}
+      key(E[n-1],E[n-1],.8);
+    }
     S.path=path;S.len=u;
   });
 }
