@@ -11,8 +11,8 @@
 <link rel="icon" type="image/png" href="assets/logo-white.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" href="assets/logo-black.png" media="(prefers-color-scheme: light)">
 <script>
-/* one look: the warm, bright studio */
-document.documentElement.setAttribute("data-theme","light");
+/* light by default; the visitor's choice of lights on or off is remembered */
+(function(){var t="light";try{if(localStorage.getItem("ans-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@ document.documentElement.setAttribute("data-theme","light");
   <button class="mini glass" id="home" aria-label="ARTA NOORI"><img class="logo-w" src="assets/logo-white.png" alt="ARTA NOORI"><img class="logo-b" src="assets/logo-black.png" alt="ARTA NOORI"></button>
   <div class="r">
     <button class="pill glass" id="langBtn"></button>
-    <button class="pill glass" id="lightBtn" hidden></button>
+    <button class="pill glass" id="lightBtn"></button>
   </div>
 </header>
 <nav class="map glass" id="map" aria-label="Studio map"></nav>
