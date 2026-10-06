@@ -800,9 +800,9 @@ canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.styl
    They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
 const OCCLUDERS=[];
 const P3={panels:[],titles:[],pick:[]};
-const inkCol=()=>dark?{t:"#F2EEE7",m:"#A49FAA",a:"#E0BF7A"}:{t:"#16131A",m:"#5B5660",a:"#8F6A2A"};
+const inkCol=()=>dark?{t:"#F2EEE7",m:"#A49FAA",a:"#E0BF7A"}:{t:"#16131A",m:"#2f2b33",a:"#8F6A2A"};
 // text on the glass: black on the milky glass of light mode, white on the smoky glass of dark mode
-const glassInk=()=>dark?{t:"#ffffff",m:"rgba(255,255,255,.74)",a:"#f0cf8a"}:{t:"#121014",m:"rgba(18,16,20,.68)",a:"#8F6A2A"};
+const glassInk=()=>dark?{t:"#ffffff",m:"rgba(255,255,255,.74)",a:"#f0cf8a"}:{t:"#121014",m:"rgba(18,16,20,.86)",a:"#8F6A2A"};
 function panelTex(w,h,draw){
   const cv=document.createElement("canvas");cv.width=w;cv.height=h;
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
@@ -918,7 +918,7 @@ function buildPanels3D(){
     LP.face.userData.panel=i;P3.pick.push(LP.face);LP.redraw();
     scene.add(LP.G);P3.panels.push({G:LP.G,tex:LP.tex,ph:i*1.3});
   });
-  const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+  const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
     m.userData.keep=true;scene.add(m);P3.titles.push({m,tex});return m};
   const heading=(k1,k2)=>(g,w,h)=>{const c=inkCol(),fa=lang==="fa",t=T();g.textAlign="center";g.textBaseline="middle";if("direction" in g)g.direction=fa?"rtl":"ltr";
     g.fillStyle=c.t;let f=150;const ff=()=>fa?`800 ${f}px "Vazirmatn", sans-serif`:`800 ${f}px "Unbounded", "Vazirmatn", sans-serif`;g.font=ff();
@@ -1091,9 +1091,9 @@ function applyTheme(){
   MAT.wall.color=C(dark?"#1b1b1f":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#0e0e10");MAT.plinth.roughness=dark?.28:.55;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#18181c":"#2a2a2f");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
-  MAT.logo.color=C(dark?"#f1eee8":"#121212");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
+  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
-  MAT.logo.roughness=dark?.32:.26;MAT.logo.metalness=dark?.08:.55;MAT.logo.emissive=C(dark?"#000000":"#3a2508");MAT.logo.emissiveIntensity=dark?0:.55;
+  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C("#000000");MAT.logo.emissiveIntensity=0;
   if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#efe8da");
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
@@ -1104,6 +1104,7 @@ function applyTheme(){
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
   // black plinth: in light mode it barely mirrors the bright room, so its top stays black instead of grey
   MAT.plinth.envMapIntensity=dark?.06:.12;
+  if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.62:1));
