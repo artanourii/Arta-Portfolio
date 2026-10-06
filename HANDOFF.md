@@ -30,3 +30,13 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 ## Studios with many films
 
 More than four films: frames sit in rows across the whole room (middle included), the camera stops 1.5 m in front of each one in turn, and the studio HUD has ‹ n / total › buttons (arrow keys too). Tapping a film further away flies the camera to it; tapping the film in front of you opens it full screen. A "Tap the film to play it full screen" hint shows whenever the camera is close to a film (studios, the logo film, the Instagram film). Only the 4 nearest films play (2 on phones).
+
+## Status (end of day, Oct 6 2026)
+
+- Videos in: your two films (logo film, Instagram film), Respina (2), Asus Iran (24: asus-1 to asus-24 in `videos/`, titles in `js/content.js`).
+- Still to come: videos for Aparat, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Beauty Video, My Tiktok Video (and any more Asus films).
+- Video workflow: Arta sends files in chat (≤30 MB) or via GitHub Desktop into `videos/` on this branch (≤100 MB). Convert every upload to H.264 (`-preset slow -crf 19 -maxrate 9M`, two-pass to ~14 MB when larger), make a poster `.jpg`, add `{t,m,src,poster,r}` to the studio in `js/content.js`. Remove raw uploads from `videos/`.
+- Site video total is about 320 MB; GitHub Pages allows about 1 GB.
+- The claude.ai preview holds at most 256 MB, so it only carries some of the Asus films (the rest show their cover there).
+- Optional from Arta: Services text, project count, a larger Mahan Net logo.
+- Last step: merge to `main` and switch on GitHub Pages.
