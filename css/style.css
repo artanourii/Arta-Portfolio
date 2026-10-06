@@ -214,3 +214,4 @@ a{color:inherit;text-decoration:none}
 @media (max-width:640px){.playhint{font-size:13px;padding:8px 14px 8px 11px}.shud .fnav{bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){.playhint.show{animation:none}}
 @media (max-width:640px){.shud .tip{display:none}}
+#lightBtn[hidden]{display:none}

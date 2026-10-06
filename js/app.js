@@ -27,7 +27,7 @@ const TOUCH=matchMedia("(pointer: coarse)").matches;
 let lang="en";try{lang=localStorage.getItem("ans-lang")||"en"}catch(e){}
 let themeChoice=null;try{themeChoice=localStorage.getItem("ans-theme")}catch(e){}
 const sysDark=matchMedia("(prefers-color-scheme: dark)");
-let dark=themeChoice?themeChoice==="dark":sysDark.matches;
+let dark=false;   // one look only: the warm, bright studio of the reference renders
 const T=()=>TX[lang];
 function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild}
 
@@ -96,7 +96,7 @@ const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,3
 /* ---------- materials ---------- */
 const ALLM=[];const std=(c,r=.6,m=0,x={})=>{const mm=new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:r,metalness:m},x));ALLM.push(mm);return mm};
 const MAT={
-  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),planter:std("#141416",.55,.15),soil:std("#2a2119",.95,0),trunk:std("#5b4632",.85,0),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
+  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),planter:std("#f3f0ea",.45,0,{emissive:C("#ffd9a8"),emissiveIntensity:.32}),soil:std("#2a2119",.95,0),trunk:std("#5b4632",.85,0),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
   lensGlass:std("#0a1020",.04,1,{envMapIntensity:2}),fabric:std("#121212",.95,0),wood:std("#3a2718",.6,0),
   floor:std("#0b0b0c",.32,0,{map:concreteTex,transparent:true,opacity:.86}),
   wall:std("#121214",.92,0,{map:acousticTex}),ceil:std("#08080a",.95,0),
@@ -287,7 +287,7 @@ function build3D(){
   // floor, reflection, walls, ceiling
   const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,HALL_MID);scene.add(fl);
   if(Q==="high"&&THREE.Reflector){
-    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x555555});rf.userData.keep=true;
+    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x8a8a8a});rf.userData.keep=true;
     rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);floorMirror=rf;
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
   for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
@@ -330,6 +330,12 @@ function build3D(){
   for(let z=-6;z>HALL_END+4;z-=12)for(const x of [-4.6,4.6]){
     const f=fresnel("#ffe9c4",0,true);f.position.set(x,7.8,z);f.rotation.x=Math.PI;scene.add(f);
   }
+  // rows of small spotlights hanging from the trusses, as in a real studio hall
+  { const can=new THREE.CylinderGeometry(.11,.13,.26,14),lens=new THREE.CircleGeometry(.09,14),lensMat=emissive("#ffe2b0",3.2);
+    for(let z=6;z>HALL_END+4;z-=2.4)for(const x of [-4.6,4.6]){
+      const c=new THREE.Mesh(can,MAT.metal);c.position.set(x,7.72,z);scene.add(c);
+      const l=new THREE.Mesh(lens,lensMat);l.rotation.x=Math.PI/2;l.position.set(x,7.585,z);scene.add(l);
+    } }
 
   // entrance
   const pl=box(3.3,.5,1.5,MAT.plinth,0,.25,-6.4);scene.add(pl);pl.userData.keep=true;OCCLUDERS.push(pl);
@@ -481,7 +487,7 @@ function drawHeader(s,i){return (g,W,H)=>{
 // hanging hall sign with an arrow toward the studio; dir -1 = arrow left, 1 = arrow right
 function drawHall(s,dir){return (g,W,H)=>{
   const fa=lang==="fa";
-  rr(g,4,4,W-8,H-8,26);g.fillStyle="rgba(14,14,18,.92)";g.fill();g.lineWidth=5;g.strokeStyle="rgba(255,255,255,.35)";g.stroke();
+  rr(g,6,6,W-12,H-12,22);g.fillStyle="#0c0c0f";g.fill();g.lineWidth=9;g.strokeStyle=s.c.acc==="#000000"?"#ffffff":s.c.acc;g.stroke();
   g.fillStyle=s.c.acc;rr(g,4,H-22,W-8,18,8);g.fill();
   // arrow
   const ax=dir<0?70:W-70,ay=H*.45;g.save();g.translate(ax,ay);g.scale(dir,1);g.fillStyle=s.c.acc==="#000000"?"#ffffff":s.c.acc;
@@ -664,15 +670,19 @@ function buildSet(s,i){
   // inside: a calm tone from the set's backdrop; outside (the hall side): the brand colour
   const wi=new THREE.Color(s.c.bg).lerp(new THREE.Color(s.theme==="light"?"#ffffff":"#000000"),s.theme==="light"?.1:.25);
   const wm=std("#"+wi.getHexString(),.9,0);
-  const we=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color(s.c.bg),.18);
+  const we=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.06);
   const wx=std("#"+we.getHexString(),.8,0);
   const depth=3.5-back;for(const sd of [-1,1]){g.add(B3(.12,4.8,depth,wm,sd*3.76,2.4,(3.5+back)/2));g.add(B3(.02,4.8,depth+.16,wx,sd*3.83,2.4,(3.5+back)/2+.08))}
   for(const sd of [-1,1]){g.add(B3(2.16,4.8,.14,wm,sd*2.68,2.4,3.45));g.add(B3(2.16,4.8,.02,wx,sd*2.68,2.4,3.53))}
   g.add(B3(3.2,1.8,.14,wm,0,3.9,3.45));g.add(B3(3.2,1.8,.02,wx,0,3.9,3.53));
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // a warm light strip framing the door, and a palm in a black planter on each side of it
-  for(const sd of [-1,1])g.add(B3(.05,3.0,.05,MAT.doorLed,sd*1.6,1.5,3.56));
-  g.add(B3(3.25,.05,.05,MAT.doorLed,0,3.0,3.56));g.add(B3(3.25,.03,.03,MAT.doorLed,0,.02,3.56));
+  // neon in the brand colour: the front corners, the door frame and a line along the foot of the wall
+  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.25),neon=emissive("#"+nc.getHexString(),3.2);
+    for(const sd of [-1,1]){g.add(B3(.08,4.8,.08,neon,sd*3.84,2.4,3.56));g.add(B3(.07,3.0,.07,neon,sd*1.6,1.5,3.58))}
+    g.add(B3(3.27,.07,.07,neon,0,3.0,3.58));
+    for(const sd of [-1,1])g.add(B3(2.25,.06,.06,neon,sd*2.72,.04,3.6));
+    for(const sd of [-1,1])g.add(B3(.04,.04,3.5-back,neon,sd*3.86,.03,(3.5+back)/2)); }
   for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
@@ -1144,11 +1154,11 @@ function buildOverlays(){
   if(P){
     anchor(wa,V(-.55,1.7,20),.98);anchor(ig,V(.55,1.7,20),.98);
     if(li)anchor(li,V(-.55,1.1,20),.98);
-    anchor(lg,V(li?.55:-.55,1.1,20),.98);anchor(lt,V(li?0:.55,li?.5:1.1,20),.98);
+    anchor(lg,V(li?.55:0,li?1.1:.5,20),.98);
     anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),3.2,{far:24});
   }else{
     anchor(wa,V(-2.75,2.55,15),1.35);anchor(ig,V(-2.75,1.92,15),1.35);if(li)anchor(li,V(-2.75,1.29,15),1.35);
-    anchor(lg,V(2.75,2.55,15),1.35);anchor(lt,V(2.75,1.92,15),1.35);
+    anchor(lg,V(2.75,2.55,15),1.35);
     anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});
   }
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
@@ -1227,9 +1237,9 @@ function applyTheme(){
   GLASS.dark.value=dark?1:0;
   framesAll.forEach(drawCaption);
   const bg=dark?"#0a0807":"#d8cfc3";
-  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
-  MAT.floor.color=C(dark?"#0b0907":"#bdb4a8");MAT.floor.roughness=dark?.3:.3;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
-  MAT.wall.color=C(dark?"#1f1b18":"#e4dbcf");MAT.ceil.color=C(dark?"#0a0908":"#857c71");
+  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.0055;
+  MAT.floor.color=C(dark?"#0b0907":"#a9a6a2");MAT.floor.roughness=dark?.3:.22;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.72;
+  MAT.wall.color=C(dark?"#1f1b18":"#e4dbcf");MAT.ceil.color=C(dark?"#0a0908":"#3b3732");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#0e0e10");MAT.plinth.roughness=dark?.28:.55;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#8a7462":"#b09276");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
   MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
@@ -1253,7 +1263,7 @@ function applyTheme(){
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
-  if(bloom){bloom.strength=dark?.7:.04;bloom.threshold=dark?.8:.99;bloom.radius=.45}
+  if(bloom){bloom.strength=dark?.7:.55;bloom.threshold=dark?.8:1.35;bloom.radius=.45}
   if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1.05:.97}
   renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
@@ -1262,7 +1272,7 @@ function toggleLight(){
   const f=$("#fade");f.style.opacity=.85;
   setTimeout(()=>{dark=!dark;try{localStorage.setItem("ans-theme",dark?"dark":"light")}catch(e){}themeChoice=dark?"dark":"light";applyTheme();buildOverlays();setTimeout(()=>f.style.opacity=0,60)},reduce?0:300);
 }
-sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice){dark=e.matches;applyTheme();buildOverlays()}});
+
 
 /* ---------- camera: walk the hall, step into a studio only when asked ----------
    In the hall, scrolling walks forward and back past the studio doors. Near a studio a prompt
