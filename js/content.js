@@ -108,17 +108,23 @@ const STUDIOS = [
   {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
    name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion.",fa:"عیب‌یابی و تعمیر، با زبان تصویر."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Installment purchase",fa:"خرید قسطی"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"videos/analizfix-1.mp4",poster:"videos/analizfix-1.jpg",r:"9/16"},
+     {t:{en:"Installments",fa:"اقساط"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"videos/analizfix-2.mp4",poster:"videos/analizfix-2.jpg",r:"9/16"},
+     {t:{en:"Ping-pong",fa:"پینگ‌پنگی"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"videos/analizfix-3.mp4",poster:"videos/analizfix-3.jpg",r:"9/16"},
+     {t:{en:"Repair",fa:"تعمیر"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"videos/analizfix-4.mp4",poster:"videos/analizfix-4.jpg",r:"9/16"},
+     {t:{en:"Illusion",fa:"ایلوژن"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"videos/analizfix-5.mp4",poster:"videos/analizfix-5.jpg",r:"9/16"},
+     {t:{en:"Find My",fa:"فایند مای"},m:{en:"40s, 9:16",fa:"۴۰ ثانیه، ۹:۱۶"},src:"videos/analizfix-6.mp4",poster:"videos/analizfix-6.jpg",r:"9/16"}]},
   // 8. Emarat Zarrin (logo and colors from the brand's Instagram logo)
   {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.png",
    name:{en:"Emarat Zarrin",fa:"امارت زرین"},tag:{en:"Architecture in gold light.",fa:"معماری در نور طلایی."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
-  // 9. Farmaniyeh Club (logo and colors from the official site)
+     {t:{en:"Ronaldo's wedding",fa:"عروسی رونالدو"},m:{en:"46s, 9:16",fa:"۴۶ ثانیه، ۹:۱۶"},src:"videos/emaratezarin-1.mp4",poster:"videos/emaratezarin-1.jpg",r:"9/16"}]},
+  // 9. Farmanieh Club (logo and colors from the official site)
   {id:"farmaniyeh", theme:"light", c:{bg:"#F2F0EE",bg2:"#DEDAD6",ink:"#25282A",acc:"#D94D20"},logoImg:"assets/brands/farmanieh-club.png",
-   name:{en:"Farmaniyeh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion.",fa:"ورزش و سبک زندگی، با حرکت آهسته."},
+   name:{en:"Farmanieh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion.",fa:"ورزش و سبک زندگی، با حرکت آهسته."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Celebrities at the club",fa:"سلبریتی‌ها در باشگاه"},m:{en:"28s, 9:16",fa:"۲۸ ثانیه، ۹:۱۶"},src:"videos/farmaniyeh-1.mp4",poster:"videos/farmaniyeh-1.jpg",r:"9/16"},
+     {t:{en:"Christmas at the gym",fa:"کریسمس در باشگاه"},m:{en:"18s, 9:16",fa:"۱۸ ثانیه، ۹:۱۶"},src:"videos/farmaniyeh-2.mp4",poster:"videos/farmaniyeh-2.jpg",r:"9/16"}]},
   // 10. Dicardo (logo and colors from the official site)
   {id:"dicardo", theme:"dark", c:{bg:"#070525",bg2:"#1C1458",ink:"#F3F0FF",acc:"#AC33ED"},logoImg:"assets/brands/dicardo.png",
    name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves.",fa:"استایلی که حرکت می‌کنه."},
@@ -171,7 +177,7 @@ const TX = {
    {id:"services",k:"04",h:"Services",p:"What you can hire me for.",
     body:`<h2>Services</h2><ul><li>Ad concept and creative direction</li><li>Product hero videos</li><li>Single-take transformation films</li><li>Logo reveals and 3D brand intros</li><li>AI video production</li><li>Reels editing for Instagram and LinkedIn</li></ul>`},
    {id:"clients",k:"05",h:"Clients",p:"Brands I've worked with.",
-    body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarate Zarin</li><li>Farmaniyeh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Your brand<small>Next door is empty.</small></li></ul>`}
+    body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarate Zarin</li><li>Farmanieh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Your brand<small>Next door is empty.</small></li></ul>`}
   ]},
  fa:{dir:"rtl",other:"English",otherSmall:"تغییر زبان",studio:"ARTA NOORI STUDIO",line:"تیزرهای تبلیغاتی که روی ایده، تدوین و VFX ساخته می‌شن.",
   scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف.",
