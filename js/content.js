@@ -135,7 +135,7 @@ const STUDIOS = [
   {id:"mahannet", theme:"light", c:{bg:"#F7F5F4",bg2:"#E7E1DE",ink:"#000000",acc:"#FF2401"},logoImg:"assets/brands/mahan-net.png",
    name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts.",fa:"اینترنت پرسرعت، کات‌های سریع‌تر."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Box illusion",fa:"ایلوژن جعبه"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"videos/mahannet-1.mp4",poster:"videos/mahannet-1.jpg",r:"9/16"}]},
   // 12. Niro Motor (logo and colors from the official site)
   {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
    name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed.",fa:"موتور، قدرت و سرعت."},
