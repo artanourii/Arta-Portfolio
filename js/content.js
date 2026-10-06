@@ -149,7 +149,8 @@ const STUDIOS = [
   {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
    name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot.",fa:"هر گجت، یک نمای قهرمان."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Life U2i earbuds",fa:"هدفون Life U2i"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"videos/itmall-1.mp4",poster:"videos/itmall-1.jpg",r:"9/16"},
+     {t:{en:"Unbelievable discounts",fa:"تخفیف‌های باورنکردنی"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"videos/itmall-2.mp4",poster:"videos/itmall-2.jpg",r:"9/16"}]},
   // 14. Makeup & Beauty (colors approximate)
   {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},
    name:{en:"Makeup & Beauty",fa:"میکاپ و بیوتی"},tag:{en:"Skin, glow and close-ups that sell.",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن."},
