@@ -714,13 +714,17 @@ function updateFrames(dt){
   frameT+=dt*.001;
   P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
   const cp=camera.position;
+  // only the films nearest the camera play (a studio can hold ten); the others keep their cover image
+  const near=new Set();
+  if(setIdx>=0){near.clear();SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
+    .sort((a,b)=>a[0]-b[0]).slice(0,Q==="high"?4:2).forEach(x=>near.add(x[1]))}
   for(const F of framesAll){
     if(F.set<0){updateFeatureFilm(F,cp);continue}
     const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
-    const want=F.set===setIdx&&d<8&&!(playerEl&&playerFrame===F)&&!document.hidden;
+    const want=F.set===setIdx&&d<8&&near.has(F)&&!(playerEl&&playerFrame===F)&&!document.hidden;
     if(want&&!F.video){
       const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
