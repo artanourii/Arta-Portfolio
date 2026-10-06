@@ -293,9 +293,9 @@ function beam(from,to,angle,color){
 
 /* light slots served by a small pool of real spotlights (nearest win) */
 const slots=[];
-function slot(from,to,color,intensity,angle,pen=.5,withBeam=true){
+function slot(from,to,color,intensity,angle,pen=.5,withBeam=true,alwaysBeam=false){
   slots.push({from,to,color:C(color),intensity,angle,pen});
-  if(withBeam&&Q==="high")beam(from,to,angle*.62,color);
+  if(withBeam&&(Q==="high"||alwaysBeam))beam(from,to,angle*.62,color);
 }
 
 /* ---------- build the soundstage ---------- */
@@ -379,7 +379,8 @@ function build3D(){
   const lgw=new THREE.Mesh(new THREE.PlaneGeometry(3.6,3.0),MAT.logoGlow);lgw.position.set(0,1.45,-6.56);lgw.userData.keep=true;scene.add(lgw);
   const L1=fresnel(),L2=fresnel();L1.position.set(-2.7,0,-4.5);L2.position.set(2.7,0,-4.5);L1.rotation.y=.3;L2.rotation.y=-.3;scene.add(L1,L2);
   const lt=V(0,1.25,-6.4);L1.userData.aim(lt);L2.userData.aim(lt);
-  slot(L1.userData.lensWorld(),lt,"#ffdcaa",3,.42,.55);slot(L2.userData.lensWorld(),lt,"#ffdcaa",3,.42,.55);
+  // the two projectors light the logo (their beams show on phones too)
+  slot(L1.userData.lensWorld(),lt,"#ffe6c4",3.4,.42,.55,true,true);slot(L2.userData.lensWorld(),lt,"#ffe6c4",3.4,.42,.55,true,true);
   slot(V(0,7.6,-4.2),V(0,.6,-6.4),"#ffffff",1.3,.3,.6);
   const rig=cameraRig(false);rig.position.set(-1.7,0,-3.3);rig.lookAt(0,0,-6.4);rig.rotateY(Math.PI);scene.add(rig);
   scene.add(cable([[-2.7,-4.5],[-3.4,-3.6],[-3.8,-1],[-5,2]]),cable([[2.7,-4.5],[3.5,-3.4],[4.2,-1.2],[5.5,1.5]]),cable([[-1.7,-3.3],[-2.6,-2.4],[-3.8,-1]]));
@@ -427,7 +428,7 @@ function build3D(){
   for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*20;pp[i*3+1]=Math.random()*7;pp[i*3+2]=4-Math.random()*(4-HALL_END)}
   const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(pp,3));
   MAT.dust=new THREE.PointsMaterial({size:.045,map:dotTex,transparent:true,opacity:.5,depthWrite:false,blending:THREE.AdditiveBlending,color:C("#ffe8c8")});
-  dust=new THREE.Points(pg,MAT.dust);scene.add(dust);
+  dust=new THREE.Points(pg,MAT.dust);dust.visible=Q==="high";scene.add(dust);   // phones showed the tiny dots as coloured specks
 
   // base light
   hemi=new THREE.HemisphereLight(C("#cfd6e6"),C("#2a2420"),.25);scene.add(hemi);
@@ -1369,12 +1370,12 @@ function applyTheme(){
   MAT.wall.color=C(dark?"#1f1b18":"#a7a29b");MAT.ceil.color=C(dark?"#0a0908":"#3f3c38");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#dedad4");MAT.plinth.roughness=dark?.28:.7;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#8a7462":"#6a5646");MAT.ground.color=C(dark?"#0d0d0f":"#3e3b38");MAT.ground.roughness=.32;
-  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.6:.12;MAT.halo.color=C(dark?"#fff0d6":"#ffc978")}
+  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?0:.12;MAT.halo.color=C(dark?"#fff0d6":"#ffc978")}
   // the glow planes stand in for the bloom pass on phones; with bloom on they only add a touch
-  if(MAT.wmGlow)MAT.wmGlow.userData.base=dark?(useComposer?.3:.9):0;if(MAT.logoGlow)MAT.logoGlow.userData.base=dark?(useComposer?.4:.85):0;   // a soft glow behind the logo and its name at night, also on phones that skip the bloom pass
+  if(MAT.wmGlow)MAT.wmGlow.userData.base=0;if(MAT.logoGlow)MAT.logoGlow.userData.base=0;   // a soft glow behind the logo and its name at night, also on phones that skip the bloom pass
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
-  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C(dark?"#fff3dc":"#000000");MAT.logo.emissiveIntensity=dark?.9:0;   // with the lights off the AN logo glows
-  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff3dc").multiplyScalar(useComposer?1.25:2.4):C("#000000");   // and its name on the plinth glows with it
+  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C(dark?"#fff3dc":"#000000");MAT.logo.emissiveIntensity=dark?.1:0;   // with the lights off the projectors light the AN logo
+  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff6e8").multiplyScalar(.78):C("#000000");   // and its name on the plinth is simply bright, no halo
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
   // the white pendant lamps glow warm, as in the reference renders
