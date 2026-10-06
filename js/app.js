@@ -373,6 +373,10 @@ function build3D(){
   const wmTex=new THREE.TextureLoader().load(WORDMARK);wmTex.encoding=THREE.sRGBEncoding;
   MAT.wordmark=new THREE.MeshBasicMaterial({map:wmTex,transparent:true,color:C("#f0eee8"),depthWrite:false,fog:false});
   const wm=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.23),MAT.wordmark);wm.position.set(0,.25,-5.645);scene.add(wm);
+  MAT.wmGlow=new THREE.MeshBasicMaterial({map:haloTex,color:C("#ffdcaa"),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const wg=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.62),MAT.wmGlow);wg.position.set(0,.25,-5.648);wg.userData.keep=true;scene.add(wg);
+  MAT.logoGlow=new THREE.MeshBasicMaterial({map:haloTex,color:C("#ffe2b8"),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const lgw=new THREE.Mesh(new THREE.PlaneGeometry(3.6,3.0),MAT.logoGlow);lgw.position.set(0,1.45,-6.56);lgw.userData.keep=true;scene.add(lgw);
   const L1=fresnel(),L2=fresnel();L1.position.set(-2.7,0,-4.5);L2.position.set(2.7,0,-4.5);L1.rotation.y=.3;L2.rotation.y=-.3;scene.add(L1,L2);
   const lt=V(0,1.25,-6.4);L1.userData.aim(lt);L2.userData.aim(lt);
   slot(L1.userData.lensWorld(),lt,"#ffdcaa",3,.42,.55);slot(L2.userData.lensWorld(),lt,"#ffdcaa",3,.42,.55);
@@ -1194,8 +1198,8 @@ function layoutPlaques(){
   // end wall: invitation left of the film, the three contacts right of it, mirrored; on a phone the contacts sit under the film
   { const ez=LED_Z-1.2+.075,head=PLQ.find(o=>o.it.k==="head"),ec=PLQ.filter(o=>o.it.end&&o.it.ct);
     if(!P){head.G.visible=true;head.G.position.set(-4.3,2.55,ez);head.sc=1;head.G.scale.setScalar(1);ec.forEach((o,i)=>{o.G.position.set(4.3,3.4-i*.85,ez);o.sc=1;o.G.scale.setScalar(1)})}
-    else{head.G.visible=false;ec.forEach((o,i)=>{o.G.position.set(0,2.15-i*.6,ez);o.sc=.72;o.G.scale.setScalar(.72)})}
-    END_FOCUS.position.set(P?0:4.3,P?1.55:2.55,ez);END_FOCUS.rotation.set(0,0,0); }
+    else{head.G.visible=true;head.G.position.set(-.74,1.62,ez);head.sc=.55;head.G.scale.setScalar(.55);ec.forEach((o,i)=>{o.G.position.set(.74,2.09-i*.47,ez);o.sc=.55;o.G.scale.setScalar(.55)})}
+    END_FOCUS.position.set(0,P?1.62:2.55,ez);END_FOCUS.position.x=P?0:4.3;END_FOCUS.rotation.set(0,0,0); }
   const put=(o,x,y,z,sc)=>{o.G.position.set(x,y,z);o.sc=sc;o.G.scale.setScalar(sc)};
   if(!P&&shortLand()){
     // phone held sideways: a smaller door, the plaques close beside it
@@ -1365,10 +1369,12 @@ function applyTheme(){
   MAT.wall.color=C(dark?"#1f1b18":"#a7a29b");MAT.ceil.color=C(dark?"#0a0908":"#3f3c38");
   MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#dedad4");MAT.plinth.roughness=dark?.28:.7;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#8a7462":"#6a5646");MAT.ground.color=C(dark?"#0d0d0f":"#3e3b38");MAT.ground.roughness=.32;
-  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.12;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
+  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.6:.12;MAT.halo.color=C(dark?"#fff0d6":"#ffc978")}
+  // the glow planes stand in for the bloom pass on phones; with bloom on they only add a touch
+  if(MAT.wmGlow)MAT.wmGlow.userData.base=dark?(useComposer?.3:.9):0;if(MAT.logoGlow)MAT.logoGlow.userData.base=dark?(useComposer?.4:.85):0;   // a soft glow behind the logo and its name at night, also on phones that skip the bloom pass
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
   MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C(dark?"#fff3dc":"#000000");MAT.logo.emissiveIntensity=dark?.9:0;   // with the lights off the AN logo glows
-  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff3dc").multiplyScalar(2.4):C("#000000");   // and its name on the plinth glows with it
+  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff3dc").multiplyScalar(useComposer?1.25:2.4):C("#000000");   // and its name on the plinth glows with it
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
   // the white pendant lamps glow warm, as in the reference renders
@@ -1421,7 +1427,7 @@ function hallPose(pp,pos,look){
   pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
   const end=clamp((pp-(PP_FILM-7))/7,0,1);
   look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
-  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?3.6:5.4;
+  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?5.4:5.4;
     endPos.set(G.position.x+Math.sin(ry)*d,G.position.y+(portrait()?.25:.1),G.position.z+Math.cos(ry)*d);endLook.copy(G.position);
     pos.lerp(endPos,ee);look.lerp(endLook,ee)}
 }
@@ -1675,7 +1681,8 @@ function frame(now){
   // fly through the lobby logo: it melts away as the camera reaches it and comes back behind
   { const d=Math.hypot(curPos.z+6.4,curPos.x*.5),o=clamp((d-.5)/2.4,0,1);
     MAT.logo.transparent=o<1;MAT.logo.opacity=o;MAT.logo.depthWrite=o>.98;if(MAT.wordmark)MAT.wordmark.opacity=o;
-    if(MAT.halo)MAT.halo.opacity=(MAT.halo.userData.base||.5)*o; }
+    if(MAT.halo)MAT.halo.opacity=(MAT.halo.userData.base||.5)*o;
+    if(MAT.wmGlow)MAT.wmGlow.opacity=(MAT.wmGlow.userData.base||0)*o;if(MAT.logoGlow)MAT.logoGlow.opacity=(MAT.logoGlow.userData.base||0)*o; }
   updatePool();
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
