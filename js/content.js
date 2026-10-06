@@ -79,9 +79,9 @@ const STUDIOS = [
      {t:{en:"Phone illusion",fa:"ایلوژن موبایل"},m:{en:"27s, 9:16",fa:"۲۷ ثانیه، ۹:۱۶"},src:"videos/aparat-3.mp4",poster:"videos/aparat-3.jpg",r:"9/16"},
      {t:{en:"Bubble",fa:"حباب"},m:{en:"18s, 9:16",fa:"۱۸ ثانیه، ۹:۱۶"},src:"videos/aparat-4.mp4",poster:"videos/aparat-4.jpg",r:"9/16"},
      {t:{en:"Aparat pre-roll",fa:"پری‌رول آپارات"},m:{en:"28s, 16:9",fa:"۲۸ ثانیه، ۱۶:۹"},src:"videos/aparat-5.mp4",poster:"videos/aparat-5.jpg",r:"16/9"},
-     {t:{en:"Cups trick",fa:"ترفند لیوان‌ها"},m:{en:"47s, 9:16",fa:"۴۷ ثانیه، ۹:۱۶"},src:"videos/aparat-6.mp4",poster:"videos/aparat-6.jpg",r:"9/16"},
-     {t:{en:"Neon room",fa:"اتاق نئون"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"videos/aparat-7.mp4",poster:"videos/aparat-7.jpg",r:"9/16"},
-     {t:{en:"Paper frame",fa:"قاب کاغذی"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"videos/aparat-8.mp4",poster:"videos/aparat-8.jpg",r:"9/16"}]},
+     {t:{en:"Cup illusion",fa:"ایلوژن لیوان"},m:{en:"47s, 9:16",fa:"۴۷ ثانیه، ۹:۱۶"},src:"videos/aparat-6.mp4",poster:"videos/aparat-6.jpg",r:"9/16"},
+     {t:{en:"Aparat Shorts",fa:"آپارات شورتس"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"videos/aparat-7.mp4",poster:"videos/aparat-7.jpg",r:"9/16"},
+     {t:{en:"Door illusion",fa:"ایلوژن در"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"videos/aparat-8.mp4",poster:"videos/aparat-8.jpg",r:"9/16"}]},
   // 3. Respina (logo and colors from the official site)
   {id:"respina", theme:"dark", c:{bg:"#06262B",bg2:"#0B4C55",ink:"#EAF7F8",acc:"#008B9E"},logoImg:"assets/brands/respina.svg",
    name:{en:"Respina",fa:"داده پردازی رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
