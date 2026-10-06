@@ -207,7 +207,7 @@ const TX = {
    {id:"services",k:"04",h:"Services",p:"What you can hire me for",
     body:`<h2>Services</h2><ul><li>Ad concept and creative direction</li><li>Product hero videos</li><li>Single-take transformation films</li><li>Logo reveals and 3D brand intros</li><li>AI video production</li><li>Reels editing for Instagram and LinkedIn</li></ul>`},
    {id:"clients",k:"05",h:"Clients",p:"Brands I've worked with",
-    body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarate Zarin</li><li>Farmanieh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Your brand<small>Next door is empty</small></li></ul>`}
+    body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarat Zarrin</li><li>Farmanieh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Dream Salon</li><li>Your brand<small>Next door is empty</small></li></ul>`}
   ]},
  fa:{dir:"rtl",other:"English",otherSmall:"تغییر زبان",studio:"ARTA NOORI STUDIO",line:"تیزرهای تبلیغاتی که روی ایده، تدوین و VFX ساخته می‌شن",
   scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف",
@@ -226,6 +226,6 @@ const TX = {
    {id:"services",k:"۰۴",h:"خدمات",p:"برای چه کارهایی می‌تونی منو بیاری",
     body:`<h2>خدمات</h2><ul><li>ایده‌پردازی و کارگردانی خلاق تبلیغات</li><li>ویدیوی قهرمانِ محصول</li><li>فیلم تحول تک‌برداشت</li><li>رونمایی لوگو و اینترو سه‌بعدی برند</li><li>تولید ویدیو با هوش مصنوعی</li><li>تدوین ریل برای اینستاگرام و لینکدین</li></ul>`},
    {id:"clients",k:"۰۵",h:"مشتری‌ها",p:"برندهایی که باهاشون کار کردم",
-    body:`<h2>مشتری‌ها</h2><ul><li>ایسوس ایران</li><li>آپارات</li><li>داده پردازی رسپینا</li><li>همراه اول</li><li>اسنپ</li><li>از کی وام</li><li>آنالیز فیکس</li><li>امارت زرین</li><li>باشگاه فرمانیه</li><li>دیکاردو</li><li>ماهان نت</li><li>نیرو موتور</li><li>آی تی مال</li><li>برند تو<small>در بعدی خالیه</small></li></ul>`}
+    body:`<h2>مشتری‌ها</h2><ul><li>ایسوس ایران</li><li>آپارات</li><li>داده پردازی رسپینا</li><li>همراه اول</li><li>اسنپ</li><li>از کی وام</li><li>آنالیز فیکس</li><li>امارت زرین</li><li>باشگاه فرمانیه</li><li>دیکاردو</li><li>ماهان نت</li><li>نیرو موتور</li><li>آی تی مال</li><li>دریم سالن</li><li>برند تو<small>در بعدی خالیه</small></li></ul>`}
   ]}
 };
