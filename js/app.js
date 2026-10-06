@@ -662,7 +662,7 @@ function buildSet(s,i){
   [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m)});
   hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
-  SETS.push({g,s,i,side,z,W,frames,pick,lay,back});
+  SETS.push({g,s,i,side,z,W,frames,pick,lay,back,DZ});
 }
 
 /* ---------- 3D glass frames: each film floats in a real slab of glass ---------- */
@@ -1243,7 +1243,8 @@ function buildPath(){
     key(Door,Door,.6);S.u={in:u};
     if(n>4){
       // many films: the camera stops close in front of each one in turn (row by row, snaking left and right)
-      const dd=P?1.62:1.55;   // stays just behind the previous row of frames
+      // bigger frames (fewer columns) are seen from a little further back, but always just behind the previous row
+      const dd=Math.min((P?1.62:1.55)*S.lay[0].sc/.58,S.DZ-.1);
       const C=S.lay.map(L=>pose((a,b)=>{a.copy(S.W(V(L.x*.7,L.y+.02,L.z+dd)));b.copy(S.W(V(L.x,L.y-(P?.2:.17),L.z)))}));
       S.u.stop=[];
       key(Door,C[0],5);S.u.stop.push(u+.45);key(C[0],C[0],.9);
