@@ -92,7 +92,7 @@ const STUDIOS = [
   {id:"mci", theme:"light", c:{bg:"#F4F8FB",bg2:"#D3E9F6",ink:"#010101",acc:"#0095DA"},logoImg:"assets/brands/mci.svg",
    name:{en:"Hamrahe Aval",fa:"همراه اول"},tag:{en:"Connecting a country, one spot at a time.",fa:"ارتباط یک کشور، تیزر به تیزر."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Illusion",fa:"ایلوژن"},m:{en:"18s, 9:16",fa:"۱۸ ثانیه، ۹:۱۶"},src:"videos/mci-1.mp4",poster:"videos/mci-1.jpg",r:"9/16"}]},
   // 5. Snapp (logo and colors from the official site)
   {id:"snapp", theme:"dark", c:{bg:"#161A26",bg2:"#252A3C",ink:"#FFFFFF",acc:"#00D170"},logoImg:"assets/brands/snapp.svg",
    name:{en:"Snapp",fa:"اسنپ"},tag:{en:"Rides, food and everything on the go.",fa:"سفر، غذا و هر چیزی در مسیر."},
