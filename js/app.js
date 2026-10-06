@@ -1081,12 +1081,14 @@ function buildPanels3D(){
   const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
     m.userData.keep=true;scene.add(m);P3.titles.push({m,tex});return m};
   const heading=(k1,k2)=>(g,w,h)=>{const c=inkCol(),fa=lang==="fa",t=T();g.textAlign="center";g.textBaseline="middle";if("direction" in g)g.direction=fa?"rtl":"ltr";
+    if(dark){g.shadowColor="rgba(255,236,205,.8)";g.shadowBlur=26}   // a soft glow round the letters at night (phones have no bloom pass)
     g.fillStyle=c.t;let f=150;const ff=()=>fa?`800 ${f}px "Vazirmatn", sans-serif`:`800 ${f}px "Unbounded", "Vazirmatn", sans-serif`;g.font=ff();
     if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px";while(g.measureText(t[k1]).width>w*.94&&f>40){f-=6;g.font=ff();if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px"}
     g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
   P3.gate=title(heading("arch","archSub"),2048,420,5.4);
   // the title hangs on a white banner, as in the reference renders: dark text on the dark ceiling could not be read
   { const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.9,5.4*420/2048+.32),(MAT.banner=new THREE.MeshBasicMaterial({color:C("#f6f2ec"),fog:false})));bn.position.z=-.02;bn.userData.keep=true;P3.gate.add(bn);
+    const be=new THREE.Mesh(new THREE.PlaneGeometry(5.98,5.4*420/2048+.4),(MAT.bannerEdge=new THREE.MeshBasicMaterial({color:C("#d9d3ca"),fog:false})));be.position.z=-.03;be.userData.keep=true;P3.gate.add(be);   // a thin rim so the board reads against the dark ceiling
     for(const x of [-2.6,2.6]){const w=stick(V(x,.72,-.02),V(x,2.6,-.02),.006,MAT.metal);w.userData.keep=true;P3.gate.add(w)} }
   // "The studios" heading in a liquid glass panel sized to its words
   const SP=liquidPanel((g,measure)=>{
@@ -1400,7 +1402,9 @@ function applyTheme(){
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   PLQ_GLASS.emissiveIntensity=dark?.32:.14;
-  if(MAT.banner)MAT.banner.color=C(dark?"#9a948c":"#f6f2ec");   // the white ARTA STUDIO banner does not blaze at night
+  if(MAT.banner)MAT.banner.color=C(dark?"#0c0b0a":"#f6f2ec");   // at night the ARTA STUDIO banner turns black with softly glowing white letters
+  if(MAT.bannerEdge)MAT.bannerEdge.color=C(dark?"#5a5249":"#d9d3ca");
+  if(P3.gate)P3.gate.material.color=dark?C("#ffffff").multiplyScalar(1.25):C("#ffffff");
   if(MAT.endBoard)MAT.endBoard.color=C(dark?"#a9a59e":"#f2efe9");
   if(MAT.endWall)MAT.endWall.color=C(dark?"#4a4744":"#a39f99");
   lightMul=dark?.95:.5;
