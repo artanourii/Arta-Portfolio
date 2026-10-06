@@ -172,10 +172,13 @@ a{color:inherit;text-decoration:none}
   transition:opacity .35s,transform .35s;box-shadow:inset 0 0 0 2px var(--b),var(--glass-shadow)}
 .enter-btn.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;animation:pulse 2.2s ease-in-out infinite}
 .enter-btn span{color:var(--b);font-size:20px}
+/* a facing pair of studios: one button each side of the centre */
+.enter-btn.pair-l{transform:translate(calc(-100% - 6px),20px)}.enter-btn.pair-r{transform:translate(6px,20px)}
+.enter-btn.pair-l.show{transform:translate(calc(-100% - 6px),0)}.enter-btn.pair-r.show{transform:translate(6px,0)}
 @keyframes pulse{50%{box-shadow:inset 0 0 0 2px var(--b),0 0 0 8px color-mix(in srgb,var(--b) 25%,transparent),var(--glass-shadow)}}
 .ic.li{background:#0A66C2;color:#fff}
 /* look up / down on touch screens */
-.lookctl{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:29;display:none;flex-direction:column;gap:6px;opacity:.78}
+.lookctl{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(146px + env(safe-area-inset-bottom,0px));z-index:29;display:none;flex-direction:column;gap:6px;opacity:.78}
 .lookctl button{width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;font-size:12px;display:grid;place-items:center}
 @media (pointer:coarse){.lookctl{display:flex}}
 /* compact controls on phones */
@@ -184,6 +187,7 @@ a{color:inherit;text-decoration:none}
   #lightBtn span{display:none}
   .mini{height:40px}
   .enter-btn{height:48px;font-size:15px;max-width:calc(100% - 32px)}
+  .enter-btn.pair-l,.enter-btn.pair-r{max-width:calc(50% - 14px);height:46px;font-size:13px;padding:0 12px;gap:6px;white-space:nowrap;overflow:hidden}
   .shud .pill{height:40px;font-size:13px;padding:0 13px}
 }
 @media (prefers-reduced-motion:reduce){.enter-btn.show{animation:none}}

@@ -209,8 +209,8 @@ function ledPanel(){
   return g;
 }
 /* a potted palm in a black square planter (one shared frond shape, rotated) */
-const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.34,1.15,1,6);g.translate(0,.575,0);const p=g.attributes.position;
-  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.38*y*y)}g.computeVertexNormals();return g})();
+const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.32,.72,1,6);g.translate(0,.36,0);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.5*y*y)}g.computeVertexNormals();return g})();
 let FROND_MAT=null;
 let PALM_UP=null,PALM_LED=null;
 function palm(h=1.25,seed=1){
@@ -223,7 +223,7 @@ function palm(h=1.25,seed=1){
   for(let s2=0;s2<3;s2++){
     const a=s2*2.1+r(s2),top=V(Math.cos(a)*.12,.6+h*(.55+r(s2+5)*.35),Math.sin(a)*.12);
     g.add(stick(V(0,.6,0),top,.025,MAT.trunk));
-    const n=6;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
+    const n=9;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
       f.rotation.order="YXZ";f.rotation.y=k/n*Math.PI*2+a;f.rotation.x=-(.55+r(k+s2*7)*.5);f.scale.setScalar(.75+r(k*3+s2)*.45);g.add(f)}
   }
   return g;
@@ -1490,7 +1490,7 @@ function showSetHud(S){
   $("#fprev").setAttribute("aria-label",t.prevFilm);$("#fnext").setAttribute("aria-label",t.nextFilm);lastCount="";hintOn=null;
 }
 $("#back").onclick=exitSet;$("#sprev").onclick=()=>switchSet(-1);$("#snext").onclick=()=>switchSet(1);
-$("#enterBtn").onclick=()=>{if(nearIdx>=0)enterSet(nearIdx)};
+["#enterBtn","#enterBtn2"].forEach(id=>{$(id).onclick=e=>{const i=e.currentTarget.dataset.set;if(i!=="")enterSet(+i)}});
 // look up / down buttons on touch screens (hold to keep tilting, double-tap the screen area between to reset)
 for(const [id,d] of [["#lookUp",1],["#lookDown",-1]]){let iv=null;const b=$(id);if(!b)continue;
   const stop=()=>{clearInterval(iv);iv=null};
@@ -1576,13 +1576,22 @@ function updatePlayHint(){
 
 // near a studio door in the hall, offer to step inside
 function updateNear(){
-  let n=-1;
+  // studios stand in facing pairs, so near a pair both doors get a button: the left one on the left, the right one on the right
+  let near=[];
   // no studio button once you stand in front of the Instagram film at the end, so it never covers the film
-  if(mode==="hall"&&!jumping&&curPos.z>LED_Z+9.5){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best){best=d;n=S.i}})}
-  if(n!==nearIdx){nearIdx=n;const b=$("#enterBtn");
-    if(n>=0){const S=SETS[n],fa=lang==="fa",arrow=S.side<0?"←":"→";b.innerHTML=fa?`<span>${arrow}</span> ورود به ${S.s.name.fa}`:`<span>${arrow}</span> Enter ${S.s.name.en}`;b.style.setProperty("--b",S.s.c.acc);b.classList.add("show")}
-    else b.classList.remove("show")}
+  if(mode==="hall"&&!jumping&&curPos.z>LED_Z+9.5){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best-.01)best=d});
+    near=SETS.filter(S=>Math.abs(Math.abs(z-(S.z+1.2))-best)<.01&&best<4.2).sort((a,b)=>a.side-b.side)}
+  const key=near.map(S=>S.i).join(",");
+  if(key!==nearKey){nearKey=key;nearIdx=near.length?near[0].i:-1;
+    const fa=lang==="fa",btns=[$("#enterBtn"),$("#enterBtn2")];
+    btns.forEach((b,k)=>{const S=near[k];b.classList.remove("pair-l","pair-r");
+      if(!S){b.classList.remove("show");b.dataset.set="";return}
+      const arrow=S.side<0?"←":"→";b.dataset.set=S.i;const short=near.length>1&&innerWidth<640,nm=short?S.s.name[lang]:(fa?"ورود به "+S.s.name.fa:"Enter "+S.s.name.en);
+      b.innerHTML=S.side<0?`<span>${arrow}</span> ${nm}`:`${nm} <span>${arrow}</span>`;
+      b.style.setProperty("--b",S.s.c.acc);if(near.length>1)b.classList.add(k?"pair-r":"pair-l");b.classList.add("show")});
+  }
 }
+let nearKey="";
 
 /* ---------- map ---------- */
 let stops=[];
@@ -1630,7 +1639,7 @@ function applyLang(){
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
-  buildOverlays();buildMap();lastStop=-1;nearIdx=-2;applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
+  buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
