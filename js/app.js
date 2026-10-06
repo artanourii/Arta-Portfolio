@@ -7,9 +7,9 @@ const ICON = {
 
 
 Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
- noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
+ noGL:"Your browser can't show the 3D studio, reach me on WhatsApp or Instagram @artanourii"});
 Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
- noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
+ noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده، از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش"});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
 ICON.mute=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>`;
@@ -1315,19 +1315,25 @@ function toggleLight(){
 let mode="hall",p=0,pTarget=0,vel=0,drag=null,px=0,py=0,tx=0,ty=0;
 let setIdx=-1,sp=0,spTarget=0,lookYaw=0,lookPitch=0,nearIdx=-1;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),curPos=new THREE.Vector3(),curLook=new THREE.Vector3();
-let PP0=-20.5,PP_END=1;
+let PP0=-20.5,PP_END=1,PP_FILM=1;
+const endPos=new THREE.Vector3(),endLook=new THREE.Vector3();
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
+  // past the Instagram film, scrolling on turns the camera to the contact card and walks up to it
+  const ek=PP_END>PP_FILM?clamp((pp-PP_FILM)/(PP_END-PP_FILM),0,1):0,ee=ek*ek*(3-2*ek);pp=Math.min(pp,PP_FILM);
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
   const lf=FEATS3[0]&&FEATS3[0].v===FEATURES.logoAd?FEATS3[0].base.z:-15,lk=clamp(1-Math.abs(z-(lf+3.4))/4.2,0,1),up=lk*lk*(3-2*lk);
   pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
-  const end=clamp((pp-(PP_END-7))/7,0,1);
+  const end=clamp((pp-(PP_FILM-7))/7,0,1);
   look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
+  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?2.7:3.2;
+    endPos.set(G.position.x+Math.sin(ry)*d,G.position.y+(portrait()?.25:.1),G.position.z+Math.cos(ry)*d);endLook.copy(G.position);
+    pos.lerp(endPos,ee);look.lerp(endLook,ee)}
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
   // phones start a little further back so the whole sign over the door fits the narrow screen
-  PP0=portrait()?-24.5:-20.5;PP_END=.5-(LED_Z+8);
+  PP0=portrait()?-24.5:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
   SETS.forEach(S=>{
     const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
     S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
@@ -1463,7 +1469,8 @@ function updatePlayHint(){
   let on=false;const cp=camera.position;
   if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
     if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<3.3&&Math.abs(spTarget-sp)<.6}}
-    else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
+    else for(const F of FEATS3){if(!F.G.visible||F.k<.8||(F.v===FEATURES.instagramAd&&p>PP_FILM+1.5))continue;   // not once the camera has turned to the contact card
+      F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
   }
   if(on!==hintOn){hintOn=on;const h=$("#playHint");h.querySelector("span").textContent=T()[coarse?"playTap":"playClick"];h.classList.toggle("show",on)}
 }
