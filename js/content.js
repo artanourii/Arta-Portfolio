@@ -129,7 +129,8 @@ const STUDIOS = [
   {id:"dicardo", theme:"dark", c:{bg:"#070525",bg2:"#1C1458",ink:"#F3F0FF",acc:"#AC33ED"},logoImg:"assets/brands/dicardo.png",
    name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves.",fa:"استایلی که حرکت می‌کنه."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Coffee illusion",fa:"ایلوژن قهوه"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"videos/dicardo-1.mp4",poster:"videos/dicardo-1.jpg",r:"9/16"},
+     {t:{en:"Nano Banana",fa:"نانو بنانا"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"videos/dicardo-2.mp4",poster:"videos/dicardo-2.jpg",r:"9/16"}]},
   // 11. Mahan Net (logo and colors from the official site)
   {id:"mahannet", theme:"light", c:{bg:"#F7F5F4",bg2:"#E7E1DE",ink:"#000000",acc:"#FF2401"},logoImg:"assets/brands/mahan-net.png",
    name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts.",fa:"اینترنت پرسرعت، کات‌های سریع‌تر."},
