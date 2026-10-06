@@ -158,7 +158,7 @@ const STUDIOS = [
    videos:[
      {t:{en:"Makeup look 1",fa:"میکاپ ۱"},m:{en:"26s, 9:16",fa:"۲۶ ثانیه، ۹:۱۶"},src:"videos/makeup-6.mp4",poster:"videos/makeup-6.jpg",r:"9/16"},
      {t:{en:"Makeup look 2",fa:"میکاپ ۲"},m:{en:"14s, 9:16",fa:"۱۴ ثانیه، ۹:۱۶"},src:"videos/makeup-19.mp4",poster:"videos/makeup-19.jpg",r:"9/16"},
-     {t:{en:"Makeup look 3",fa:"میکاپ ۳"},m:{en:"8s, 9:16",fa:"۸ ثانیه، ۹:۱۶"},src:"videos/makeup-2.mp4",poster:"videos/makeup-2.jpg",r:"9/16"},
+     {t:{en:"Makeup look 3",fa:"میکاپ ۳"},m:{en:"74s, 9:16",fa:"۷۴ ثانیه، ۹:۱۶"},src:"videos/makeup-12.mp4",poster:"videos/makeup-12.jpg",r:"9/16"},
      {t:{en:"Makeup look 4",fa:"میکاپ ۴"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"videos/makeup-15.mp4",poster:"videos/makeup-15.jpg",r:"9/16"},
      {t:{en:"Makeup look 5",fa:"میکاپ ۵"},m:{en:"11s, 9:16",fa:"۱۱ ثانیه، ۹:۱۶"},src:"videos/makeup-7.mp4",poster:"videos/makeup-7.jpg",r:"9/16"},
      {t:{en:"Makeup look 6",fa:"میکاپ ۶"},m:{en:"8s, 9:16",fa:"۸ ثانیه، ۹:۱۶"},src:"videos/makeup-13.mp4",poster:"videos/makeup-13.jpg",r:"9/16"},
@@ -173,7 +173,7 @@ const STUDIOS = [
      {t:{en:"Makeup look 15",fa:"میکاپ ۱۵"},m:{en:"19s, 9:16",fa:"۱۹ ثانیه، ۹:۱۶"},src:"videos/makeup-9.mp4",poster:"videos/makeup-9.jpg",r:"9/16"},
      {t:{en:"Makeup look 16",fa:"میکاپ ۱۶"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"videos/makeup-16.mp4",poster:"videos/makeup-16.jpg",r:"9/16"},
      {t:{en:"Makeup look 17",fa:"میکاپ ۱۷"},m:{en:"19s, 9:16",fa:"۱۹ ثانیه، ۹:۱۶"},src:"videos/makeup-10.mp4",poster:"videos/makeup-10.jpg",r:"9/16"},
-     {t:{en:"Makeup look 18",fa:"میکاپ ۱۸"},m:{en:"74s, 9:16",fa:"۷۴ ثانیه، ۹:۱۶"},src:"videos/makeup-12.mp4",poster:"videos/makeup-12.jpg",r:"9/16"},
+     {t:{en:"Makeup look 18",fa:"میکاپ ۱۸"},m:{en:"8s, 9:16",fa:"۸ ثانیه، ۹:۱۶"},src:"videos/makeup-2.mp4",poster:"videos/makeup-2.jpg",r:"9/16"},
      {t:{en:"Makeup look 19",fa:"میکاپ ۱۹"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"videos/makeup-4.mp4",poster:"videos/makeup-4.jpg",r:"9/16"},
      {t:{en:"Makeup look 20",fa:"میکاپ ۲۰"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"videos/makeup-1.mp4",poster:"videos/makeup-1.jpg",r:"9/16"}]},
   // 15. Dream Salon (colors approximate; films to come)
