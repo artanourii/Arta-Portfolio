@@ -102,7 +102,8 @@ const STUDIOS = [
   {id:"azkivam", theme:"light", c:{bg:"#F3F5FD",bg2:"#DCE2FA",ink:"#242B35",acc:"#364FD9"},logoImg:"assets/brands/azkivam.svg",
    name:{en:"Azkivam",fa:"از کی وام"},tag:{en:"Loans made simple, on screen.",fa:"وام ساده، روی صفحه."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Cardboard illusion",fa:"ایلوژن کارتن"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"videos/azkivam-1.mp4",poster:"videos/azkivam-1.jpg",r:"9/16"},
+     {t:{en:"One Piece",fa:"وان پیس"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"videos/azkivam-2.mp4",poster:"videos/azkivam-2.jpg",r:"9/16"}]},
   // 7. Analiz Fix (logo and colors from the brand's Instagram logo)
   {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
    name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion.",fa:"عیب‌یابی و تعمیر، با زبان تصویر."},
