@@ -7,9 +7,9 @@ const ICON = {
 
 
 Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
-  rhint:"Scroll to walk in past the films. Scroll back to walk out. Tap a film to play.",noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
+ noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
 Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
-  rhint:"اسکرول کن تا وارد شی و از کنار فیلم‌ها رد شی. با اسکرول برعکس برمی‌گردی بیرون. روی هر فیلم بزن تا پخش شه.",noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
+ noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
 ICON.mute=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>`;
@@ -84,7 +84,7 @@ const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,3
 /* ---------- materials ---------- */
 const ALLM=[];const std=(c,r=.6,m=0,x={})=>{const mm=new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:r,metalness:m},x));ALLM.push(mm);return mm};
 const MAT={
-  metal:std("#1c1c1f",.38,.85),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
+  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
   lensGlass:std("#0a1020",.04,1,{envMapIntensity:2}),fabric:std("#121212",.95,0),wood:std("#3a2718",.6,0),
   floor:std("#0b0b0c",.32,0,{map:concreteTex,transparent:true,opacity:.86}),
   wall:std("#121214",.92,0,{map:acousticTex}),ceil:std("#08080a",.95,0),
@@ -142,7 +142,7 @@ function cameraRig(dolly){
 /* fresnel spotlight on a stand — head aims along -Z; call aim(worldPoint) */
 function fresnel(lensColor="#fff3df",h=2.1,bare=false){
   const g=new THREE.Group();
-  if(!bare){legs(g,.75,.6,.016);g.add(stick(V(0,.75,0),V(0,h,0),.018,MAT.chrome))}
+  if(!bare){legs(g,.75,.6,.016,MAT.standBlack);g.add(stick(V(0,.75,0),V(0,h,0),.018,MAT.standBlack))}
   const yoke=new THREE.Group();yoke.position.y=h+.04;g.add(yoke);
   yoke.add(box(.04,.02,.42,MAT.metal,0,0,0));
   const head=new THREE.Group();yoke.add(head);
@@ -163,7 +163,7 @@ function fresnel(lensColor="#fff3df",h=2.1,bare=false){
   return g;
 }
 function softbox(h=1.9){
-  const g=new THREE.Group();legs(g,.7,.6,.016);g.add(stick(V(0,.7,0),V(0,h,0),.018,MAT.chrome));
+  const g=new THREE.Group();legs(g,.7,.6,.016,MAT.standBlack);g.add(stick(V(0,.7,0),V(0,h,0),.018,MAT.standBlack));
   const head=new THREE.Group();head.position.y=h+.05;g.add(head);
   const bx=mesh(new THREE.CylinderGeometry(.55,.22,.42,4,1,true),MAT.fabric);bx.rotation.x=-Math.PI/2;bx.rotation.y=Math.PI/4;bx.position.z=-.21;
   bx.material=MAT.fabric.clone();bx.material.side=THREE.DoubleSide;head.add(bx);
@@ -173,7 +173,7 @@ function softbox(h=1.9){
   g.userData.face=face;return g;
 }
 function ledPanel(){
-  const g=new THREE.Group();legs(g,.7,.55,.015);g.add(stick(V(0,.7,0),V(0,1.75,0),.017,MAT.chrome));
+  const g=new THREE.Group();legs(g,.7,.55,.015,MAT.standBlack);g.add(stick(V(0,.7,0),V(0,1.75,0),.017,MAT.standBlack));
   const head=new THREE.Group();head.position.y=1.85;g.add(head);
   head.add(box(.62,.36,.05,MAT.metal));const f=mesh(new THREE.PlaneGeometry(.56,.3),emissive("#e9f0ff",2.2),false);f.position.z=-.026;f.rotation.y=Math.PI;head.add(f);
   g.userData.aim=p=>{g.updateMatrixWorld(true);const wp=head.getWorldPosition(new THREE.Vector3());head.lookAt(wp.clone().multiplyScalar(2).sub(p))};
@@ -588,10 +588,24 @@ function buildSet(s,i){
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
   // films float one behind another down a tunnel into the set, alternating left and right,
   // so the camera flies between them; sets with more films are built deeper
-  const n=s.videos.length,DZ=n>1?Math.min(2.6,9.1/(n-1)):0,Z0=.5;
-  const lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
-    return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ}});
-  const back=Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4),extra=-1.25-back;
+  // a studio with many films (more than four) becomes a deep room where smaller frames float scattered at
+  // different heights and depths on both sides of the camera's path
+  const n=s.videos.length,many=n>4,Z0=.5;
+  let lay,DZ;
+  if(!many){
+    DZ=n>1?Math.min(2.6,9.1/(n-1)):0;
+    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
+      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ,sc:1}});
+  }else{
+    // rows across the whole room (the middle too), each frame at its own height; the camera stops close in
+    // front of every film, so each one can be seen properly and tapped
+    const cols=n<=9?3:4,rows=Math.ceil(n/cols),sc=cols===3?.68:.58;
+    const xsA=cols===3?[-2.3,0,2.3]:[-2.7,-.9,.9,2.7],DZr=Math.min(1.9,8.6/Math.max(1,rows-1));DZ=DZr;
+    const hs=[[1.4,2.15,1.55,2.05],[2.1,1.45,2.2,1.4]];
+    lay=s.videos.map((v,j)=>{const r=Math.floor(j/cols),c0=j%cols,c=r%2?cols-1-c0:c0;   // serpentine order
+      return {x:xsA[c]+(r%2?.18:-.18),vert:v.r!=="16/9",y:hs[r%2][c],z:Z0-.6-r*DZr,sc,row:r}});
+  }
+  const back=Math.max(-10.2,Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4)),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
   const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.z=-extra;g.add(cy);
   const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.004,3.38);g.add(edge);
@@ -615,7 +629,7 @@ function buildSet(s,i){
   hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
   g.add(B3(3.04,1.02,.06,MAT.metal,0,3.58,3.6));
   g.add(B3(2.6,.025,.025,emissive(s.c.acc,2),0,3.04,3.68));
-  decor(s,g,back);
+  const decor0=g.children.length;decor(s,g,back);const decorKids=g.children.slice(decor0);
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
   g.updateMatrixWorld(true);
@@ -631,11 +645,16 @@ function buildSet(s,i){
   // the films themselves, each in its own slab of glass with a soft key light
   const frames=[],pick=[];
   s.videos.forEach((v,j)=>{
-    const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=L.x===0?0:-Math.sign(L.x)*.22;F.ph=j*1.7+i;
-    F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;g.add(F.G);frames.push(F);
-    F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
-    slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
+    const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=many?-L.x*.06:(L.x===0?0:-Math.sign(L.x)*.22);F.ph=j*1.7+i;
+    F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;F.G.scale.setScalar(L.sc);g.add(F.G);frames.push(F);
+    pick.push(F.screen,F.cap);   // only the picture and its caption open the film, not the glass around it
+    if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
+  // props never stand where a film floats (a big studio fills the room with films)
+  { g.updateMatrixWorld(true);const fb=frames.map(F=>new THREE.Box3().setFromObject(F.G).expandByScalar(.12)),bb=new THREE.Box3();
+    decorKids.forEach(o=>{bb.setFromObject(o);if(!bb.isEmpty()&&fb.some(b=>b.intersectsBox(bb)))g.remove(o)}); }
+  // a deep room is lit by a few soft lights along its length instead of one per film
+  if(many)for(let k=0;k<3;k++){const lz=Z0-(k+.5)*(Z0-lay[n-1].z)/3;slot(W(V(0,4.8,lz+1.2)),W(V(0,1.4,lz-.6)),"#fff4e6",1.8*LI,.7,.8,false)}
   // hanging sign over the aisle before the studio, arrow pointing to its door (both faces)
   const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
@@ -700,7 +719,7 @@ function makeFrame(s,v,i){
   F.capCv=document.createElement("canvas");F.capCv.width=1024;F.capCv.height=Math.round(1024*CAP_H/w);
   F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
   const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false}));
-  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);
+  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
@@ -714,13 +733,17 @@ function updateFrames(dt){
   frameT+=dt*.001;
   P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
   const cp=camera.position;
+  // only the films nearest the camera play (a studio can hold ten); the others keep their cover image
+  const near=new Set();
+  if(setIdx>=0){near.clear();SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
+    .sort((a,b)=>a[0]-b[0]).slice(0,Q==="high"?4:2).forEach(x=>near.add(x[1]))}
   for(const F of framesAll){
     if(F.set<0){updateFeatureFilm(F,cp);continue}
     const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
-    const want=F.set===setIdx&&d<8&&!(playerEl&&playerFrame===F)&&!document.hidden;
+    const want=F.set===setIdx&&d<8&&near.has(F)&&!(playerEl&&playerFrame===F)&&!document.hidden;
     if(want&&!F.video){
       const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
@@ -746,7 +769,7 @@ function layoutFeatureFilms(){
   const P=portrait();
   for(const F of FEATS3){
     if(F.v===FEATURES.logoAd){F.base.set(0,2.15,P?-12.6:-15);F.sc=P?1:1.3}
-    else{F.base.set(0,P?3.75:3.05,LED_Z);F.sc=P?1.9:2.7}
+    else{F.base.set(0,P?3.9:3.55,LED_Z);F.sc=P?1.8:2.35}
     F.y0=F.base.y;F.G.position.copy(F.base);F.G.scale.setScalar(F.sc);
   }
 }
@@ -780,7 +803,8 @@ function updateFeatureFilm(F,cp){
 function pickFeatureFilm(x,y){
   if(mode!=="hall")return null;
   ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
-  for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObject(F.G,true)[0];if(h&&h.distance<F.range)return F}
+  // only the picture and its caption count, not the glass around it
+  for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObjects([F.screen,F.cap],false)[0];if(h&&h.distance<F.range)return F}
   return null;
 }
 function refreshCaptions(){framesAll.forEach(drawCaption);signTex.forEach(t=>t.userData.redraw())}
@@ -801,12 +825,16 @@ let playerFrame=null;
 function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(hallPick,false)[0];return h&&h.distance<26?h.object.userData.enter:-1}
 canvas.addEventListener("click",e=>{
   if(dragged||playerEl)return;
-  if(mode==="hall"){const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
+  if(mode==="hall"){const ce=pickEnd(e.clientX,e.clientY);if(ce){window.open(ce.link,"_blank","noopener");return}
+    const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
   const F=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY);
+  if(F&&mode==="set"){const S=SETS[setIdx],j=S.frames.indexOf(F);F.screen.getWorldPosition(tmp);
+    // a film further away: the camera flies over to it first; close up, a tap opens it
+    if(j>=0&&(j!==curFilm(S)||tmp.distanceTo(camera.position)>2.8)){goFilm(j);return}}
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickEnd(e.clientX,e.clientY)||pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
 
 /* ---------- Arta Studio panels and floating titles as real 3D objects ----------
    They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
@@ -948,6 +976,7 @@ function buildPanels3D(){
     if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=fS;g.fillText(t.studiosSub,W/2,pad+88+20+34);return {w:W,h:H};
   });
   SP.redraw();scene.add(SP.G);P3.titles.push({m:SP.G,tex:SP.tex});P3.studios=SP.G;
+  buildEndPanel();
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
@@ -956,6 +985,57 @@ function layoutPanels3D(){
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
+  if(P3.end){if(P){P3.end.G.position.set(0,.95,LED_Z+1.4);P3.end.G.rotation.y=0;P3.end.G.scale.setScalar(1.22)}
+    else{P3.end.G.position.set(3.6,1.8,LED_Z+.6);P3.end.G.rotation.y=-.32;P3.end.G.scale.setScalar(1.5)}}
+}
+/* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
+   WhatsApp / Instagram / LinkedIn buttons drawn on it */
+const ICON_IMG={};
+function iconImg(k){
+  if(ICON_IMG[k])return ICON_IMG[k];const im=new Image();ICON_IMG[k]=im;
+  let svg=ICON[k].replace(/currentColor/g,"#ffffff");if(!/xmlns=/.test(svg))svg=svg.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ');
+  im.onload=()=>{if(P3.end)P3.end.tex.userData.redraw()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
+}
+function buildEndPanel(){
+  const items=[["wa",CONTACT.whatsapp,["#1FA855"]],["ig",CONTACT.instagram,["#F5B041","#D6336C","#7B3FE4"]]];
+  if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push(["li",CONTACT.linkedin,["#0A66C2"]]);
+  const rects=[];
+  const LP=liquidPanel((g,measure)=>{
+    const t=T(),fa=lang==="fa",c=glassInk(),pad=58,cw=470,chH=108,gap=22,W=pad*2+cw*2+gap;
+    const fT=fa?`800 56px "Vazirmatn", sans-serif`:`800 48px "Unbounded", "Vazirmatn", sans-serif`;
+    g.font=fT;const words=t.endH.split(" "),lines=[];let cur="";
+    for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>W-pad*2&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
+    const lh=fa?74:64,rowsN=Math.ceil(items.length/2),H=pad*2+lines.length*lh+34+rowsN*chH+(rowsN-1)*gap;
+    if(measure)return {w:W,h:H};
+    if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";textShadow(g,true);
+    g.fillStyle=c.t;g.font=fT;lines.forEach((l,k)=>g.fillText(l,W/2,pad+lh*.8+k*lh));
+    textShadow(g,false);rects.length=0;
+    let y=pad+lines.length*lh+34;
+    items.forEach(([k,ct,cols],idx)=>{
+      const row=Math.floor(idx/2),inRow=Math.min(2,items.length-row*2),col=idx%2;
+      const rowW=inRow*cw+(inRow-1)*gap,x0=(W-rowW)/2+(fa?(inRow-1-col):col)*(cw+gap),yy=y+row*(chH+gap);
+      rr(g,x0,yy,cw,chH,30);g.fillStyle=dark?"rgba(255,255,255,.12)":"rgba(255,255,255,.5)";g.fill();
+      g.lineWidth=2;g.strokeStyle=dark?"rgba(255,255,255,.28)":"rgba(255,255,255,.9)";g.stroke();
+      const bs=74,bx=fa?x0+cw-17-bs:x0+17,by=yy+(chH-bs)/2;rr(g,bx,by,bs,bs,22);
+      if(cols.length>1){const gr=g.createLinearGradient(bx,by,bx+bs,by+bs);cols.forEach((cc,i)=>gr.addColorStop(i/(cols.length-1),cc));g.fillStyle=gr}else g.fillStyle=cols[0];g.fill();
+      const im=iconImg(k);if(im.complete&&im.naturalWidth)g.drawImage(im,bx+bs*.22,by+bs*.22,bs*.56,bs*.56);
+      const tx=fa?bx-20:bx+bs+20;g.textAlign=fa?"right":"left";
+      g.fillStyle=c.m;g.font=`500 24px "Vazirmatn", sans-serif`;g.fillText(t[k],tx,yy+44);
+      let f=31;g.font=`700 ${f}px "Vazirmatn", sans-serif`;while(g.measureText(ct.display).width>cw-bs-60&&f>18){f-=2;g.font=`700 ${f}px "Vazirmatn", sans-serif`}
+      g.fillStyle=c.t;if("direction" in g)g.direction="ltr";g.fillText(ct.display,tx,yy+84);if("direction" in g)g.direction=fa?"rtl":"ltr";
+      rects.push({x:x0,y:yy,w:cw,h:chH,link:ct.link});
+    });
+    return {w:W,h:H};
+  });
+  LP.redraw();scene.add(LP.G);
+  P3.end={G:LP.G,face:LP.face,tex:LP.tex,rects,cv:LP.face.material.uniforms.tText.value.image};
+  P3.titles.push({m:LP.G,tex:LP.tex});
+}
+function pickEnd(x,y){
+  if(!P3.end||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const h=ray.intersectObject(P3.end.face,false)[0];if(!h||h.distance>16||!h.uv)return null;
+  const cv=P3.end.cv,px=h.uv.x*cv.width,py=(1-h.uv.y)*cv.height;
+  return P3.end.rects.find(r=>px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)||null;
 }
 function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
@@ -1024,8 +1104,7 @@ function buildOverlays(){
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
   if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
   // contact card beside the floating Instagram film (below it on phones), never on top of the picture
-  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,P?V(0,.62,LED_Z+1.4):V(3.55,1.75,LED_Z+.6),P?2.5:2.7,{far:22});
-  sndA=FEATURES.instagramAd&&FEATURES.instagramAd.src?anchor(`<span class="snd snd3" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`,V(0,P?6.2:5.95,LED_Z+.2),P?1.5:1.3,{far:26}):null;
+  sndA=FEATURES.instagramAd&&FEATURES.instagramAd.src?anchor(`<span class="snd snd3" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`,V(0,P?6.25:6.05,LED_Z+.2),P?1.5:1.3,{far:26}):null;
   ovl.querySelectorAll(".lang-chip").forEach(b=>b.addEventListener("click",toggleLang));
   ovl.querySelectorAll(".light-chip").forEach(b=>b.addEventListener("click",toggleLight));
   measure();
@@ -1115,7 +1194,7 @@ function applyTheme(){
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.5:.1):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
   // black plinth: in light mode it barely mirrors the bright room, so its top stays black instead of grey
-  MAT.plinth.envMapIntensity=dark?.06:.12;
+  MAT.plinth.envMapIntensity=dark?.06:.12;MAT.standBlack.envMapIntensity=dark?.1:.15;
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
@@ -1145,9 +1224,10 @@ let PP0=-20.5,PP_END=1;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
-  pos.set(Math.sin(pp*.08)*.25,1.65,z);
+  const lf=FEATS3[0]&&FEATS3[0].v===FEATURES.logoAd?FEATS3[0].base.z:-15,lk=clamp(1-Math.abs(z-(lf+3.4))/4.2,0,1),up=lk*lk*(3-2*lk);
+  pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
   const end=clamp((pp-(PP_END-7))/7,0,1);
-  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1),z-8);
+  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
@@ -1161,9 +1241,20 @@ function buildPath(){
     const Door=pose((a,b)=>{a.set(-S.side*(P?2.6:3.4),1.65,S.z);b.set(S.side*7.2,P?2.45:2.25,S.z)});
     const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
     key(Door,Door,.6);S.u={in:u};
-    key(Door,E[0],5);
-    for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);key(E[j],E[j],1.2)}
-    key(E[n-1],E[n-1],.8);
+    if(n>4){
+      // many films: the camera stops close in front of each one in turn (row by row, snaking left and right)
+      const dd=P?1.62:1.55;   // stays just behind the previous row of frames
+      const C=S.lay.map(L=>pose((a,b)=>{a.copy(S.W(V(L.x*.7,L.y+.02,L.z+dd)));b.copy(S.W(V(L.x,L.y-(P?.2:.17),L.z)))}));
+      S.u.stop=[];
+      key(Door,C[0],5);S.u.stop.push(u+.45);key(C[0],C[0],.9);
+      for(let j=1;j<n;j++){key(C[j-1],C[j],1.5);S.u.stop.push(u+.45);key(C[j],C[j],.9)}
+      key(C[n-1],C[n-1],.4);
+    }else{
+      S.u.stop=[];
+      key(Door,E[0],5);S.u.stop.push(u);
+      for(let j=1;j<n;j++){key(E[j-1],E[j],3.4,false);S.u.stop.push(u+.6);key(E[j],E[j],1.2)}
+      key(E[n-1],E[n-1],.8);
+    }
     S.path=path;S.len=u;
   });
 }
@@ -1195,6 +1286,7 @@ function switchSet(d){if(setIdx<0)return;enterSet((setIdx+d+SETS.length)%SETS.le
 function showSetHud(S){
   const t=T();$("#stitle").textContent=S.s.name[lang];$("#back").textContent=(lang==="fa"?"→ ":"← ")+t.back;
   $("#sprev").textContent=t.prev;$("#snext").textContent=t.next;$("#stip").textContent=t.rhint;$("#shud").classList.add("show");
+  $("#fprev").setAttribute("aria-label",t.prevFilm);$("#fnext").setAttribute("aria-label",t.nextFilm);lastCount="";hintOn=null;
 }
 $("#back").onclick=exitSet;$("#sprev").onclick=()=>switchSet(-1);$("#snext").onclick=()=>switchSet(1);
 $("#enterBtn").onclick=()=>{if(nearIdx>=0)enterSet(nearIdx)};
@@ -1252,8 +1344,33 @@ addEventListener("keydown",e=>{
   if(e.key==="ArrowDown"||e.key==="PageDown"||(e.key===" "&&!e.target.closest("button,a"))){moveBy(4);e.preventDefault()}
   if(e.key==="ArrowUp"||e.key==="PageUp"){moveBy(-4);e.preventDefault()}
   if(e.key==="Enter"&&mode==="hall"&&nearIdx>=0&&!e.target.closest("button,a"))enterSet(nearIdx);
+  if(mode==="set"&&(e.key==="ArrowRight"||e.key==="ArrowLeft")){const S=SETS[setIdx],d=(e.key==="ArrowRight")!==(lang==="fa")?1:-1;goFilm(curFilm(S)+d);e.preventDefault()}
   if(e.key==="Home")goTo(PP0);if(e.key==="End")goTo(PP_END);
 });
+
+/* ---------- film by film inside a studio ---------- */
+function curFilm(S){let b=0,bd=1e9;S.u.stop.forEach((u,j)=>{const d=Math.abs(u-sp);if(d<bd){bd=d;b=j}});return b}
+function goFilm(j){if(mode!=="set")return;const S=SETS[setIdx];j=clamp(j,0,S.u.stop.length-1);spTarget=S.u.stop[j]}
+$("#fprev").onclick=()=>{if(mode==="set")goFilm(curFilm(SETS[setIdx])-1)};
+$("#fnext").onclick=()=>{if(mode==="set")goFilm(curFilm(SETS[setIdx])+1)};
+const faNum=n=>lang==="fa"?n.toLocaleString("fa"):String(n);
+let lastCount="";
+function updateFilmHud(){
+  if(mode!=="set")return;const S=SETS[setIdx],n=S.frames.length,c=curFilm(S);
+  const txt=`${faNum(c+1)} / ${faNum(n)}`;if(txt!==lastCount){lastCount=txt;$("#fcount").textContent=txt}
+  $("#fnav").hidden=n<2;
+}
+// a short hint whenever the camera is close to a film: tapping it opens the film full screen
+const coarse=matchMedia("(pointer:coarse)").matches;
+let hintOn=false;
+function updatePlayHint(){
+  let on=false;const cp=camera.position;
+  if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
+    if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<2.6&&Math.abs(spTarget-sp)<.6}}
+    else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
+  }
+  if(on!==hintOn){hintOn=on;const h=$("#playHint");h.querySelector("span").textContent=T()[coarse?"playTap":"playClick"];h.classList.toggle("show",on)}
+}
 
 // near a studio door in the hall, offer to step inside
 function updateNear(){
@@ -1306,6 +1423,7 @@ function closePlayer(){
 
 /* ---------- language ---------- */
 function applyLang(){
+  hintOn=null;lastCount="";
   const t=T();document.documentElement.lang=lang;document.documentElement.dir=t.dir;
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
@@ -1354,7 +1472,7 @@ function frame(now){
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
   renderBackdrop();
   if(useComposer)composer.render();else renderer.render(scene,camera);
-  updateAnchors();updateMap();updateFrames(dt);
+  updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350)}
   // automatic quality: drop expensive effects if the device struggles
