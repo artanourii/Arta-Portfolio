@@ -92,10 +92,16 @@ const frondTex=(()=>{const c=document.createElement("canvas");c.width=128;c.heig
 const chairTex=canvasTex(512,160,(g,w,h)=>{g.fillStyle="#141414";g.fillRect(0,0,w,h);g.fillStyle="#efe9df";g.font="800 92px Unbounded, Arial Black, sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("ARTA",w/2,h/2+4)});
 const monitorTex=canvasTex(128,80,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"#1d3a5f");gr.addColorStop(1,"#c06a3b");g.fillStyle=gr;g.fillRect(0,0,w,h);g.strokeStyle="rgba(255,255,255,.6)";g.strokeRect(10,8,w-20,h-16)});
 // a soft spill of light: bright along the top edge, fading away (floor glow under neon, light fans on walls)
-const glowTex=canvasTex(64,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(.25,"rgba(255,255,255,.35)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
-const fanTex=canvasTex(256,512,(g,w,h)=>{
-  for(let y=0;y<h;y++){const t=1-y/h,half=w*(.04+.46*Math.pow(t,.8)),a=Math.pow(1-t,1.6)*.95+.05*(1-t);
-    const gr=g.createLinearGradient(w/2-half,0,w/2+half,0);gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(.5,`rgba(255,255,255,${a})`);gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(w/2-half,y,half*2,1)}});
+// soft glow textures computed pixel by pixel: canvas gradients are dithered by some browsers (iOS Safari), and that
+// noise showed through additive glows as coloured specks
+function smoothTex(w,h,alpha){
+  const c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d"),id=g.createImageData(w,h),d=id.data;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=(y*w+x)*4,a=Math.max(0,Math.min(1,alpha((x+.5)/w,(y+.5)/h)));d[k]=d[k+1]=d[k+2]=255;d[k+3]=Math.round(a*255)}
+  g.putImageData(id,0,0);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;
+}
+const lerpA=(a,b,t)=>a+(b-a)*t;
+const glowTex=smoothTex(64,256,(u,v)=>v<.25?lerpA(1,.35,v/.25):lerpA(.35,0,(v-.25)/.75));
+const fanTex=smoothTex(256,512,(u,v)=>{const t=1-v,half=.04+.46*Math.pow(t,.8),a=Math.pow(1-t,1.6)*.95+.05*(1-t);return a*Math.max(0,1-Math.abs(u-.5)/half)});
 const frameGlowTex=canvasTex(256,256,(g,w,h)=>{g.shadowColor="#fff";g.shadowBlur=26;g.strokeStyle="rgba(255,255,255,.9)";g.lineWidth=6;
   for(let k=0;k<3;k++){g.beginPath();const m=34,r=18;g.moveTo(m+r,m);g.arcTo(w-m,m,w-m,h-m,r);g.arcTo(w-m,h-m,m,h-m,r);g.arcTo(m,h-m,m,m,r);g.arcTo(m,m,w-m,m,r);g.closePath();g.stroke()}});
 // board-formed concrete panels for the end wall: soft clouding, panel joints and tie holes
@@ -107,7 +113,7 @@ const concTex=canvasTex(512,512,(g,w,h)=>{
   g.fillStyle="rgba(255,255,255,.12)";g.fillRect(4,4,w-4,2);
   g.fillStyle="rgba(35,32,30,.45)";for(const x of [w*.18,w*.82])for(const y of [h*.2,h*.5,h*.8]){g.beginPath();g.arc(x,y,5,0,Math.PI*2);g.fill()}
 },[15,5.4]);
-const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
+const dotTex=smoothTex(64,64,(u,v)=>1-Math.hypot(u-.5,v-.5)*2);
 
 /* ---------- materials ---------- */
 const ALLM=[];const std=(c,r=.6,m=0,x={})=>{const mm=new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:r,metalness:m},x));ALLM.push(mm);return mm};
@@ -367,7 +373,7 @@ function build3D(){
   const pl=box(3.3,.5,1.5,MAT.plinth,0,.25,-6.4);scene.add(pl);pl.userData.keep=true;OCCLUDERS.push(pl);
   const logo=makeLogo();logo.position.set(0,.5,-6.4);scene.add(logo);
   // soft light halo behind the logo, so the black logo of light mode stands out from the room
-  const haloTex=canvasTex(256,256,(g,w,h)=>{const gr=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,"rgba(255,246,228,1)");gr.addColorStop(.45,"rgba(255,240,210,.45)");gr.addColorStop(1,"rgba(255,240,210,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
+  const haloTex=smoothTex(256,256,(u,v)=>{const r=Math.hypot(u-.5,v-.5)*2;return r<.45?lerpA(1,.45,r/.45):lerpA(.45,0,(r-.45)/.55)});
   MAT.halo=new THREE.MeshBasicMaterial({map:haloTex,transparent:true,depthWrite:false,opacity:.8,toneMapped:false,fog:false});
   const halo=new THREE.Mesh(new THREE.PlaneGeometry(5.4,5.4),MAT.halo);halo.position.set(0,1.55,-7.4);halo.userData.keep=true;scene.add(halo);logo.traverse(o=>{o.userData.keep=true});OCCLUDERS.push(logo);
   const wmTex=new THREE.TextureLoader().load(WORDMARK);wmTex.encoding=THREE.sRGBEncoding;
@@ -1682,8 +1688,8 @@ function frame(now){
   // fly through the lobby logo: it melts away as the camera reaches it and comes back behind
   { const d=Math.hypot(curPos.z+6.4,curPos.x*.5),o=clamp((d-.5)/2.4,0,1);
     MAT.logo.transparent=o<1;MAT.logo.opacity=o;MAT.logo.depthWrite=o>.98;if(MAT.wordmark)MAT.wordmark.opacity=o;
-    if(MAT.halo)MAT.halo.opacity=(MAT.halo.userData.base||.5)*o;
-    if(MAT.wmGlow)MAT.wmGlow.opacity=(MAT.wmGlow.userData.base||0)*o;if(MAT.logoGlow)MAT.logoGlow.opacity=(MAT.logoGlow.userData.base||0)*o; }
+    if(MAT.halo){MAT.halo.opacity=(MAT.halo.userData.base||0)*o;MAT.halo.visible=MAT.halo.opacity>.005}
+    for(const m of [MAT.wmGlow,MAT.logoGlow])if(m){m.opacity=(m.userData.base||0)*o;m.visible=m.opacity>.005} }
   updatePool();
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
