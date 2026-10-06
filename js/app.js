@@ -430,7 +430,7 @@ function drawHeader(s,i){return (g,W,H)=>{
   if(lc){const lx=fa?W-60-lc.width:60;g.drawImage(lc,lx,(H-lc.height)/2);tw-=lc.width+40;tx=fa?lx-40:lx+lc.width+40}
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="middle";g.fillStyle=s.c.ink;
   fitText(g,s.name[lang],700,H*.3,tw);g.fillText(s.name[lang],tx,H*.44);
-  g.globalAlpha=.65;g.font=signFont(400,H*.13);g.fillText((fa?"استودیو ":"STUDIO ")+(fa?(i+1).toLocaleString("fa"):String(i+1).padStart(2,"0")),tx,H*.76);g.globalAlpha=1;
+  g.globalAlpha=.88;g.font=signFont(500,H*.13);g.fillText((fa?"استودیو ":"STUDIO ")+(fa?(i+1).toLocaleString("fa"):String(i+1).padStart(2,"0")),tx,H*.76);g.globalAlpha=1;
 }}
 // hanging hall sign with an arrow toward the studio; dir -1 = arrow left, 1 = arrow right
 function drawHall(s,dir){return (g,W,H)=>{
@@ -814,7 +814,7 @@ const OCCLUDERS=[];
 const P3={panels:[],titles:[],pick:[]};
 const inkCol=()=>dark?{t:"#F2EEE7",m:"#A49FAA",a:"#E0BF7A"}:{t:"#16131A",m:"#2f2b33",a:"#8F6A2A"};
 // text on the glass: black on the milky glass of light mode, white on the smoky glass of dark mode
-const glassInk=()=>dark?{t:"#ffffff",m:"rgba(255,255,255,.74)",a:"#f0cf8a"}:{t:"#121014",m:"rgba(18,16,20,.86)",a:"#8F6A2A"};
+const glassInk=()=>dark?{t:"#ffffff",m:"rgba(255,255,255,.88)",a:"#f0cf8a"}:{t:"#121014",m:"#24212a",a:"#8F6A2A"};
 function panelTex(w,h,draw){
   const cv=document.createElement("canvas");cv.width=w;cv.height=h;
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
