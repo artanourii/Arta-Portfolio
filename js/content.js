@@ -56,7 +56,7 @@ const STUDIOS = [
   {id:"respina", theme:"dark", c:{bg:"#06262B",bg2:"#0B4C55",ink:"#EAF7F8",acc:"#008B9E"},logoImg:"assets/brands/respina.svg",
    name:{en:"Respina",fa:"داده پردازی رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
    videos:[
-     {t:{en:"Company intro, 3D",fa:"معرفی شرکت، سه‌بعدی"},m:{en:"After Effects, 20s, 9:16",fa:"افترافکت، ۲۰ ثانیه، ۹:۱۶"},src:"",r:"9/16"},
+     {t:{en:"Company intro, 3D",fa:"معرفی شرکت، سه‌بعدی"},m:{en:"After Effects, 20s, 9:16",fa:"افترافکت، ۲۰ ثانیه، ۹:۱۶"},src:"videos/respina-intro.mp4",poster:"videos/respina-intro.jpg",r:"9/16"},
      {t:{en:"Racetrack hero",fa:"پیست مسابقه"},m:{en:"Hyper-real still",fa:"تصویر هایپررئال"},src:"",r:"16/9"},
      {t:{en:"Track, top view",fa:"پیست از نمای بالا"},m:{en:"Logo on asphalt",fa:"لوگو روی آسفالت"},src:"",r:"16/9"}]},
   // 4. Hamrahe Aval (logo and colors from the official site)
