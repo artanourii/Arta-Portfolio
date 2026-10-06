@@ -270,7 +270,7 @@ function build3D(){
     fit("ARTA NOORI",700,190,.09);g.fillText("ARTA NOORI",x,H*.42);
     fit("STUDIO",500,92,.43);g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
   });
-  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.02),new THREE.MeshBasicMaterial({map:fsTex}));fs.position.set(0,DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.02),new THREE.MeshBasicMaterial({map:fsTex,transparent:true}));fs.position.set(0,DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
   { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
   // warm uplights washing the facade and the sign
   for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,DH+1.4,10),"#ffd9a6",2.2,.42,.7);
@@ -406,6 +406,12 @@ function logoCanvas(s,color,maxW,maxH){
   if(s.logo){const vb=s.logo.vb||24,k=Math.min(maxW,maxH)/vb;cv.width=cv.height=Math.round(vb*k);g=cv.getContext("2d");g.fillStyle=color;g.scale(k,k);g.fill(new Path2D(s.logo.d));return cv}
   return null;
 }
+// average brightness of a logo's visible pixels (0 black .. 1 white)
+function logoLum(cv){
+  try{const d=cv.getContext("2d").getImageData(0,0,cv.width,cv.height).data;let s=0,n=0;
+    for(let i=0;i<d.length;i+=16){const a=d[i+3]/255;if(a<.4)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}
+    return n?s/n:1}catch(e){return 1}
+}
 const signTex=[];
 function canvasSign(w,h,draw){
   const cv=document.createElement("canvas");cv.width=w;cv.height=h;
@@ -436,7 +442,13 @@ function drawHall(s,dir){return (g,W,H)=>{
   g.beginPath();g.moveTo(40,-38);g.lineTo(-20,0);g.lineTo(40,38);g.lineTo(40,14);g.lineTo(-2,0);g.lineTo(40,-14);g.closePath();g.fill();g.restore();
   const left=dir<0?140:40,right=dir<0?W-40:W-140;
   const lc=logoCanvas(s,"#ffffff",H*.9,H*.5);let x0=left,x1=right;
-  if(lc){if(dir<0){g.drawImage(lc,x1-lc.width,ay-lc.height/2);x1-=lc.width+28}else{g.drawImage(lc,x0,ay-lc.height/2);x0+=lc.width+28}}
+  if(lc){
+    const lx=dir<0?x1-lc.width:x0;
+    // a dark logo would vanish on the dark sign, so it sits on a light pill
+    if(logoLum(lc)<.45){const p=16;g.fillStyle="#f4f2ee";rr(g,lx-p,ay-lc.height/2-p*.7,lc.width+p*2,lc.height+p*1.4,22);g.fill()}
+    g.drawImage(lc,lx,ay-lc.height/2);
+    if(dir<0)x1-=lc.width+(logoLum(lc)<.45?44:28);else x0+=lc.width+(logoLum(lc)<.45?44:28);
+  }
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textBaseline="middle";g.fillStyle="#ffffff";
   g.textAlign=dir<0?"left":"right";fitText(g,s.name[lang],700,H*.32,x1-x0);g.fillText(s.name[lang],dir<0?x0:x1,ay);
 }}
@@ -654,12 +666,12 @@ function drawCaption(F){
   g.clearRect(0,0,W,H);
   const fam=fa?'"Vazirmatn", Tahoma, sans-serif':'"Vazirmatn", "Helvetica Neue", Arial, sans-serif';
   if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";
-  g.shadowColor=dark?"rgba(0,0,0,.55)":"rgba(255,255,255,.6)";g.shadowBlur=8;
+  g.shadowColor=dark?"rgba(0,0,0,.55)":"rgba(255,255,255,.35)";g.shadowBlur=dark?8:4;
   const x=fa?W-34:34;
   // long titles shrink to fit the frame instead of being cut off
   const fit=(txt,wt,px)=>{g.font=`${wt} ${px}px ${fam}`;const m=g.measureText(txt).width,max=W-68;if(m>max)g.font=`${wt} ${px*max/m}px ${fam}`};
   g.fillStyle=dark?"#ffffff":"#121014";fit(v.t[lang],700,H*.36);g.fillText(v.t[lang],x,H*.5);
-  g.globalAlpha=.7;fit(v.m[lang],400,H*.25);g.fillText(v.m[lang],x,H*.86);g.globalAlpha=1;
+  g.fillStyle=dark?"rgba(255,255,255,.85)":"#24212a";fit(v.m[lang],500,H*.25);g.fillText(v.m[lang],x,H*.86);
   F.capTex.needsUpdate=true;
 }
 const framesAll=[];
