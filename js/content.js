@@ -140,7 +140,7 @@ const STUDIOS = [
   {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
    name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed.",fa:"موتور، قدرت و سرعت."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Yamaha R25 illusion",fa:"ایلوژن یاماها R25"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"videos/niromotor-1.mp4",poster:"videos/niromotor-1.jpg",r:"9/16"}]},
   // 13. IT Mall (logo and colors from the official site)
   {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
    name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot.",fa:"هر گجت، یک نمای قهرمان."},
