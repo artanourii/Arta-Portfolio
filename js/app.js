@@ -413,7 +413,10 @@ function build3D(){
     for(const [x,z,hh,sd] of [[-2.35,-.55,.8,41],[2.35,-.55,.8,41],[-6.55,-.45,1.35,42],[6.55,-.45,1.35,42],[-8.7,-.5,1.05,43],[8.7,-.5,1.05,43]]){
       const pl=palm(hh,sd);pl.position.set(x,0,LED_Z+z);scene.add(pl)} }
   // the Instagram film floats here in its own frame (buildFeatureFilms)
-  slot(V(0,7.6,LED_Z-3),V(0,0,LED_Z-1),"#ffe3c4",1.1,.45,.7);
+  // ceiling spots wash the end wall: the film and the plaques either side of it (it matters most with the lights off)
+  for(const x of [-4.3,0,4.3]){slot(V(x*.8,9.2,LED_Z+4.2),V(x,2.6,LED_Z-1.2),"#ffd9a8",x?2.3:2.6,.32,.75);
+    const cn=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.32,16),MAT.metal);cn.position.set(x*.8,9.35,LED_Z+4.2);scene.add(cn);
+    const ln=new THREE.Mesh(new THREE.CircleGeometry(.11,16),emissive("#ffd49a",3));ln.rotation.x=Math.PI/2;ln.position.set(x*.8,9.18,LED_Z+4.2);scene.add(ln)}
 
   // haze particles
   const N=Math.round((Q==="high"?1400:700)*Math.min(HALL_LEN/104,2)),pp=new Float32Array(N*3);
@@ -1072,7 +1075,7 @@ function buildPanels3D(){
     g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
   P3.gate=title(heading("arch","archSub"),2048,420,5.4);
   // the title hangs on a white banner, as in the reference renders: dark text on the dark ceiling could not be read
-  { const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.9,5.4*420/2048+.32),new THREE.MeshBasicMaterial({color:C("#f6f2ec"),fog:false}));bn.position.z=-.02;bn.userData.keep=true;P3.gate.add(bn);
+  { const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.9,5.4*420/2048+.32),(MAT.banner=new THREE.MeshBasicMaterial({color:C("#f6f2ec"),fog:false})));bn.position.z=-.02;bn.userData.keep=true;P3.gate.add(bn);
     for(const x of [-2.6,2.6]){const w=stick(V(x,.72,-.02),V(x,2.6,-.02),.006,MAT.metal);w.userData.keep=true;P3.gate.add(w)} }
   // "The studios" heading in a liquid glass panel sized to its words
   const SP=liquidPanel((g,measure)=>{
@@ -1364,8 +1367,8 @@ function applyTheme(){
   MAT.facade.color=C(dark?"#8a7462":"#6a5646");MAT.ground.color=C(dark?"#0d0d0f":"#3e3b38");MAT.ground.roughness=.32;
   MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.12;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
-  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C("#000000");MAT.logo.emissiveIntensity=0;
-  if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#000000");
+  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C(dark?"#fff3dc":"#000000");MAT.logo.emissiveIntensity=dark?.9:0;   // with the lights off the AN logo glows
+  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff3dc").multiplyScalar(2.4):C("#000000");   // and its name on the plinth glows with it
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
   // the white pendant lamps glow warm, as in the reference renders
@@ -1384,6 +1387,7 @@ function applyTheme(){
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   PLQ_GLASS.emissiveIntensity=dark?.32:.14;
+  if(MAT.banner)MAT.banner.color=C(dark?"#9a948c":"#f6f2ec");   // the white ARTA STUDIO banner does not blaze at night
   if(MAT.endBoard)MAT.endBoard.color=C(dark?"#a9a59e":"#f2efe9");
   if(MAT.endWall)MAT.endWall.color=C(dark?"#4a4744":"#a39f99");
   lightMul=dark?.95:.5;
