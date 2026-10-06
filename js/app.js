@@ -319,15 +319,8 @@ function build3D(){
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
   // the main studio building: facade with a big doorway, the ARTA NOORI sign above it, and the forecourt outside
   MAT.facade=std("#4a3a2e",.7,.05,{map:slatTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
-  // on a phone the whole entrance is built to the screen: a narrower door, so the glass plaques fit on the wall beside it
-  const PORT=portrait(),DW=PORT?2.4:9,DH=PORT?3.2:4.6,SS=PORT?.85:1;
-  for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
-  scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
-  const trim=emissive("#f2c27a",2.4);
-  scene.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])scene.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
-  scene.add(box(36,.06,.06,trim,0,12.97,10.28));
   const gr=mesh(new THREE.PlaneGeometry(60,40),MAT.ground,false);gr.rotation.x=-Math.PI/2;gr.position.set(0,.001,30.25);scene.add(gr);
-  const fsTex=canvasSign(2048,560,(g,W,H)=>{
+  const fsTex=FACADE_TEX=canvasSign(2048,560,(g,W,H)=>{
     rr(g,8,8,W-16,H-16,40);g.fillStyle="#0b0b0d";g.fill();g.lineWidth=10;g.strokeStyle="#e9c98d";g.stroke();
     let x=90;if(FACADE_LOGO){const k=(H-140)/FACADE_LOGO.height;g.drawImage(FACADE_LOGO,x,70,FACADE_LOGO.width*k,H-140);x+=FACADE_LOGO.width*k+80}
     // text is sized to the space left beside the logo so it always fits whatever font the device uses
@@ -336,21 +329,17 @@ function build3D(){
     fit("ARTA NOORI",700,190,.09);g.fillText("ARTA NOORI",x,H*.42);
     fit("STUDIO",500,92,.43);g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
   });
-  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4*SS,2.02*SS),new THREE.MeshBasicMaterial({map:fsTex,transparent:true}));fs.position.set(0,PORT?7.45:DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
   { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
-  // palms in black planters either side of the door
-  for(const sd of [-1,1]){const pl=palm(1.45,sd+3);pl.position.set(sd*(DW/2+4.1),0,10.75);scene.add(pl)}
   // warm uplights washing the facade and the sign
-  for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,DH+1.4,10),"#ffd9a6",2.2,.42,.7);
+  for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,6,10),"#ffd9a6",2.2,.42,.7);
   // a row of grazing uplights along the slatted wall, each throwing a warm fan up the wood
   for(const sd of [-1,1])for(const x of [7.4,10.6]){slot(V(sd*x,.15,10.6),V(sd*x,7,10.2),"#ffcf8f",1.4,.28,.9,false);scene.add(box(.22,.08,.16,MAT.metal,sd*x,.04,10.55))}
   slot(V(0,1,17),V(0,4,10),"#ffdcaa",1.6,.5,.8,false);
   { const fm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc47a"),transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
     for(const sd of [-1,1])for(const x of [6.6,9.4,12.2,15]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.6,7.5),fm);f.position.set(sd*x,3.75,10.27);f.userData.keep=true;scene.add(f);
       const fx=box(.22,.08,.16,MAT.metal,sd*x,.04,10.4);scene.add(fx)}
-    for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(1.4,DH*1.3),fm);f.position.set(sd*(DW/2+.6),DH*.65,10.27);f.userData.keep=true;scene.add(f)}
-    const gm=new THREE.MeshBasicMaterial({map:glowTex,color:C("#ffcf8a"),transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
-    const gl=new THREE.Mesh(new THREE.PlaneGeometry(DW+1.5,5),gm);gl.rotation.x=-Math.PI/2;gl.position.set(0,.01,12.75);gl.userData.keep=true;scene.add(gl); }
+  FACADE_FAN=fm; }
+  buildFacade();
   const cl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,HALL_MID);scene.add(cl);
   // overhead trusses + space lights
   for(const x of [-4.6,4.6]){const t=truss(HALL_LEN-20);t.rotation.y=Math.PI/2;t.position.set(x,8,HALL_MID);scene.add(t)}
@@ -1117,6 +1106,31 @@ function iconImg(k){
   im.onload=()=>{if(P3.end)P3.end.tex.userData.redraw();redrawPlaques()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
 }
 
+
+/* ---------- the entrance wall, built to the screen: a wide door on a computer, tablet or a phone held sideways,
+   a narrow one on a phone held upright so the glass plaques fit on the wall above it; rebuilt when the device turns ---------- */
+let FACADE_G=null,FACADE_TEX=null,FACADE_FAN=null,FACADE_PORT=null;
+function buildFacade(){
+  const PORT=portrait(),SHORT=shortLand(),key=PORT?"p":SHORT?"s":"w";if(FACADE_G&&FACADE_PORT===key)return false;FACADE_PORT=key;
+  if(FACADE_G){scene.remove(FACADE_G);FACADE_G.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  const G=FACADE_G=new THREE.Group();scene.add(G);
+  // a phone held sideways is short: a smaller door and sign so the plaques beside it can be read close up
+  const DW=PORT?2.4:SHORT?5:9,DH=PORT?3.2:SHORT?3.7:4.6,SS=PORT?.85:SHORT?.8:1;
+  for(const sd of [-1,1])G.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
+  G.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
+  if(!MAT.trim)MAT.trim=emissive("#f2c27a",2.4);const trim=MAT.trim;
+  G.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])G.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
+  G.add(box(36,.06,.06,trim,0,12.97,10.28));
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4*SS,2.02*SS),new THREE.MeshBasicMaterial({map:FACADE_TEX,transparent:true}));fs.position.set(0,PORT?7.45:DH+(SHORT?1.2:1.42),10.27);G.add(fs);
+  // palms in black planters either side of the door
+  for(const sd of [-1,1]){const pl=palm(1.45,sd+3);pl.position.set(sd*(DW/2+4.1),0,10.75);G.add(pl)}
+  // warm light washing up the door posts, and its glow on the forecourt
+  for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(1.4,DH*1.3),FACADE_FAN);f.position.set(sd*(DW/2+.6),DH*.65,10.27);G.add(f)}
+  const gm=new THREE.MeshBasicMaterial({map:glowTex,color:C("#ffcf8a"),transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const gl=new THREE.Mesh(new THREE.PlaneGeometry(DW+1.5,5),gm);gl.rotation.x=-Math.PI/2;gl.position.set(0,.01,12.75);G.add(gl);
+  G.traverse(o=>{o.userData.keep=true});
+  return true;
+}
 /* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
 const PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
 const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.28,metalness:0,clearcoat:1,clearcoatRoughness:.06,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:1});
@@ -1165,7 +1179,10 @@ function buildPlaques(){
 function layoutPlaques(){
   const P=portrait(),L=PLQ.filter(o=>!o.it.right),R=PLQ.filter(o=>o.it.right);
   const put=(o,x,y,z,sc)=>{o.G.position.set(x,y,z);o.sc=sc;o.G.scale.setScalar(sc)};
-  if(!P){
+  if(!P&&shortLand()){
+    // phone held sideways: a smaller door, the plaques close beside it
+    L.forEach((o,i)=>put(o,-3.75,2.95-i*.8,10.33,.92));R.forEach((o,i)=>put(o,3.75,2.95-i*.8,10.33,.92));
+  }else if(!P){
     // flat on the slatted wall either side of the door, held a few centimetres off it by four screws
     L.forEach((o,i)=>put(o,-6.15,3.0-i*.92,10.33,1));R.forEach((o,i)=>put(o,6.15,3.0-i*.92,10.33,1));
   }else{
@@ -1282,7 +1299,7 @@ function buildOverlays(){
   const lt=chip("light-chip",{c:"mono",h:dark?ICON.sun:ICON.moon},t.lightsLabel,dark?t.toLight:t.toDark,false);
   const li=CONTACT.linkedin&&CONTACT.linkedin.link?chip("",{c:"li",h:ICON.li},t.li,CONTACT.linkedin.display,true,CONTACT.linkedin.link):"";
   // the contact and setting chips are glass plaques on the facade now (buildPlaques)
-  if(!P)anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // a phone has no room for it beside the plaques
+  if(!P&&!shortLand())anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // a phone has no room for it beside the plaques
   // invisible real links and buttons over the glass plaques, so a tap or click always opens them
   PLQ.forEach(o=>{const lbl=o.act==="lang"?t.otherSmall:o.act==="light"?t.lightsLabel:t[o.it.k];
     const h=o.link?`<a class="plq-hit" href="${o.link}" target="_blank" rel="noopener" aria-label="${lbl}"></a>`:`<button class="plq-hit ${o.act}-chip" aria-label="${lbl}"></button>`;
@@ -1416,6 +1433,7 @@ let setIdx=-1,sp=0,spTarget=0,lookYaw=0,lookPitch=0,nearIdx=-1;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),curPos=new THREE.Vector3(),curLook=new THREE.Vector3();
 let PP0=-20.5,PP_END=1,PP_FILM=1;
 const endPos=new THREE.Vector3(),endLook=new THREE.Vector3();
+const shortLand=()=>innerWidth/innerHeight>=.85&&innerHeight<=500;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
   // past the Instagram film, scrolling on turns the camera to the contact card and walks up to it
@@ -1432,7 +1450,7 @@ function hallPose(pp,pos,look){
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
   // phones start a little further back so the whole sign over the door fits the narrow screen
-  PP0=portrait()?-21.5:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
+  PP0=portrait()?-21.5:shortLand()?-18:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
   SETS.forEach(S=>{
     const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
     S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
@@ -1653,7 +1671,9 @@ function resize(){
 }
 addEventListener("resize",()=>{resize();clearTimeout(rzT);rzT=setTimeout(()=>{
   const portraitChanged=(lw/lh<.85)!==(innerWidth/innerHeight<.85);
-  if(portraitChanged)buildPath();
+  const was0=PP0;if(buildFacade()||portraitChanged){buildPath();
+    // standing at the entrance when the device turns: move to the new entrance spot for this screen
+    if(mode==="hall"&&(p<PP0||Math.abs(p-was0)<.8)){p=pTarget=PP0;snapCam=true}else pTarget=clamp(pTarget,PP0,PP_END)}
   if(Math.abs(innerWidth-lw)>40||portraitChanged){lw=innerWidth;lh=innerHeight;buildOverlays();buildMap();lastStop=-1}else measure();
 },180)});
 
