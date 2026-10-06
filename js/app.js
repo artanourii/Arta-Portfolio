@@ -647,7 +647,7 @@ function buildSet(s,i){
   s.videos.forEach((v,j)=>{
     const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=many?-L.x*.06:(L.x===0?0:-Math.sign(L.x)*.22);F.ph=j*1.7+i;
     F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;F.G.scale.setScalar(L.sc);g.add(F.G);frames.push(F);
-    F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
+    pick.push(F.screen,F.cap);   // only the picture and its caption open the film, not the glass around it
     if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
   // props never stand where a film floats (a big studio fills the room with films)
@@ -719,7 +719,7 @@ function makeFrame(s,v,i){
   F.capCv=document.createElement("canvas");F.capCv.width=1024;F.capCv.height=Math.round(1024*CAP_H/w);
   F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
   const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false}));
-  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);
+  cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
@@ -803,7 +803,8 @@ function updateFeatureFilm(F,cp){
 function pickFeatureFilm(x,y){
   if(mode!=="hall")return null;
   ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
-  for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObject(F.G,true)[0];if(h&&h.distance<F.range)return F}
+  // only the picture and its caption count, not the glass around it
+  for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObjects([F.screen,F.cap],false)[0];if(h&&h.distance<F.range)return F}
   return null;
 }
 function refreshCaptions(){framesAll.forEach(drawCaption);signTex.forEach(t=>t.userData.redraw())}
