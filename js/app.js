@@ -629,7 +629,7 @@ function buildSet(s,i){
   hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
   g.add(B3(3.04,1.02,.06,MAT.metal,0,3.58,3.6));
   g.add(B3(2.6,.025,.025,emissive(s.c.acc,2),0,3.04,3.68));
-  decor(s,g,back);
+  const decor0=g.children.length;decor(s,g,back);const decorKids=g.children.slice(decor0);
   const fz=fresnel();fz.position.set(2.9,0,2.3);g.add(fz);
   const sb=softbox();sb.position.set(-3.1,0,1.4);g.add(sb);
   g.updateMatrixWorld(true);
@@ -650,6 +650,9 @@ function buildSet(s,i){
     F.G.traverse(o=>{if(o.isMesh)pick.push(o)});
     if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
   });
+  // props never stand where a film floats (a big studio fills the room with films)
+  { g.updateMatrixWorld(true);const fb=frames.map(F=>new THREE.Box3().setFromObject(F.G).expandByScalar(.12)),bb=new THREE.Box3();
+    decorKids.forEach(o=>{bb.setFromObject(o);if(!bb.isEmpty()&&fb.some(b=>b.intersectsBox(bb)))g.remove(o)}); }
   // a deep room is lit by a few soft lights along its length instead of one per film
   if(many)for(let k=0;k<3;k++){const lz=Z0-(k+.5)*(Z0-lay[n-1].z)/3;slot(W(V(0,4.8,lz+1.2)),W(V(0,1.4,lz-.6)),"#fff4e6",1.8*LI,.7,.8,false)}
   // hanging sign over the aisle before the studio, arrow pointing to its door (both faces)
@@ -821,7 +824,8 @@ let playerFrame=null;
 function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(hallPick,false)[0];return h&&h.distance<26?h.object.userData.enter:-1}
 canvas.addEventListener("click",e=>{
   if(dragged||playerEl)return;
-  if(mode==="hall"){const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
+  if(mode==="hall"){const ce=pickEnd(e.clientX,e.clientY);if(ce){window.open(ce.link,"_blank","noopener");return}
+    const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
   const F=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY);
   if(F&&mode==="set"){const S=SETS[setIdx],j=S.frames.indexOf(F);F.screen.getWorldPosition(tmp);
     // a film further away: the camera flies over to it first; close up, a tap opens it
@@ -829,7 +833,7 @@ canvas.addEventListener("click",e=>{
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickEnd(e.clientX,e.clientY)||pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
 
 /* ---------- Arta Studio panels and floating titles as real 3D objects ----------
    They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
@@ -971,6 +975,7 @@ function buildPanels3D(){
     if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=fS;g.fillText(t.studiosSub,W/2,pad+88+20+34);return {w:W,h:H};
   });
   SP.redraw();scene.add(SP.G);P3.titles.push({m:SP.G,tex:SP.tex});P3.studios=SP.G;
+  buildEndPanel();
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
@@ -979,6 +984,57 @@ function layoutPanels3D(){
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
+  if(P3.end){if(P){P3.end.G.position.set(0,.95,LED_Z+1.4);P3.end.G.rotation.y=0;P3.end.G.scale.setScalar(1.22)}
+    else{P3.end.G.position.set(3.6,1.8,LED_Z+.6);P3.end.G.rotation.y=-.32;P3.end.G.scale.setScalar(1.5)}}
+}
+/* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
+   WhatsApp / Instagram / LinkedIn buttons drawn on it */
+const ICON_IMG={};
+function iconImg(k){
+  if(ICON_IMG[k])return ICON_IMG[k];const im=new Image();ICON_IMG[k]=im;
+  let svg=ICON[k].replace(/currentColor/g,"#ffffff");if(!/xmlns=/.test(svg))svg=svg.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ');
+  im.onload=()=>{if(P3.end)P3.end.tex.userData.redraw()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
+}
+function buildEndPanel(){
+  const items=[["wa",CONTACT.whatsapp,["#1FA855"]],["ig",CONTACT.instagram,["#F5B041","#D6336C","#7B3FE4"]]];
+  if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push(["li",CONTACT.linkedin,["#0A66C2"]]);
+  const rects=[];
+  const LP=liquidPanel((g,measure)=>{
+    const t=T(),fa=lang==="fa",c=glassInk(),pad=58,cw=470,chH=108,gap=22,W=pad*2+cw*2+gap;
+    const fT=fa?`800 56px "Vazirmatn", sans-serif`:`800 48px "Unbounded", "Vazirmatn", sans-serif`;
+    g.font=fT;const words=t.endH.split(" "),lines=[];let cur="";
+    for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>W-pad*2&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
+    const lh=fa?74:64,rowsN=Math.ceil(items.length/2),H=pad*2+lines.length*lh+34+rowsN*chH+(rowsN-1)*gap;
+    if(measure)return {w:W,h:H};
+    if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";textShadow(g,true);
+    g.fillStyle=c.t;g.font=fT;lines.forEach((l,k)=>g.fillText(l,W/2,pad+lh*.8+k*lh));
+    textShadow(g,false);rects.length=0;
+    let y=pad+lines.length*lh+34;
+    items.forEach(([k,ct,cols],idx)=>{
+      const row=Math.floor(idx/2),inRow=Math.min(2,items.length-row*2),col=idx%2;
+      const rowW=inRow*cw+(inRow-1)*gap,x0=(W-rowW)/2+(fa?(inRow-1-col):col)*(cw+gap),yy=y+row*(chH+gap);
+      rr(g,x0,yy,cw,chH,30);g.fillStyle=dark?"rgba(255,255,255,.12)":"rgba(255,255,255,.5)";g.fill();
+      g.lineWidth=2;g.strokeStyle=dark?"rgba(255,255,255,.28)":"rgba(255,255,255,.9)";g.stroke();
+      const bs=74,bx=fa?x0+cw-17-bs:x0+17,by=yy+(chH-bs)/2;rr(g,bx,by,bs,bs,22);
+      if(cols.length>1){const gr=g.createLinearGradient(bx,by,bx+bs,by+bs);cols.forEach((cc,i)=>gr.addColorStop(i/(cols.length-1),cc));g.fillStyle=gr}else g.fillStyle=cols[0];g.fill();
+      const im=iconImg(k);if(im.complete&&im.naturalWidth)g.drawImage(im,bx+bs*.22,by+bs*.22,bs*.56,bs*.56);
+      const tx=fa?bx-20:bx+bs+20;g.textAlign=fa?"right":"left";
+      g.fillStyle=c.m;g.font=`500 24px "Vazirmatn", sans-serif`;g.fillText(t[k],tx,yy+44);
+      let f=31;g.font=`700 ${f}px "Vazirmatn", sans-serif`;while(g.measureText(ct.display).width>cw-bs-60&&f>18){f-=2;g.font=`700 ${f}px "Vazirmatn", sans-serif`}
+      g.fillStyle=c.t;if("direction" in g)g.direction="ltr";g.fillText(ct.display,tx,yy+84);if("direction" in g)g.direction=fa?"rtl":"ltr";
+      rects.push({x:x0,y:yy,w:cw,h:chH,link:ct.link});
+    });
+    return {w:W,h:H};
+  });
+  LP.redraw();scene.add(LP.G);
+  P3.end={G:LP.G,face:LP.face,tex:LP.tex,rects,cv:LP.face.material.uniforms.tText.value.image};
+  P3.titles.push({m:LP.G,tex:LP.tex});
+}
+function pickEnd(x,y){
+  if(!P3.end||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const h=ray.intersectObject(P3.end.face,false)[0];if(!h||h.distance>16||!h.uv)return null;
+  const cv=P3.end.cv,px=h.uv.x*cv.width,py=(1-h.uv.y)*cv.height;
+  return P3.end.rects.find(r=>px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)||null;
 }
 function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
@@ -1047,7 +1103,6 @@ function buildOverlays(){
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
   if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
   // contact card beside the floating Instagram film (below it on phones), never on top of the picture
-  const endA=anchor(`<div class="glass end"><h2>${t.endH}</h2><div class="row">${wa}${ig}${li}</div></div>`,P?V(0,.62,LED_Z+1.4):V(3.55,1.75,LED_Z+.6),P?2.5:2.7,{far:22});
   sndA=FEATURES.instagramAd&&FEATURES.instagramAd.src?anchor(`<span class="snd snd3" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`,V(0,P?6.25:6.05,LED_Z+.2),P?1.5:1.3,{far:26}):null;
   ovl.querySelectorAll(".lang-chip").forEach(b=>b.addEventListener("click",toggleLang));
   ovl.querySelectorAll(".light-chip").forEach(b=>b.addEventListener("click",toggleLight));
@@ -1168,9 +1223,10 @@ let PP0=-20.5,PP_END=1;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
-  pos.set(Math.sin(pp*.08)*.25,1.65,z);
+  const lf=FEATS3[0]&&FEATS3[0].v===FEATURES.logoAd?FEATS3[0].base.z:-15,lk=clamp(1-Math.abs(z-(lf+3.4))/4.2,0,1),up=lk*lk*(3-2*lk);
+  pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
   const end=clamp((pp-(PP_END-7))/7,0,1);
-  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1),z-8);
+  look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
@@ -1187,7 +1243,7 @@ function buildPath(){
     if(n>4){
       // many films: the camera stops close in front of each one in turn (row by row, snaking left and right)
       const dd=P?1.62:1.55;   // stays just behind the previous row of frames
-      const C=S.lay.map(L=>pose((a,b)=>{a.copy(S.W(V(L.x*.7,L.y+.02,L.z+dd)));b.copy(S.W(V(L.x,L.y-(P?.2:.3),L.z)))}));
+      const C=S.lay.map(L=>pose((a,b)=>{a.copy(S.W(V(L.x*.7,L.y+.02,L.z+dd)));b.copy(S.W(V(L.x,L.y-(P?.2:.17),L.z)))}));
       S.u.stop=[];
       key(Door,C[0],5);S.u.stop.push(u+.45);key(C[0],C[0],.9);
       for(let j=1;j<n;j++){key(C[j-1],C[j],1.5);S.u.stop.push(u+.45);key(C[j],C[j],.9)}
@@ -1310,7 +1366,7 @@ function updatePlayHint(){
   let on=false;const cp=camera.position;
   if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
     if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<2.6&&Math.abs(spTarget-sp)<.6}}
-    else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
+    else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
   }
   if(on!==hintOn){hintOn=on;const h=$("#playHint");h.querySelector("span").textContent=T()[coarse?"playTap":"playClick"];h.classList.toggle("show",on)}
 }
