@@ -26,3 +26,7 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 ## Liquid glass
 
 3D glass (Arta Studio panels, the Studios heading, every film frame) is a real refraction shader (`liquidMat` / `renderBackdrop` in `js/app.js`): the scene is drawn once per frame without the glass into a small mipmapped texture, and each glass surface samples it at its own screen position, bending it like a lens toward the rim, with colour fringing, frost and a specular edge. It looks the same in light and dark mode; only the text colour changes. HTML glass (`.glass` in `css/style.css`) follows the same idea with `backdrop-filter`.
+
+## Studios with many films
+
+More than four films: frames sit in rows across the whole room (middle included), the camera stops 1.5 m in front of each one in turn, and the studio HUD has ‹ n / total › buttons (arrow keys too). Tapping a film further away flies the camera to it; tapping the film in front of you opens it full screen. A "Tap the film to play it full screen" hint shows whenever the camera is close to a film (studios, the logo film, the Instagram film). Only the 4 nearest films play (2 on phones).

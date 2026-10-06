@@ -40,8 +40,11 @@ document.documentElement.setAttribute("data-theme",d?"dark":"light")})();
 <div class="shud" id="shud">
   <div class="top"><button class="pill glass" id="back"></button><span class="pill glass" id="stitle" style="cursor:default"></span></div>
   <p class="tip" id="stip"></p>
+  <div class="fnav" id="fnav"><button class="pill glass" id="fprev" aria-label="Previous film">‹</button><span class="pill glass" id="fcount"></span><button class="pill glass" id="fnext" aria-label="Next film">›</button></div>
   <div class="bot"><button class="pill glass" id="sprev"></button><button class="pill glass" id="snext"></button></div>
 </div>
+
+<div class="playhint glass" id="playHint" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span></span></div>
 
 <div class="veil" id="veil" role="dialog" aria-modal="true">
   <div class="sheet glass" id="sheet"><button class="x" id="sheetX" aria-label="Close">✕</button><div id="sheetBody"></div></div>

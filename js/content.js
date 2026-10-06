@@ -150,7 +150,8 @@ const TX = {
   scroll:"Scroll to walk in",swipe:"Swipe up to walk in",wa:"WhatsApp",ig:"Instagram",arch:"ARTA STUDIO",archSub:"Concept, edit, VFX and AI video, under one roof.",
   open:"Open",studios:"The studios",studiosSub:"Pick a door and walk in.",enter:"Enter",films:n=>n===1?"1 film":n+" films",
   endH:"Your brand could have the next studio.",back:"Hallway",prev:"Previous studio",next:"Next studio",
-  rhint:"Scroll or swipe to move through the studio. Tap a film to play.",soon:"This film is on its way.",close:"Close",
+  rhint:"Scroll or use the arrows to go from film to film. Tap any film to fly to it.",
+  playTap:"Tap the film to play it full screen",playClick:"Click the film to play it full screen",prevFilm:"Previous film",nextFilm:"Next film",soon:"This film is on its way.",close:"Close",
   stops:{entrance:"Entrance",arta:"Arta Studio",hall:"Studios",end:"Contact"},
   panels:[
    {id:"about",k:"01",h:"About",p:"Who's behind the work.",
@@ -168,7 +169,8 @@ const TX = {
   scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف.",
   open:"باز کن",studios:"استودیوها",studiosSub:"یه در رو انتخاب کن و برو تو.",enter:"ورود",films:n=>n.toLocaleString("fa")+" فیلم",
   endH:"استودیوی بعدی می‌تونه مال برند تو باشه.",back:"راهرو",prev:"استودیوی قبلی",next:"استودیوی بعدی",
-  rhint:"اسکرول کن یا بکش تا توی استودیو جلو بری. روی هر فیلم بزن تا پخش شه.",soon:"این فیلم به‌زودی اضافه می‌شه.",close:"بستن",
+  rhint:"اسکرول کن یا با فلش‌ها از فیلمی به فیلم دیگه برو. روی هر فیلم بزن تا دوربین بره سراغش.",
+  playTap:"روی ویدیو بزن تا تمام‌صفحه پخش شه",playClick:"روی ویدیو کلیک کن تا تمام‌صفحه پخش شه",prevFilm:"فیلم قبلی",nextFilm:"فیلم بعدی",soon:"این فیلم به‌زودی اضافه می‌شه.",close:"بستن",
   stops:{entrance:"ورودی",arta:"استودیو آرتا",hall:"استودیوها",end:"تماس"},
   panels:[
    {id:"about",k:"۰۱",h:"درباره من",p:"کی پشت این کارهاست.",
