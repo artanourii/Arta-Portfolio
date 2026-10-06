@@ -57,9 +57,7 @@ const STUDIOS = [
    name:{en:"Respina",fa:"داده پردازی رسپینا"},tag:{en:"Tech brand, race-day energy.",fa:"برند فناوری، با انرژی روز مسابقه."},
    videos:[
      {t:{en:"Company intro, 3D",fa:"معرفی شرکت، سه‌بعدی"},m:{en:"After Effects, 20s, 9:16",fa:"افترافکت، ۲۰ ثانیه، ۹:۱۶"},src:"videos/respina-intro.mp4",poster:"videos/respina-intro.jpg",r:"9/16"},
-     {t:{en:"Brand film",fa:"تیزر تبلیغاتی"},m:{en:"90s, 16:9",fa:"۹۰ ثانیه، ۱۶:۹"},src:"videos/respina-film.mp4",poster:"videos/respina-film.jpg",r:"16/9"},
-     {t:{en:"Racetrack hero",fa:"پیست مسابقه"},m:{en:"Hyper-real still",fa:"تصویر هایپررئال"},src:"",r:"16/9"},
-     {t:{en:"Track, top view",fa:"پیست از نمای بالا"},m:{en:"Logo on asphalt",fa:"لوگو روی آسفالت"},src:"",r:"16/9"}]},
+     {t:{en:"Brand film",fa:"تیزر تبلیغاتی"},m:{en:"90s, 16:9",fa:"۹۰ ثانیه، ۱۶:۹"},src:"videos/respina-film.mp4",poster:"videos/respina-film.jpg",r:"16/9"}]},
   // 4. Hamrahe Aval (logo and colors from the official site)
   {id:"mci", theme:"light", c:{bg:"#F4F8FB",bg2:"#D3E9F6",ink:"#010101",acc:"#0095DA"},logoImg:"assets/brands/mci.svg",
    name:{en:"Hamrahe Aval",fa:"همراه اول"},tag:{en:"Connecting a country, one spot at a time.",fa:"ارتباط یک کشور، تیزر به تیزر."},
