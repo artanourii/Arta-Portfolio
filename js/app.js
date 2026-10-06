@@ -103,7 +103,7 @@ const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,3
 /* ---------- materials ---------- */
 const ALLM=[];const std=(c,r=.6,m=0,x={})=>{const mm=new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:r,metalness:m},x));ALLM.push(mm);return mm};
 const MAT={
-  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),planter:std("#f3f0ea",.45,0,{emissive:C("#ffd9a8"),emissiveIntensity:.32}),soil:std("#2a2119",.95,0),trunk:std("#5b4632",.85,0),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
+  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),planter:std("#ece8e1",.6,0,{emissive:C("#ffd9a8"),emissiveIntensity:.12}),soil:std("#2a2119",.95,0),trunk:std("#5b4632",.85,0),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
   lensGlass:std("#0a1020",.04,1,{envMapIntensity:2}),fabric:std("#121212",.95,0),wood:std("#3a2718",.6,0),
   floor:std("#0b0b0c",.32,0,{map:concreteTex,transparent:true,opacity:.86}),
   wall:std("#121214",.92,0,{map:acousticTex}),ceil:std("#08080a",.95,0),
@@ -309,7 +309,7 @@ function build3D(){
   const DW=9,DH=4.6;
   for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
   scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
-  const trim=emissive("#f2c27a",3.6);
+  const trim=emissive("#f2c27a",2.4);
   scene.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])scene.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
   scene.add(box(36,.06,.06,trim,0,12.97,10.28));
   const gr=mesh(new THREE.PlaneGeometry(60,40),MAT.ground,false);gr.rotation.x=-Math.PI/2;gr.position.set(0,.001,30.25);scene.add(gr);
@@ -349,14 +349,14 @@ function build3D(){
     const f=fresnel("#ffe9c4",0,true);f.position.set(x,7.8,z);f.rotation.x=Math.PI;scene.add(f);
   }
   // rows of small spotlights hanging from the trusses, as in a real studio hall
-  { const can=new THREE.CylinderGeometry(.11,.13,.26,14),lens=new THREE.CircleGeometry(.09,14),lensMat=emissive("#ffe2b0",3.2);
+  { const can=new THREE.CylinderGeometry(.11,.13,.26,14),lens=new THREE.CircleGeometry(.09,14),lensMat=emissive("#ffe2b0",2);
     for(let z=6;z>HALL_END+4;z-=2.4)for(const x of (Math.round(z/2.4)%2?[-4.6,4.6]:[-4.6,0,4.6])){
       const c=new THREE.Mesh(can,MAT.metal);c.position.set(x,7.72,z);scene.add(c);
       const l=new THREE.Mesh(lens,lensMat);l.rotation.x=Math.PI/2;l.position.set(x,7.585,z);scene.add(l);
     } }
 
   // warm scallops of light washing the quilted walls under the lamps
-  { const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffd7a0"),transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+  { const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffd7a0"),transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
     for(let z=-2;z>HALL_END+4;z-=8)for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(5,9),wm);f.rotation.set(0,sd>0?-Math.PI/2:Math.PI/2,0);f.scale.y=-1;f.position.set(sd*17.97,6.6,z);f.userData.keep=true;scene.add(f)} }
 
   // entrance
@@ -380,7 +380,7 @@ function build3D(){
   // Arta studio
   for(const x of [-3.6,3.6]){const t=truss(4.7);t.rotation.z=Math.PI/2;t.position.set(x,2.35,-11);scene.add(t)}
   const head=truss(7.6);head.position.set(0,4.85,-11);scene.add(head);
-  const strip=box(7.2,.06,.04,emissive("#ffd9a0",3),0,4.66,-10.82);scene.add(strip);
+  const strip=box(7.2,.06,.04,emissive("#ffd9a0",1.6),0,4.66,-10.82);scene.add(strip);
   const cy=mesh(cycGeo(10,3.2,1.3,5.2),MAT.hallCyc);cy.material.side=THREE.DoubleSide;cy.position.set(-9.4,0,-16.6);cy.rotation.y=Math.PI/2;scene.add(cy);
   const dolly=cameraRig(true);dolly.position.set(2.9,0,-15.8);dolly.lookAt(-8,0,-16.6);dolly.rotateY(Math.PI);scene.add(dolly);
   for(const z of [-.5,.5]){const r=box(.05,.05,6,MAT.chrome,0,.03,0);r.position.set(2.9+z,.03,-15.8);r.rotation.y=Math.PI/2;r.scale.z=1;scene.add(r)}
@@ -701,7 +701,7 @@ function buildSet(s,i){
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // a warm light strip framing the door, and a palm in a black planter on each side of it
   // neon in the brand colour: the front corners, the door frame and a line along the foot of the wall
-  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.3),neon=emissive("#"+nc.getHexString(),5.5);
+  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);
     for(const sd of [-1,1]){g.add(B3(.08,4.8,.08,neon,sd*3.84,2.4,3.56));g.add(B3(.07,3.0,.07,neon,sd*1.6,1.5,3.58))}
     g.add(B3(3.27,.07,.07,neon,0,3.0,3.58));
     for(const sd of [-1,1])g.add(B3(2.25,.06,.06,neon,sd*2.72,.04,3.6));
@@ -848,7 +848,7 @@ function buildFeatureFilms(){
     const F=makeFrame({c,get theme(){return dark?"dark":"light"}},f,-1);Object.assign(F,{ph:Math.random()*6,r0:0,k:0,appear,range});F.base=V(0,0,0);
     // a warm glow around the frame, as in the reference renders
     F.G.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(F.screen).union(new THREE.Box3().setFromObject(F.cap)),sz=bb.getSize(V(0,0,0)),ct=bb.getCenter(V(0,0,0));
-    const gw=new THREE.Mesh(new THREE.PlaneGeometry(sz.x+.42,sz.y+.42),new THREE.MeshBasicMaterial({map:frameGlowTex,color:C(c.glow||"#ffd9a0"),transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    const gw=new THREE.Mesh(new THREE.PlaneGeometry(sz.x+.42,sz.y+.42),new THREE.MeshBasicMaterial({map:frameGlowTex,color:C(c.glow||"#ffd9a0"),transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
     gw.position.set(ct.x,ct.y,bb.min.z-.02);gw.userData.keep=true;F.G.add(gw);
     scene.add(F.G);FEATS3.push(F)};
   mk(FEATURES.logoAd,{bg:"#141414",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((-6.6-cp.z)/2.6,0,1),14);
@@ -1055,6 +1055,9 @@ function buildPanels3D(){
     if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px";while(g.measureText(t[k1]).width>w*.94&&f>40){f-=6;g.font=ff();if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px"}
     g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
   P3.gate=title(heading("arch","archSub"),2048,420,5.4);
+  // the title hangs on a white banner, as in the reference renders: dark text on the dark ceiling could not be read
+  { const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.9,5.4*420/2048+.32),new THREE.MeshBasicMaterial({color:C("#f6f2ec"),fog:false}));bn.position.z=-.02;bn.userData.keep=true;P3.gate.add(bn);
+    for(const x of [-2.6,2.6]){const w=stick(V(x,.72,-.02),V(x,2.6,-.02),.006,MAT.metal);w.userData.keep=true;P3.gate.add(w)} }
   // "The studios" heading in a liquid glass panel sized to its words
   const SP=liquidPanel((g,measure)=>{
     const t=T(),fa=lang==="fa",c=glassInk(),pad=56;
@@ -1270,23 +1273,23 @@ function applyTheme(){
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.0026;
   MAT.floor.color=C(dark?"#0b0907":"#b3aea7");MAT.floor.roughness=dark?.3:.4;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.6;
   MAT.wall.color=C(dark?"#1f1b18":"#d6ccbf");MAT.ceil.color=C(dark?"#0a0908":"#26241f");
-  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#0e0e10");MAT.plinth.roughness=dark?.28:.55;MAT.plinth.metalness=dark?.2:0;
+  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#dedad4");MAT.plinth.roughness=dark?.28:.7;MAT.plinth.metalness=dark?.2:0;
   MAT.facade.color=C(dark?"#8a7462":"#6a5646");MAT.ground.color=C(dark?"#0d0d0f":"#3e3b38");MAT.ground.roughness=.32;
-  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
+  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.12;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
   MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C("#000000");MAT.logo.emissiveIntensity=0;
-  if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#efe8da");
+  if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#000000");
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
   // the white pendant lamps glow warm, as in the reference renders
-  MAT.space.emissive=C("#ffe2b8");MAT.space.emissiveIntensity=dark?.75:1.5;
+  MAT.space.emissive=C("#ffe2b8");MAT.space.emissiveIntensity=dark?.75:.85;
   hemi.intensity=dark?.24:.36;hemi.color=C(dark?"#ffe6c8":"#ffe9cc");hemi.groundColor=C(dark?"#2a1e14":"#5e4c3a");
   dir.intensity=dark?.06:.38;dir.color=C("#fff0da");
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.5:.1):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
-  // black plinth: in light mode it barely mirrors the bright room, so its top stays black instead of grey
+  // the logo stands on a white plinth with its name in black
   ALLM.forEach(m=>{if(m.userData.lowEnv!=null)m.envMapIntensity=m.userData.lowEnv});
-  MAT.plinth.envMapIntensity=dark?.06:.12;MAT.standBlack.envMapIntensity=dark?.1:.15;
+  MAT.plinth.envMapIntensity=dark?.06:.15;MAT.standBlack.envMapIntensity=dark?.1:.15;
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
@@ -1294,8 +1297,8 @@ function applyTheme(){
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
-  if(bloom){bloom.strength=dark?.7:.8;bloom.threshold=dark?.8:1.3;bloom.radius=.55}
-  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.5;finalPass.uniforms.uExp.value=dark?1.05:1.05}
+  if(bloom){bloom.strength=dark?.7:.5;bloom.threshold=dark?.8:1.3;bloom.radius=.55}
+  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.5;finalPass.uniforms.uExp.value=dark?1.05:.96}
   renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
 }
