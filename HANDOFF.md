@@ -11,7 +11,7 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 
 - Entrance with the 3D AN logo; WhatsApp (+98 901 137 7877) and Instagram (@artanourii) chips; language switch (English default, Persian RTL); dark/light mode with the white/black logo files in `assets/`.
 - Arta Studio: floating panels (about, résumé, skills, services, clients) and the logo film (`videos/logo-ad.mp4`, silent loop) in a 3D glass frame that rises into place after the camera passes through the lobby logo. Both own films are 3D frames (`buildFeatureFilms` in `js/app.js`), so solid objects hide them correctly.
-- One continuous scroll path down a hall of 15 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup & Beauty, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
+- One continuous scroll path down a hall of 16 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmanieh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup, Dream Salon, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
 - Tapping a frame opens the film full screen with sound; Esc, ✕, reverse scroll or swipe down closes it.
 - End of hall: the Instagram film floats big in its own 3D glass frame (`videos/instagram-ad.mp4`), which plays with sound as the visitor walks up (muted with a "Tap for sound" label until the visitor has tapped or clicked once).
 
@@ -34,7 +34,7 @@ More than four films: frames sit in rows across the whole room (middle included)
 ## Status (end of day, Oct 6 2026)
 
 - Videos in: your two films (logo film, Instagram film), Respina (2), Asus Iran (24: asus-1 to asus-24 in `videos/`, titles in `js/content.js`).
-- Still to come: videos for Aparat, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmaniyeh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Beauty Video, My Tiktok Video (and any more Asus films).
+- Still to come: videos for Aparat, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmanieh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Beauty Video, My Tiktok Video (and any more Asus films).
 - Video workflow: Arta sends files in chat (≤30 MB) or via GitHub Desktop into `videos/` on this branch (≤100 MB). Convert every upload to H.264 (`-preset slow -crf 19 -maxrate 9M`, two-pass to ~14 MB when larger), make a poster `.jpg`, add `{t,m,src,poster,r}` to the studio in `js/content.js`. Remove raw uploads from `videos/`.
 - Site video total is about 320 MB; GitHub Pages allows about 1 GB.
 - The claude.ai preview holds at most 256 MB, so it only carries some of the Asus films (the rest show their cover there).

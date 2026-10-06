@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-theme="dark">
+<html lang="en" dir="ltr" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -11,10 +11,8 @@
 <link rel="icon" type="image/png" href="assets/logo-white.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" href="assets/logo-black.png" media="(prefers-color-scheme: light)">
 <script>
-/* set light/dark before first paint so the loader matches the saved choice */
-(function(){var t=null;try{t=localStorage.getItem("ans-theme")}catch(e){}
-var d=t?t==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
-document.documentElement.setAttribute("data-theme",d?"dark":"light")})();
+/* light by default; the visitor's choice of lights on or off is remembered */
+(function(){var t="light";try{if(localStorage.getItem("ans-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +33,7 @@ document.documentElement.setAttribute("data-theme",d?"dark":"light")})();
 <nav class="map glass" id="map" aria-label="Studio map"></nav>
 <div class="hint" id="hint"></div>
 <button class="enter-btn glass" id="enterBtn"></button>
+<button class="enter-btn glass" id="enterBtn2"></button>
 <div class="lookctl" id="lookCtl" aria-label="Look up or down"><button class="glass" id="lookUp" aria-label="Look up">▲</button><button class="glass" id="lookReset" aria-label="Reset view">●</button><button class="glass" id="lookDown" aria-label="Look down">▼</button></div>
 
 <div class="shud" id="shud">

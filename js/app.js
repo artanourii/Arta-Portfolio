@@ -7,9 +7,9 @@ const ICON = {
 
 
 Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
- noGL:"Your browser can't show the 3D studio. Reach me on WhatsApp or Instagram @artanourii."});
+ noGL:"Your browser can't show the 3D studio, reach me on WhatsApp or Instagram @artanourii"});
 Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
- noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده. از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش."});
+ noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده، از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش"});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
 ICON.mute=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>`;
@@ -27,7 +27,7 @@ const TOUCH=matchMedia("(pointer: coarse)").matches;
 let lang="en";try{lang=localStorage.getItem("ans-lang")||"en"}catch(e){}
 let themeChoice=null;try{themeChoice=localStorage.getItem("ans-theme")}catch(e){}
 const sysDark=matchMedia("(prefers-color-scheme: dark)");
-let dark=themeChoice?themeChoice==="dark":sysDark.matches;
+let dark=themeChoice==="dark";   // the warm, bright studio by default; "Lights off" turns it into the studio at night
 const T=()=>TX[lang];
 function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild}
 
@@ -77,25 +77,60 @@ const acousticTex=canvasTex(256,256,(g,w,h)=>{
     g.fillStyle=gr;g.fillRect(x*128+5,y*128+5,118,118);
   }
 },[30,4]);
+// dark wood slats for the facade of the main building
+const slatTex=canvasTex(512,256,(g,w,h)=>{
+  g.fillStyle="#1a1410";g.fillRect(0,0,w,h);
+  for(let x=0;x<w;x+=32){const gr=g.createLinearGradient(x,0,x+26,0);gr.addColorStop(0,"#5c4636");gr.addColorStop(.5,"#7a5e48");gr.addColorStop(1,"#463428");g.fillStyle=gr;g.fillRect(x+4,0,22,h);
+    g.globalAlpha=.12;for(let k=0;k<6;k++){g.fillStyle=k%2?"#000":"#6b5440";g.fillRect(x+4+Math.random()*20,0,1,h)}g.globalAlpha=1}
+},[14,3]);
+// a palm frond: a central rib with leaflets, on transparent
+const frondTex=(()=>{const c=document.createElement("canvas");c.width=128;c.height=512;const g=c.getContext("2d");
+  g.strokeStyle="#4f7a2a";g.lineWidth=5;g.beginPath();g.moveTo(64,512);g.lineTo(64,6);g.stroke();
+  for(let y=500;y>20;y-=13){const t=1-y/512,len=58*Math.sin(Math.PI*Math.min(1,(1-t)*1.05))+6,col=`hsl(${95+t*20},${42+t*12}%,${22+t*14}%)`;g.strokeStyle=col;g.lineWidth=7;g.lineCap="round";
+    for(const sd of [-1,1]){g.beginPath();g.moveTo(64,y);g.quadraticCurveTo(64+sd*len*.5,y-10,64+sd*len,y-26);g.stroke()}}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return t})();
 const chairTex=canvasTex(512,160,(g,w,h)=>{g.fillStyle="#141414";g.fillRect(0,0,w,h);g.fillStyle="#efe9df";g.font="800 92px Unbounded, Arial Black, sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("ARTA",w/2,h/2+4)});
 const monitorTex=canvasTex(128,80,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,"#1d3a5f");gr.addColorStop(1,"#c06a3b");g.fillStyle=gr;g.fillRect(0,0,w,h);g.strokeStyle="rgba(255,255,255,.6)";g.strokeRect(10,8,w-20,h-16)});
-const dotTex=canvasTex(64,64,(g,w,h)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
+// a soft spill of light: bright along the top edge, fading away (floor glow under neon, light fans on walls)
+// soft glow textures computed pixel by pixel: canvas gradients are dithered by some browsers (iOS Safari), and that
+// noise showed through additive glows as coloured specks
+function smoothTex(w,h,alpha){
+  const c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d"),id=g.createImageData(w,h),d=id.data;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=(y*w+x)*4,a=Math.max(0,Math.min(1,alpha((x+.5)/w,(y+.5)/h)));d[k]=d[k+1]=d[k+2]=255;d[k+3]=Math.round(a*255)}
+  g.putImageData(id,0,0);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;
+}
+const lerpA=(a,b,t)=>a+(b-a)*t;
+const glowTex=smoothTex(64,256,(u,v)=>v<.25?lerpA(1,.35,v/.25):lerpA(.35,0,(v-.25)/.75));
+const fanTex=smoothTex(256,512,(u,v)=>{const t=1-v,half=.04+.46*Math.pow(t,.8),a=Math.pow(1-t,1.6)*.95+.05*(1-t);return a*Math.max(0,1-Math.abs(u-.5)/half)});
+const frameGlowTex=canvasTex(256,256,(g,w,h)=>{g.shadowColor="#fff";g.shadowBlur=26;g.strokeStyle="rgba(255,255,255,.9)";g.lineWidth=6;
+  for(let k=0;k<3;k++){g.beginPath();const m=34,r=18;g.moveTo(m+r,m);g.arcTo(w-m,m,w-m,h-m,r);g.arcTo(w-m,h-m,m,h-m,r);g.arcTo(m,h-m,m,m,r);g.arcTo(m,m,w-m,m,r);g.closePath();g.stroke()}});
+// board-formed concrete panels for the end wall: soft clouding, panel joints and tie holes
+const concTex=canvasTex(512,512,(g,w,h)=>{
+  g.fillStyle="#9a9690";g.fillRect(0,0,w,h);
+  for(let i=0;i<26;i++){const x=Math.random()*w,y=Math.random()*h,r=60+Math.random()*180,dk=Math.random()<.55;const gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,dk?"rgba(40,36,32,.10)":"rgba(255,255,255,.09)");gr.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
+  g.fillStyle="rgba(30,28,26,.55)";g.fillRect(0,0,w,4);g.fillRect(0,0,4,h);
+  g.fillStyle="rgba(255,255,255,.12)";g.fillRect(4,4,w-4,2);
+  g.fillStyle="rgba(35,32,30,.45)";for(const x of [w*.18,w*.82])for(const y of [h*.2,h*.5,h*.8]){g.beginPath();g.arc(x,y,5,0,Math.PI*2);g.fill()}
+},[15,5.4]);
+const dotTex=smoothTex(64,64,(u,v)=>1-Math.hypot(u-.5,v-.5)*2);
 
 /* ---------- materials ---------- */
 const ALLM=[];const std=(c,r=.6,m=0,x={})=>{const mm=new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:r,metalness:m},x));ALLM.push(mm);return mm};
 const MAT={
-  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
+  metal:std("#1c1c1f",.38,.85),standBlack:std("#0d0d0f",.5,.25),planter:std("#161514",.45,.15),soil:std("#2a2119",.95,0),trunk:std("#5b4632",.85,0),metal2:std("#2b2b30",.45,.8),chrome:std("#d5d7db",.18,1),rubber:std("#0d0d0e",.9,0),
   lensGlass:std("#0a1020",.04,1,{envMapIntensity:2}),fabric:std("#121212",.95,0),wood:std("#3a2718",.6,0),
   floor:std("#0b0b0c",.32,0,{map:concreteTex,transparent:true,opacity:.86}),
   wall:std("#121214",.92,0,{map:acousticTex}),ceil:std("#08080a",.95,0),
   hallCyc:std("#1b1b1e",.85,0),plinth:std("#0c0c0d",.28,.2),logo:std("#eeebe5",.32,.08),
   tapeW:std("#e9e9e9",.7,0),truss:std("#9ea1a6",.35,.9),
-  space:new THREE.MeshStandardMaterial({color:C("#ffffff"),emissive:C("#fff4e2"),emissiveIntensity:.2,roughness:.6}),
+  space:new THREE.MeshStandardMaterial({color:C("#ffdcaa"),emissive:C("#ffcf8e"),emissiveIntensity:.2,roughness:.6}),
   chairCanvas:new THREE.MeshStandardMaterial({map:chairTex,roughness:.9}),
   monitor:new THREE.MeshBasicMaterial({map:monitorTex}),
   tally:new THREE.MeshStandardMaterial({color:0x330000,emissive:C("#ff2a2a"),emissiveIntensity:5})
 };
 const emissive=(c,i)=>{const mm=new THREE.MeshStandardMaterial({color:C("#111111"),emissive:C(c),emissiveIntensity:i,roughness:.4});ALLM.push(mm);return mm};
+MAT.doorLed=emissive("#ffd49a",2.6);
 
 /* ---------- geometry helpers ---------- */
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -179,6 +214,37 @@ function ledPanel(){
   g.userData.aim=p=>{g.updateMatrixWorld(true);const wp=head.getWorldPosition(new THREE.Vector3());head.lookAt(wp.clone().multiplyScalar(2).sub(p))};
   return g;
 }
+/* a potted palm in a black square planter (one shared frond shape, rotated) */
+const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.3,.52,1,6);g.translate(0,.26,0);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.55*y*y)}g.computeVertexNormals();return g})();
+let FROND_MAT=null;
+let PALM_UP=null,PALM_LED=null;
+function palm(h=1.25,seed=1){
+  if(!FROND_MAT){FROND_MAT=new THREE.MeshStandardMaterial({map:frondTex,alphaTest:.45,side:THREE.DoubleSide,roughness:.7});ALLM.push(FROND_MAT)}
+  const g=new THREE.Group(),r=k=>{const x=Math.sin(seed*91.7+k*12.3)*43758.5;return x-Math.floor(x)};
+  g.add(box(.58,.62,.58,MAT.planter,0,.31,0));g.add(box(.5,.02,.5,MAT.soil,0,.6,0));
+  // a warm uplight hidden in the planter washes up through the fronds
+  if(!PALM_UP){PALM_UP=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc77a"),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});PALM_LED=emissive("#ffd49a",3)}
+  for(const ry of [0,Math.PI/2]){const u=new THREE.Mesh(new THREE.PlaneGeometry(1.1,h*1.5),PALM_UP);u.position.set(0,.62+h*.75,0);u.rotation.y=ry+.4;u.userData.keep=true;g.add(u)}
+  for(let s2=0;s2<3;s2++){
+    const a=s2*2.1+r(s2),top=V(Math.cos(a)*.12,.6+h*(.42+r(s2+5)*.25),Math.sin(a)*.12);
+    g.add(stick(V(0,.6,0),top,.025,MAT.trunk));
+    const n=9;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
+      f.rotation.order="YXZ";f.rotation.y=k/n*Math.PI*2+a;f.rotation.x=-(.55+r(k+s2*7)*.5);f.scale.setScalar(.75+r(k*3+s2)*.45);g.add(f)}
+  }
+  return g;
+}
+/* a makeup mirror with round bulbs around it, on a little dressing table */
+function makeupMirror(){
+  const g=new THREE.Group();
+  g.add(box(1.5,.06,.55,MAT.metal2,0,.76,0));for(const x of [-.68,.68])g.add(box(.06,.76,.5,MAT.metal2,x,.38,0));
+  g.add(box(1.3,1.0,.04,MAT.metal,0,1.42,-.24));
+  const mir=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.82),new THREE.MeshStandardMaterial({color:C("#cfd3d8"),roughness:.05,metalness:1}));mir.position.set(0,1.42,-.215);g.add(mir);
+  const bulb=emissive("#fff3d6",2.6);
+  for(let k=0;k<6;k++){const x=-.55+k*.22;for(const y of [1.95,.9]){const b=new THREE.Mesh(new THREE.SphereGeometry(.035,10,8),bulb);b.position.set(x,y,-.2);g.add(b)}}
+  for(let k=0;k<4;k++){const y=1.07+k*.24;for(const x of [-.65,.65]){const b=new THREE.Mesh(new THREE.SphereGeometry(.035,10,8),bulb);b.position.set(x,y,-.2);g.add(b)}}
+  return g;
+}
 function chair(){
   const g=new THREE.Group(),w=MAT.wood;
   for(const x of [-.25,.25]){g.add(stick(V(x,0,-.25),V(x,.62,.22),.018,w));g.add(stick(V(x,0,.25),V(x,.62,-.22),.018,w));g.add(stick(V(x,.62,.25),V(x,1.08,.27),.016,w))}
@@ -233,35 +299,34 @@ function beam(from,to,angle,color){
 
 /* light slots served by a small pool of real spotlights (nearest win) */
 const slots=[];
-function slot(from,to,color,intensity,angle,pen=.5,withBeam=true){
+function slot(from,to,color,intensity,angle,pen=.5,withBeam=true,alwaysBeam=false){
   slots.push({from,to,color:C(color),intensity,angle,pen});
-  if(withBeam&&Q==="high")beam(from,to,angle*.62,color);
+  if(withBeam&&(Q==="high"||alwaysBeam))beam(from,to,angle*.62,color);
 }
 
 /* ---------- build the soundstage ---------- */
 const SETS=[];const anchors=[];
-const SET0=-32,SETSTEP=9;
+const SET0=-32,SETSTEP=8;   // studios stand in facing pairs, each pair right next to the one before
 // the hall grows with the number of studios
-const LED_Z=SET0-(STUDIOS.length-1)*SETSTEP-12,HALL_END=LED_Z-12,HALL_LEN=10-HALL_END,HALL_MID=(10+HALL_END)/2;
+const LED_Z=SET0-(Math.ceil(STUDIOS.length/2)-1)*SETSTEP-12,HALL_END=LED_Z-12,HALL_LEN=10-HALL_END,HALL_MID=(10+HALL_END)/2;
 function build3D(){
   // floor, reflection, walls, ceiling
   const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,HALL_MID);scene.add(fl);
   if(Q==="high"&&THREE.Reflector){
-    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x555555});rf.userData.keep=true;
+    const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x8a8a8a});rf.userData.keep=true;
+    // polished concrete: the reflection is smeared along the view, so lights and neon leave long streaks on the floor
+    rf.material.fragmentShader=`uniform vec3 color;uniform sampler2D tDiffuse;varying vec4 vUv;
+      void main(){vec2 uv=vUv.xy/vUv.w;vec3 c=vec3(0.);float ws=0.;
+        for(int k=-7;k<=7;k++){float t=float(k)/7.;float w=exp(-t*t*2.2);vec3 sm=texture2D(tDiffuse,uv+vec2(t*.004,t*.055)).rgb;c+=sm*(.55+dot(sm,vec3(.5)))*w;ws+=w;}
+        gl_FragColor=vec4(c/ws*color*1.1,1.);}`;
     rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);floorMirror=rf;
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
   for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
   // the main studio building: facade with a big doorway, the ARTA NOORI sign above it, and the forecourt outside
-  MAT.facade=std("#18181c",.75,.15,{map:acousticTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
-  const DW=9,DH=4.6;
-  for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
-  scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
-  const trim=emissive("#e9c98d",2.4);
-  scene.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])scene.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
-  scene.add(box(36,.06,.06,trim,0,12.97,10.28));
+  MAT.facade=std("#4a3a2e",.7,.05,{map:slatTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
   const gr=mesh(new THREE.PlaneGeometry(60,40),MAT.ground,false);gr.rotation.x=-Math.PI/2;gr.position.set(0,.001,30.25);scene.add(gr);
-  const fsTex=canvasSign(2048,560,(g,W,H)=>{
+  const fsTex=FACADE_TEX=canvasSign(2048,560,(g,W,H)=>{
     rr(g,8,8,W-16,H-16,40);g.fillStyle="#0b0b0d";g.fill();g.lineWidth=10;g.strokeStyle="#e9c98d";g.stroke();
     let x=90;if(FACADE_LOGO){const k=(H-140)/FACADE_LOGO.height;g.drawImage(FACADE_LOGO,x,70,FACADE_LOGO.width*k,H-140);x+=FACADE_LOGO.width*k+80}
     // text is sized to the space left beside the logo so it always fits whatever font the device uses
@@ -270,15 +335,21 @@ function build3D(){
     fit("ARTA NOORI",700,190,.09);g.fillText("ARTA NOORI",x,H*.42);
     fit("STUDIO",500,92,.43);g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
   });
-  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.02),new THREE.MeshBasicMaterial({map:fsTex,transparent:true}));fs.position.set(0,DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
   { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
   // warm uplights washing the facade and the sign
-  for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,DH+1.4,10),"#ffd9a6",2.2,.42,.7);
-  slot(V(0,1,17),V(0,4,10),"#fff1dc",1.6,.5,.8,false);
+  for(const sd of [-1,1])slot(V(sd*6,.3,13.5),V(sd*2,6,10),"#ffd9a6",2.2,.42,.7);
+  // a row of grazing uplights along the slatted wall, each throwing a warm fan up the wood
+  for(const sd of [-1,1])for(const x of [7.4,10.6]){slot(V(sd*x,.15,10.6),V(sd*x,7,10.2),"#ffcf8f",1.4,.28,.9,false);scene.add(box(.22,.08,.16,MAT.metal,sd*x,.04,10.55))}
+  slot(V(0,1,17),V(0,4,10),"#ffdcaa",1.6,.5,.8,false);
+  { const fm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc47a"),transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+    for(const sd of [-1,1])for(const x of [6.6,9.4,12.2,15]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.6,7.5),fm);f.position.set(sd*x,3.75,10.27);f.userData.keep=true;scene.add(f);
+      const fx=box(.22,.08,.16,MAT.metal,sd*x,.04,10.4);scene.add(fx)}
+  FACADE_FAN=fm; }
+  buildFacade();
   const cl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.ceil,false);cl.rotation.x=Math.PI/2;cl.position.set(0,13,HALL_MID);scene.add(cl);
   // overhead trusses + space lights
   for(const x of [-4.6,4.6]){const t=truss(HALL_LEN-20);t.rotation.y=Math.PI/2;t.position.set(x,8,HALL_MID);scene.add(t)}
-  for(let z=0;z>HALL_END+4;z-=12){const t=truss(9.2);t.position.set(0,8,z);scene.add(t)}
+  for(let z=0;z>HALL_END+4;z-=6){const t=truss(9.2);t.position.set(0,8,z);scene.add(t)}
   for(let z=-2;z>HALL_END+4;z-=8)for(const x of [-9,9]){
     const s=mesh(new THREE.CylinderGeometry(.55,.55,.9,24,1,true),MAT.space,false);s.position.set(x,9.6,z);scene.add(s);
     scene.add(stick(V(x,10.05,z),V(x,13,z),.01,MAT.metal));
@@ -286,20 +357,36 @@ function build3D(){
   for(let z=-6;z>HALL_END+4;z-=12)for(const x of [-4.6,4.6]){
     const f=fresnel("#ffe9c4",0,true);f.position.set(x,7.8,z);f.rotation.x=Math.PI;scene.add(f);
   }
+  // rows of small spotlights hanging from the trusses, as in a real studio hall
+  { const can=new THREE.CylinderGeometry(.11,.13,.26,14),lens=new THREE.CircleGeometry(.09,14),lensMat=emissive("#ffc274",2);
+    for(let z=6;z>HALL_END+4;z-=2.4)for(const x of (Math.round(z/2.4)%2?[-4.6,4.6]:[-4.6,0,4.6])){
+      const c=new THREE.Mesh(can,MAT.metal);c.position.set(x,7.72,z);scene.add(c);
+      const l=new THREE.Mesh(lens,lensMat);l.rotation.x=Math.PI/2;l.position.set(x,7.585,z);scene.add(l);
+    } }
+
+  // warm scallops of light washing the quilted walls under the lamps
+  { const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffd7a0"),transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    for(let z=-2;z>HALL_END+4;z-=8)for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(5,9),wm);f.rotation.set(0,sd>0?-Math.PI/2:Math.PI/2,0);f.scale.y=-1;f.position.set(sd*17.97,6.6,z);f.userData.keep=true;scene.add(f)} }
 
   // entrance
+  MAT.floor.userData.lowEnv=.3;
   const pl=box(3.3,.5,1.5,MAT.plinth,0,.25,-6.4);scene.add(pl);pl.userData.keep=true;OCCLUDERS.push(pl);
   const logo=makeLogo();logo.position.set(0,.5,-6.4);scene.add(logo);
   // soft light halo behind the logo, so the black logo of light mode stands out from the room
-  const haloTex=canvasTex(256,256,(g,w,h)=>{const gr=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,"rgba(255,246,228,1)");gr.addColorStop(.45,"rgba(255,240,210,.45)");gr.addColorStop(1,"rgba(255,240,210,0)");g.fillStyle=gr;g.fillRect(0,0,w,h)});
+  const haloTex=smoothTex(256,256,(u,v)=>{const r=Math.hypot(u-.5,v-.5)*2;return r<.45?lerpA(1,.45,r/.45):lerpA(.45,0,(r-.45)/.55)});
   MAT.halo=new THREE.MeshBasicMaterial({map:haloTex,transparent:true,depthWrite:false,opacity:.8,toneMapped:false,fog:false});
   const halo=new THREE.Mesh(new THREE.PlaneGeometry(5.4,5.4),MAT.halo);halo.position.set(0,1.55,-7.4);halo.userData.keep=true;scene.add(halo);logo.traverse(o=>{o.userData.keep=true});OCCLUDERS.push(logo);
   const wmTex=new THREE.TextureLoader().load(WORDMARK);wmTex.encoding=THREE.sRGBEncoding;
   MAT.wordmark=new THREE.MeshBasicMaterial({map:wmTex,transparent:true,color:C("#f0eee8"),depthWrite:false,fog:false});
   const wm=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.23),MAT.wordmark);wm.position.set(0,.25,-5.645);scene.add(wm);
+  MAT.wmGlow=new THREE.MeshBasicMaterial({map:haloTex,color:C("#ffdcaa"),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const wg=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.62),MAT.wmGlow);wg.position.set(0,.25,-5.648);wg.userData.keep=true;scene.add(wg);
+  MAT.logoGlow=new THREE.MeshBasicMaterial({map:haloTex,color:C("#ffe2b8"),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const lgw=new THREE.Mesh(new THREE.PlaneGeometry(3.6,3.0),MAT.logoGlow);lgw.position.set(0,1.45,-6.56);lgw.userData.keep=true;scene.add(lgw);
   const L1=fresnel(),L2=fresnel();L1.position.set(-2.7,0,-4.5);L2.position.set(2.7,0,-4.5);L1.rotation.y=.3;L2.rotation.y=-.3;scene.add(L1,L2);
   const lt=V(0,1.25,-6.4);L1.userData.aim(lt);L2.userData.aim(lt);
-  slot(L1.userData.lensWorld(),lt,"#fff1dc",3,.42,.55);slot(L2.userData.lensWorld(),lt,"#fff1dc",3,.42,.55);
+  // the two projectors light the logo (their beams show on phones too)
+  slot(L1.userData.lensWorld(),lt,"#ffe6c4",3.4,.42,.55,true,true);slot(L2.userData.lensWorld(),lt,"#ffe6c4",3.4,.42,.55,true,true);
   slot(V(0,7.6,-4.2),V(0,.6,-6.4),"#ffffff",1.3,.3,.6);
   const rig=cameraRig(false);rig.position.set(-1.7,0,-3.3);rig.lookAt(0,0,-6.4);rig.rotateY(Math.PI);scene.add(rig);
   scene.add(cable([[-2.7,-4.5],[-3.4,-3.6],[-3.8,-1],[-5,2]]),cable([[2.7,-4.5],[3.5,-3.4],[4.2,-1.2],[5.5,1.5]]),cable([[-1.7,-3.3],[-2.6,-2.4],[-3.8,-1]]));
@@ -307,16 +394,18 @@ function build3D(){
   // Arta studio
   for(const x of [-3.6,3.6]){const t=truss(4.7);t.rotation.z=Math.PI/2;t.position.set(x,2.35,-11);scene.add(t)}
   const head=truss(7.6);head.position.set(0,4.85,-11);scene.add(head);
-  const strip=box(7.2,.06,.04,emissive("#ffd9a0",3),0,4.66,-10.82);scene.add(strip);
+  const strip=box(7.2,.06,.04,emissive("#ffd9a0",1.6),0,4.66,-10.82);scene.add(strip);
   const cy=mesh(cycGeo(10,3.2,1.3,5.2),MAT.hallCyc);cy.material.side=THREE.DoubleSide;cy.position.set(-9.4,0,-16.6);cy.rotation.y=Math.PI/2;scene.add(cy);
   const dolly=cameraRig(true);dolly.position.set(2.9,0,-15.8);dolly.lookAt(-8,0,-16.6);dolly.rotateY(Math.PI);scene.add(dolly);
   for(const z of [-.5,.5]){const r=box(.05,.05,6,MAT.chrome,0,.03,0);r.position.set(2.9+z,.03,-15.8);r.rotation.y=Math.PI/2;r.scale.z=1;scene.add(r)}
   for(let i=0;i<10;i++)scene.add(box(.08,.03,1.3,MAT.wood,0.0+i*.6-2.7+2.9,.015,-15.8));
   const ch=chair();ch.position.set(4.6,0,-18.4);ch.rotation.y=-1.9;scene.add(ch);
+  const mm=makeupMirror();mm.position.set(5.3,0,-21.2);mm.rotation.y=-Math.PI/2+.25;scene.add(mm);
+  for(const [x,z,sd] of [[-5.6,-9.6,1],[5.6,-9.6,2],[5.9,-19.4,3],[-5.4,-22.6,4]]){const pl=palm(1.35,sd+20);pl.position.set(x,0,z);scene.add(pl)}
   const sb1=softbox(),sb2=softbox(),lp=ledPanel();
   sb1.position.set(-4.6,0,-13.2);sb2.position.set(-4.6,0,-20);lp.position.set(-2.4,0,-21.6);scene.add(sb1,sb2,lp);
   const ct=V(-8.5,1.5,-16.6);sb1.userData.aim(ct);sb2.userData.aim(ct);lp.userData.aim(ct);
-  slot(V(-4.6,2.0,-13.2),ct,"#fff6e8",2.2,.75,1,false);slot(V(-4.6,2.0,-20),ct,"#fff6e8",2.2,.75,1,false);
+  slot(V(-4.6,2.0,-13.2),ct,"#ffe0b4",2.2,.75,1,false);slot(V(-4.6,2.0,-20),ct,"#ffe0b4",2.2,.75,1,false);
   slot(V(0,7.6,-16.6),V(-1,0,-16.6),"#ffe3b8",1.6,.45,.7);
   scene.add(cable([[-4.6,-13.2],[-3.8,-11.8],[-5,-9],[-6.5,-6]]),cable([[-4.6,-20],[-3.6,-22.5],[-5.2,-25]]));
 
@@ -324,15 +413,28 @@ function build3D(){
   STUDIOS.forEach((s,i)=>buildSet(s,i));
 
   // end of the hall
-  // end of the hall: the Instagram film floats here in its own glass frame (buildFeatureFilms)
-  slot(V(0,7.6,LED_Z-3),V(0,0,LED_Z-1),"#ffe3c4",1.1,.45,.7);
+  // end of the hall: a concrete wall closes the hall just behind the Instagram film, washed by small wall lights,
+  // with palms in black planters along its foot (as in the reference render)
+  { MAT.endWall=std("#a39f99",.85,0,{map:concTex});
+    const ew=mesh(new THREE.PlaneGeometry(36,13),MAT.endWall,false);ew.position.set(0,6.5,LED_Z-1.2);scene.add(ew);
+    const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffcf94"),transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false});
+    for(const x of [-10.6,-6.6,-2.35,2.35,6.6,10.6]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.2,4.6),wm);f.position.set(x,4.9,LED_Z-1.18);f.userData.keep=true;scene.add(f);
+      const d=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.6),wm);d.scale.y=-1;d.position.set(x,1.4,LED_Z-1.18);d.material.side=THREE.DoubleSide;d.userData.keep=true;scene.add(d);
+      scene.add(box(.16,.1,.1,MAT.metal,x,2.68,LED_Z-1.14));scene.add(box(.1,.02,.06,emissive("#ffd49a",3),x,2.62,LED_Z-1.12))}
+    for(const [x,z,hh,sd] of [[-2.35,-.55,.8,41],[2.35,-.55,.8,41],[-6.55,-.45,1.35,42],[6.55,-.45,1.35,42],[-8.7,-.5,1.05,43],[8.7,-.5,1.05,43]]){
+      const pl=palm(hh,sd);pl.position.set(x,0,LED_Z+z);scene.add(pl)} }
+  // the Instagram film floats here in its own frame (buildFeatureFilms)
+  // ceiling spots wash the end wall: the film and the plaques either side of it (it matters most with the lights off)
+  for(const x of [-4.3,0,4.3]){slot(V(x*.8,9.2,LED_Z+4.2),V(x,2.6,LED_Z-1.2),"#ffd9a8",x?2.3:2.6,.32,.75);
+    const cn=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.32,16),MAT.metal);cn.position.set(x*.8,9.35,LED_Z+4.2);scene.add(cn);
+    const ln=new THREE.Mesh(new THREE.CircleGeometry(.11,16),emissive("#ffd49a",3));ln.rotation.x=Math.PI/2;ln.position.set(x*.8,9.18,LED_Z+4.2);scene.add(ln)}
 
   // haze particles
   const N=Math.round((Q==="high"?1400:700)*Math.min(HALL_LEN/104,2)),pp=new Float32Array(N*3);
   for(let i=0;i<N;i++){pp[i*3]=(Math.random()-.5)*20;pp[i*3+1]=Math.random()*7;pp[i*3+2]=4-Math.random()*(4-HALL_END)}
   const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(pp,3));
   MAT.dust=new THREE.PointsMaterial({size:.045,map:dotTex,transparent:true,opacity:.5,depthWrite:false,blending:THREE.AdditiveBlending,color:C("#ffe8c8")});
-  dust=new THREE.Points(pg,MAT.dust);scene.add(dust);
+  dust=new THREE.Points(pg,MAT.dust);dust.visible=Q==="high";scene.add(dust);   // phones showed the tiny dots as coloured specks
 
   // base light
   hemi=new THREE.HemisphereLight(C("#cfd6e6"),C("#2a2420"),.25);scene.add(hemi);
@@ -435,7 +537,7 @@ function drawHeader(s,i){return (g,W,H)=>{
 // hanging hall sign with an arrow toward the studio; dir -1 = arrow left, 1 = arrow right
 function drawHall(s,dir){return (g,W,H)=>{
   const fa=lang==="fa";
-  rr(g,4,4,W-8,H-8,26);g.fillStyle="rgba(14,14,18,.92)";g.fill();g.lineWidth=5;g.strokeStyle="rgba(255,255,255,.35)";g.stroke();
+  rr(g,6,6,W-12,H-12,22);g.fillStyle="#0c0c0f";g.fill();g.lineWidth=9;g.strokeStyle=s.c.acc==="#000000"?"#ffffff":s.c.acc;g.stroke();
   g.fillStyle=s.c.acc;rr(g,4,H-22,W-8,18,8);g.fill();
   // arrow
   const ax=dir<0?70:W-70,ay=H*.45;g.save();g.translate(ax,ay);g.scale(dir,1);g.fillStyle=s.c.acc==="#000000"?"#ffffff":s.c.acc;
@@ -572,6 +674,18 @@ function decor(s,g,back){
       const tip=mesh(new THREE.ConeGeometry(.11,.18,24),M(c.acc,.35));tip.position.y=.93;ls.add(tip);ls.scale.setScalar(1.6);put(ls,2.9,0,zF+.5);
       const pb=G();pb.add(B(.3,.36,.3,new THREE.MeshPhysicalMaterial({color:C("#f4d7df"),roughness:.05,transparent:true,opacity:.5,clearcoat:1}),0,.18,0));pb.add(C(.06,.06,.1,M("#d6b06a",.25,.9)));pb.children[1].position.y=.41;pb.scale.setScalar(1.8);put(pb,3.1,0,zN);
       break}
+    case "dreamsalon":{ // hair salon: two styling stations, each a round lit mirror over a counter with a salon chair
+      for(const sd of [-1,1]){const st=G();
+        st.add(B(.5,.06,1.3,M("#f6f1f4",.35),.25,.82,0));st.add(B(.46,.8,.04,M("#f6f1f4",.5),.24,.4,.62));st.add(B(.46,.8,.04,M("#f6f1f4",.5),.24,.4,-.62));
+        const ring=T(.42,.03,E("#fff1e0",2.6));ring.rotation.y=Math.PI/2;ring.position.set(.02,1.75,0);st.add(ring);
+        const mir=mesh(new THREE.CircleGeometry(.4,40),M("#dfe7ee",.04,.95));mir.rotation.y=Math.PI/2;mir.position.set(.03,1.75,0);st.add(mir);
+        const ch=G();ch.add(C(.22,.26,.06,M("#1a1a1c",.3,.6),24));ch.children[0].position.y=.03;
+        const post=C(.05,.05,.42,M("#c9c9cf",.2,.9));post.position.y=.27;ch.add(post);
+        ch.add(B(.55,.12,.55,M(c.acc,.55),0,.52,0));ch.add(B(.1,.5,.55,M(c.acc,.55),-.24,.82,0));
+        for(const az of [-1,1])ch.add(B(.45,.06,.08,M("#1a1a1c",.4,.4),0,.68,az*.28));
+        ch.position.x=1.05;ch.rotation.y=Math.PI;st.add(ch);
+        put(st,sd*3.6,0,(zN+zF)/2+sd*.9,face(sd))}
+      break}
     case "tiktok":{ // creator room: ring light on a tripod and neon strips
       for(const sd of [-1,1]){const rl=G();rl.add(T(.42,.035,E("#ffffff",3)));rl.children[0].position.y=1.7;
         rl.add(B(.09,.17,.01,M("#111",.3,.5),0,1.7,0));const pole=C(.015,.015,1.7,M("#222",.4,.6));pole.position.y=.85;rl.add(pole);
@@ -584,7 +698,7 @@ function decor(s,g,back){
 }
 
 function buildSet(s,i){
-  const side=i%2===0?-1:1,z=SET0-i*SETSTEP;
+  const side=i%2===0?-1:1,z=SET0-Math.floor(i/2)*SETSTEP;
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
   // films float one behind another down a tunnel into the set, alternating left and right,
   // so the camera flies between them; sets with more films are built deeper
@@ -616,14 +730,27 @@ function buildSet(s,i){
   }
   // walls: two side walls and a front wall with a door opening facing the hall
   // inside: a calm tone from the set's backdrop; outside (the hall side): the brand colour
-  const wi=new THREE.Color(s.c.bg).lerp(new THREE.Color(s.theme==="light"?"#ffffff":"#000000"),s.theme==="light"?.1:.25);
+  const wi=new THREE.Color(s.c.bg).lerp(new THREE.Color("#f4eee6"),s.theme==="light"?.35:.6);
   const wm=std("#"+wi.getHexString(),.9,0);
-  const we=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color(s.c.bg),.4);
-  const wx=std("#"+we.getHexString(),.8,0);
+  const we=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.06);
+  const wx=std("#"+we.getHexString(),.8,0,{emissive:we.clone().convertSRGBToLinear(),emissiveIntensity:.22});wx.userData.lowEnv=.1;
   const depth=3.5-back;for(const sd of [-1,1]){g.add(B3(.12,4.8,depth,wm,sd*3.76,2.4,(3.5+back)/2));g.add(B3(.02,4.8,depth+.16,wx,sd*3.83,2.4,(3.5+back)/2+.08))}
   for(const sd of [-1,1]){g.add(B3(2.16,4.8,.14,wm,sd*2.68,2.4,3.45));g.add(B3(2.16,4.8,.02,wx,sd*2.68,2.4,3.53))}
   g.add(B3(3.2,1.8,.14,wm,0,3.9,3.45));g.add(B3(3.2,1.8,.02,wx,0,3.9,3.53));
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
+  // a warm light strip framing the door, and a palm in a black planter on each side of it
+  // neon in the brand colour: the front corners, the door frame and a line along the foot of the wall
+  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);
+    // the door frame itself is lit warm white, as in the reference renders
+    const warm=MAT.doorLed||emissive("#ffd9a0",3);
+    for(const sd of [-1,1]){g.add(B3(.08,4.8,.08,neon,sd*3.84,2.4,3.56));g.add(B3(.06,3.0,.06,warm,sd*1.6,1.5,3.58))}
+    g.add(B3(3.27,.06,.06,warm,0,3.0,3.58));
+    for(const sd of [-1,1])g.add(B3(2.25,.06,.06,neon,sd*2.72,.04,3.6));
+    for(const sd of [-1,1])g.add(B3(.04,.04,3.5-back,neon,sd*3.86,.03,(3.5+back)/2));
+    // the neon spills onto the polished floor in front of the booth
+    const sp=new THREE.Mesh(new THREE.PlaneGeometry(7.9,1.9),new THREE.MeshBasicMaterial({map:glowTex,color:nc,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    sp.rotation.x=-Math.PI/2;sp.position.set(0,.008,3.6+.95);sp.userData.keep=true;g.add(sp); }
+  for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
   hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
@@ -636,7 +763,7 @@ function buildSet(s,i){
   const W=p=>g.localToWorld(p.clone());
   const tgt=W(V(0,1.4,-.4));fz.userData.aim(tgt);sb.userData.aim(tgt);
   const LI=s.theme==="light"?.4:1;
-  slot(fz.userData.lensWorld(),tgt,"#fff1dc",2.6*LI,.5,.6,s.theme!=="light");
+  slot(fz.userData.lensWorld(),tgt,"#ffdcaa",2.6*LI,.5,.6,s.theme!=="light");
   const acc=new THREE.Color(s.c.acc).getHSL({}).l<.15?"#ffffff":s.c.acc;
   slot(W(V(0,4.9,back+3.6)),W(V(0,2.3,back)),acc,2.2*LI,.62,.7);
   // brand wall at the end of the tunnel: logo (or name) with a thin light line in the brand accent
@@ -648,13 +775,13 @@ function buildSet(s,i){
     const L=lay[j],F=makeFrame(s,v,i);F.L=L;F.y0=L.y;F.r0=many?-L.x*.06:(L.x===0?0:-Math.sign(L.x)*.22);F.ph=j*1.7+i;
     F.G.position.set(L.x,L.y,L.z);F.G.rotation.y=F.r0;F.G.scale.setScalar(L.sc);g.add(F.G);frames.push(F);
     pick.push(F.screen,F.cap);   // only the picture and its caption open the film, not the glass around it
-    if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#fff4e6",1.6*LI,.42,.8,false);
+    if(!many)slot(W(V(L.x*.4,4.8,L.z+1.8)),W(V(L.x,1.6,L.z)),"#ffd9a6",1.6*LI,.42,.8,false);
   });
   // props never stand where a film floats (a big studio fills the room with films)
   { g.updateMatrixWorld(true);const fb=frames.map(F=>new THREE.Box3().setFromObject(F.G).expandByScalar(.12)),bb=new THREE.Box3();
     decorKids.forEach(o=>{bb.setFromObject(o);if(!bb.isEmpty()&&fb.some(b=>b.intersectsBox(bb)))g.remove(o)}); }
   // a deep room is lit by a few soft lights along its length instead of one per film
-  if(many)for(let k=0;k<3;k++){const lz=Z0-(k+.5)*(Z0-lay[n-1].z)/3;slot(W(V(0,4.8,lz+1.2)),W(V(0,1.4,lz-.6)),"#fff4e6",1.8*LI,.7,.8,false)}
+  if(many)for(let k=0;k<3;k++){const lz=Z0-(k+.5)*(Z0-lay[n-1].z)/3;slot(W(V(0,4.8,lz+1.2)),W(V(0,1.4,lz-.6)),"#ffd9a6",1.8*LI,.7,.8,false)}
   // hanging sign over the aisle before the studio, arrow pointing to its door (both faces)
   const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
@@ -760,16 +887,20 @@ function buildFeatureFilms(){
   FEATS3.length=0;
   const mk=(f,c,appear,range)=>{if(!f||!f.src)return;
     const F=makeFrame({c,get theme(){return dark?"dark":"light"}},f,-1);Object.assign(F,{ph:Math.random()*6,r0:0,k:0,appear,range});F.base=V(0,0,0);
+    // a warm glow around the frame, as in the reference renders
+    if(c.glow!==false){F.G.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(F.screen).union(new THREE.Box3().setFromObject(F.cap)),sz=bb.getSize(V(0,0,0)),ct=bb.getCenter(V(0,0,0));
+    const gw=new THREE.Mesh(new THREE.PlaneGeometry(sz.x+.42,sz.y+.42),new THREE.MeshBasicMaterial({map:frameGlowTex,color:C(c.glow||"#ffd9a0"),transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    gw.position.set(ct.x,ct.y,bb.min.z-.02);gw.userData.keep=true;F.G.add(gw);}
     scene.add(F.G);FEATS3.push(F)};
   mk(FEATURES.logoAd,{bg:"#141414",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((-6.6-cp.z)/2.6,0,1),14);
-  mk(FEATURES.instagramAd,{bg:"#1a1024",bg2:"#3a1a3a",ink:"#1d1a17",acc:"#e1306c"},()=>1,24);
+  mk(FEATURES.instagramAd,{bg:"#1a1024",bg2:"#3a1a3a",ink:"#1d1a17",acc:"#e1306c",glow:false},()=>1,24);
   layoutFeatureFilms();
 }
 function layoutFeatureFilms(){
   const P=portrait();
   for(const F of FEATS3){
     if(F.v===FEATURES.logoAd){F.base.set(0,2.15,P?-12.6:-15);F.sc=P?1:1.3}
-    else{F.base.set(0,P?3.9:3.55,LED_Z);F.sc=P?1.8:2.35}
+    else{F.base.set(0,P?4.75:3.55,LED_Z);F.sc=P?1.6:2.35}
     F.y0=F.base.y;F.G.position.copy(F.base);F.G.scale.setScalar(F.sc);
   }
 }
@@ -825,7 +956,8 @@ let playerFrame=null;
 function pickSign(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(hallPick,false)[0];return h&&h.distance<26?h.object.userData.enter:-1}
 canvas.addEventListener("click",e=>{
   if(dragged||playerEl)return;
-  if(mode==="hall"){const ce=pickEnd(e.clientX,e.clientY);if(ce){window.open(ce.link,"_blank","noopener");return}
+  if(mode==="hall"){const pq=pickPlaque(e.clientX,e.clientY);if(pq){if(pq.act==="lang")toggleLang();else if(pq.act==="light")toggleLight();else window.open(pq.link,"_blank","noopener");return}
+    const ce=pickEnd(e.clientX,e.clientY);if(ce){window.open(ce.link,"_blank","noopener");return}
     const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
   const F=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY);
   if(F&&mode==="set"){const S=SETS[setIdx],j=S.frames.indexOf(F);F.screen.getWorldPosition(tmp);
@@ -834,7 +966,7 @@ canvas.addEventListener("click",e=>{
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
-canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickEnd(e.clientX,e.clientY)||pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
+canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")canvas.style.cursor=pickPlaque(e.clientX,e.clientY)||pickEnd(e.clientX,e.clientY)||pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY)||pickSign(e.clientX,e.clientY)>=0||(mode==="hall"&&pickPanel(e.clientX,e.clientY)>=0)?"pointer":""},{passive:true});
 
 /* ---------- Arta Studio panels and floating titles as real 3D objects ----------
    They live in the scene, so the lobby logo (or anything else) can stand in front of them. */
@@ -926,7 +1058,7 @@ function liquidPanel(layout){
     if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;tex.dispose()}
     const g=cv.getContext("2d");g.clearRect(0,0,W,H);layout(g,false);tex.needsUpdate=true;
     const wm=W/PXM,hm=H/PXM;face.geometry.dispose();face.geometry=new THREE.PlaneGeometry(wm,hm);face.position.z=.03;
-    face.material.uniforms.uSize.value.set(wm,hm);face.material.uniforms.uRad.value=Math.min(hm*.32,.1);
+    if(face.material.uniforms){face.material.uniforms.uSize.value.set(wm,hm);face.material.uniforms.uRad.value=Math.min(hm*.32,.1)}
     // a very faint slab behind gives the glass some thickness when seen at an angle
     if(slab){G.remove(slab);slab.geometry.dispose()}
     const geo=new THREE.ExtrudeGeometry(roundRect(wm,hm,Math.min(hm*.32,.1)),{depth:.04,bevelEnabled:true,bevelThickness:.008,bevelSize:.008,bevelSegments:2,curveSegments:6});geo.translate(0,0,-.02);
@@ -961,10 +1093,15 @@ function buildPanels3D(){
   const title=(draw,w,h,mw)=>{const tex=panelTex(w,h,draw),m=new THREE.Mesh(new THREE.PlaneGeometry(mw,mw*h/w),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));
     m.userData.keep=true;scene.add(m);P3.titles.push({m,tex});return m};
   const heading=(k1,k2)=>(g,w,h)=>{const c=inkCol(),fa=lang==="fa",t=T();g.textAlign="center";g.textBaseline="middle";if("direction" in g)g.direction=fa?"rtl":"ltr";
+    if(dark){g.shadowColor="rgba(255,236,205,.8)";g.shadowBlur=26}   // a soft glow round the letters at night (phones have no bloom pass)
     g.fillStyle=c.t;let f=150;const ff=()=>fa?`800 ${f}px "Vazirmatn", sans-serif`:`800 ${f}px "Unbounded", "Vazirmatn", sans-serif`;g.font=ff();
     if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px";while(g.measureText(t[k1]).width>w*.94&&f>40){f-=6;g.font=ff();if("letterSpacing" in g)g.letterSpacing=fa?"0px":(f*.12)+"px"}
     g.fillText(t[k1],w/2,h*.38);if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=`400 58px "Vazirmatn", sans-serif`;g.fillText(t[k2],w/2,h*.8)};
   P3.gate=title(heading("arch","archSub"),2048,420,5.4);
+  // the title hangs on a white banner, as in the reference renders: dark text on the dark ceiling could not be read
+  { const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.9,5.4*420/2048+.32),(MAT.banner=new THREE.MeshBasicMaterial({color:C("#f6f2ec"),fog:false})));bn.position.z=-.02;bn.userData.keep=true;P3.gate.add(bn);
+    const be=new THREE.Mesh(new THREE.PlaneGeometry(5.98,5.4*420/2048+.4),(MAT.bannerEdge=new THREE.MeshBasicMaterial({color:C("#d9d3ca"),fog:false})));be.position.z=-.03;be.userData.keep=true;P3.gate.add(be);   // a thin rim so the board reads against the dark ceiling
+    for(const x of [-2.6,2.6]){const w=stick(V(x,.72,-.02),V(x,2.6,-.02),.006,MAT.metal);w.userData.keep=true;P3.gate.add(w)} }
   // "The studios" heading in a liquid glass panel sized to its words
   const SP=liquidPanel((g,measure)=>{
     const t=T(),fa=lang==="fa",c=glassInk(),pad=56;
@@ -976,7 +1113,7 @@ function buildPanels3D(){
     if("letterSpacing" in g)g.letterSpacing="0px";g.fillStyle=c.m;g.font=fS;g.fillText(t.studiosSub,W/2,pad+88+20+34);return {w:W,h:H};
   });
   SP.redraw();scene.add(SP.G);P3.titles.push({m:SP.G,tex:SP.tex});P3.studios=SP.G;
-  buildEndPanel();
+  buildEndPanel();buildPlaques();
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
@@ -985,8 +1122,6 @@ function layoutPanels3D(){
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
-  if(P3.end){if(P){P3.end.G.position.set(0,.95,LED_Z+1.4);P3.end.G.rotation.y=0;P3.end.G.scale.setScalar(1.22)}
-    else{P3.end.G.position.set(3.6,1.8,LED_Z+.6);P3.end.G.rotation.y=-.32;P3.end.G.scale.setScalar(1.5)}}
 }
 /* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
    WhatsApp / Instagram / LinkedIn buttons drawn on it */
@@ -994,45 +1129,120 @@ const ICON_IMG={};
 function iconImg(k){
   if(ICON_IMG[k])return ICON_IMG[k];const im=new Image();ICON_IMG[k]=im;
   let svg=ICON[k].replace(/currentColor/g,"#ffffff");if(!/xmlns=/.test(svg))svg=svg.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ');
-  im.onload=()=>{if(P3.end)P3.end.tex.userData.redraw()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
+  im.onload=()=>{redrawPlaques()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
 }
-function buildEndPanel(){
-  const items=[["wa",CONTACT.whatsapp,["#1FA855"]],["ig",CONTACT.instagram,["#F5B041","#D6336C","#7B3FE4"]]];
-  if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push(["li",CONTACT.linkedin,["#0A66C2"]]);
-  const rects=[];
-  const LP=liquidPanel((g,measure)=>{
-    const t=T(),fa=lang==="fa",c=glassInk(),pad=58,cw=470,chH=108,gap=22,W=pad*2+cw*2+gap;
-    const fT=fa?`800 56px "Vazirmatn", sans-serif`:`800 48px "Unbounded", "Vazirmatn", sans-serif`;
-    g.font=fT;const words=t.endH.split(" "),lines=[];let cur="";
-    for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>W-pad*2&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
-    const lh=fa?74:64,rowsN=Math.ceil(items.length/2),H=pad*2+lines.length*lh+34+rowsN*chH+(rowsN-1)*gap;
-    if(measure)return {w:W,h:H};
-    if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";textShadow(g,true);
-    g.fillStyle=c.t;g.font=fT;lines.forEach((l,k)=>g.fillText(l,W/2,pad+lh*.8+k*lh));
-    textShadow(g,false);rects.length=0;
-    let y=pad+lines.length*lh+34;
-    items.forEach(([k,ct,cols],idx)=>{
-      const row=Math.floor(idx/2),inRow=Math.min(2,items.length-row*2),col=idx%2;
-      const rowW=inRow*cw+(inRow-1)*gap,x0=(W-rowW)/2+(fa?(inRow-1-col):col)*(cw+gap),yy=y+row*(chH+gap);
-      rr(g,x0,yy,cw,chH,30);g.fillStyle=dark?"rgba(255,255,255,.12)":"rgba(255,255,255,.5)";g.fill();
-      g.lineWidth=2;g.strokeStyle=dark?"rgba(255,255,255,.28)":"rgba(255,255,255,.9)";g.stroke();
-      const bs=74,bx=fa?x0+cw-17-bs:x0+17,by=yy+(chH-bs)/2;rr(g,bx,by,bs,bs,22);
-      if(cols.length>1){const gr=g.createLinearGradient(bx,by,bx+bs,by+bs);cols.forEach((cc,i)=>gr.addColorStop(i/(cols.length-1),cc));g.fillStyle=gr}else g.fillStyle=cols[0];g.fill();
-      const im=iconImg(k);if(im.complete&&im.naturalWidth)g.drawImage(im,bx+bs*.22,by+bs*.22,bs*.56,bs*.56);
-      const tx=fa?bx-20:bx+bs+20;g.textAlign=fa?"right":"left";
-      g.fillStyle=c.m;g.font=`500 24px "Vazirmatn", sans-serif`;g.fillText(t[k],tx,yy+44);
-      let f=31;g.font=`700 ${f}px "Vazirmatn", sans-serif`;while(g.measureText(ct.display).width>cw-bs-60&&f>18){f-=2;g.font=`700 ${f}px "Vazirmatn", sans-serif`}
-      g.fillStyle=c.t;if("direction" in g)g.direction="ltr";g.fillText(ct.display,tx,yy+84);if("direction" in g)g.direction=fa?"rtl":"ltr";
-      rects.push({x:x0,y:yy,w:cw,h:chH,link:ct.link});
-    });
-    return {w:W,h:H};
+
+
+/* ---------- the entrance wall, built to the screen: a wide door on a computer, tablet or a phone held sideways,
+   a narrow one on a phone held upright so the glass plaques fit on the wall above it; rebuilt when the device turns ---------- */
+let FACADE_G=null,FACADE_TEX=null,FACADE_FAN=null,FACADE_PORT=null;
+function buildFacade(){
+  const PORT=portrait(),SHORT=shortLand(),key=PORT?"p":SHORT?"s":"w";if(FACADE_G&&FACADE_PORT===key)return false;FACADE_PORT=key;
+  if(FACADE_G){scene.remove(FACADE_G);FACADE_G.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  const G=FACADE_G=new THREE.Group();scene.add(G);
+  // a phone held sideways is short: a smaller door and sign so the plaques beside it can be read close up
+  const DW=PORT?2.4:SHORT?5:9,DH=PORT?3.2:SHORT?3.7:4.6,SS=PORT?.85:SHORT?.8:1;
+  for(const sd of [-1,1])G.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
+  G.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
+  if(!MAT.trim)MAT.trim=emissive("#f2c27a",2.4);const trim=MAT.trim;
+  G.add(box(DW+.3,.07,.07,trim,0,DH+.04,10.28));for(const sd of [-1,1])G.add(box(.07,DH,.07,trim,sd*(DW/2+.15),DH/2,10.28));
+  G.add(box(36,.06,.06,trim,0,12.97,10.28));
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4*SS,2.02*SS),new THREE.MeshBasicMaterial({map:FACADE_TEX,transparent:true}));fs.position.set(0,PORT?7.45:DH+(SHORT?1.2:1.42),10.27);G.add(fs);
+  // palms in black planters either side of the door
+  for(const sd of [-1,1]){const pl=palm(1.45,sd+3);pl.position.set(sd*(DW/2+4.1),0,10.75);G.add(pl)}
+  // warm light washing up the door posts, and its glow on the forecourt
+  for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(1.4,DH*1.3),FACADE_FAN);f.position.set(sd*(DW/2+.6),DH*.65,10.27);G.add(f)}
+  const gm=new THREE.MeshBasicMaterial({map:glowTex,color:C("#ffcf8a"),transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const gl=new THREE.Mesh(new THREE.PlaneGeometry(DW+1.5,5),gm);gl.rotation.x=-Math.PI/2;gl.position.set(0,.01,12.75);G.add(gl);
+  G.traverse(o=>{o.userData.keep=true});
+  return true;
+}
+/* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
+const END_FOCUS=new THREE.Object3D(),PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
+const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.28,metalness:0,clearcoat:1,clearcoatRoughness:.06,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:1});
+PLQ_GLASS.userData.glass=true;
+function buildPlaques(){
+  const items=[{k:"wa",cols:["#1FA855"],ct:CONTACT.whatsapp},{k:"ig",cols:["#F5B041","#D6336C","#7B3FE4"],ct:CONTACT.instagram}];
+  if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push({k:"li",cols:["#0A66C2"],ct:CONTACT.linkedin});
+  items.push({k:"lang",cols:["#141210"],act:"lang",right:true},{k:"light",cols:["#141210"],act:"light",right:true});
+  // the end of the hall: the same glass plaques on the concrete wall, contacts on one side of the Instagram film and
+  // a matching plaque with the invitation on the other, so the wall is symmetric
+  items.push({k:"head",cols:[],end:true,W:PLQ_W,H:PLQ_H*3+.26});
+  items.filter(it=>it.ct).forEach(it=>items.push(Object.assign({},it,{end:true})));
+  const D=.06,GEO={};
+  // a slab of frosted glass with real thickness, a polished bright edge, four chrome standoff screws and a soft shadow on the wall
+  const geos=(W,H)=>GEO[W+"x"+H]||(GEO[W+"x"+H]=(()=>{const rimS=roundRect(W+.026,H+.026,.082);rimS.holes.push(roundRect(W-.012,H-.012,.064));
+    return {slab:new THREE.ExtrudeGeometry(roundRect(W,H,.07),{depth:D,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:8}),rim:new THREE.ShapeGeometry(rimS,8)}})());
+  const bolt=new THREE.CylinderGeometry(.034,.034,.11,20);bolt.rotateX(Math.PI/2);const cap=new THREE.CylinderGeometry(.04,.04,.018,20);cap.rotateX(Math.PI/2);
+  if(!PLQ_SHADOW){PLQ_SHADOW=new THREE.MeshBasicMaterial({map:canvasTex(256,96,(g,w,h)=>{g.filter="blur(10px)";rr(g,22,22,w-44,h-44,14);g.fillStyle="rgba(0,0,0,.85)";g.fill()}),transparent:true,depthWrite:false,opacity:.55});PLQ_RIM=emissive("#fff1d8",.9)}
+  items.forEach(it=>{
+    const W=it.W||PLQ_W,H=it.H||PLQ_H,cvW=1080,cvH=Math.round(1080*H/W),{slab:geo,rim:rimG}=geos(W,H);
+    const G=new THREE.Group();
+    const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);G.add(sh);
+    const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;G.add(slab);
+    const rim=new THREE.Mesh(rimG,PLQ_RIM);rim.position.z=D/2+.013;G.add(rim);
+    for(const sx of [-1,1])for(const sy of [-1,1]){const b=new THREE.Mesh(bolt,MAT.chrome);b.position.set(sx*(W/2-.1),sy*(H/2-.1),-.02);G.add(b);
+      const c=new THREE.Mesh(cap,MAT.chrome);c.position.set(sx*(W/2-.1),sy*(H/2-.1),D/2+.02);G.add(c)}
+    const cv=document.createElement("canvas");cv.width=cvW;cv.height=cvH;const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=8;
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;G.add(face);
+    const draw=()=>{const g=cv.getContext("2d"),t=T(),fa=lang==="fa";g.clearRect(0,0,cvW,cvH);
+      // frosted glass: a diagonal sheen over a soft warm tint, so the slats behind still show through faintly
+      const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(255,240,215,.62)");gr.addColorStop(.45,"rgba(240,215,180,.38)");gr.addColorStop(1,"rgba(215,185,145,.3)");
+      rr(g,0,0,cvW,cvH,56);g.fillStyle=gr;g.fill();
+      const sh2=g.createLinearGradient(0,0,0,cvH*.5);sh2.addColorStop(0,"rgba(255,255,255,.35)");sh2.addColorStop(1,"rgba(255,255,255,0)");rr(g,0,0,cvW,cvH*.5,56);g.fillStyle=sh2;g.fill();
+      if(it.k==="head"){   // the invitation: big words centred on the glass
+        if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle="#15100b";
+        const fT=fa?`800 128px "Vazirmatn", sans-serif`:`800 112px "Unbounded", "Vazirmatn", sans-serif`;g.font=fT;
+        const words=t.endH.split(" "),lines=[];let cur="";for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>cvW-150&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
+        const lh=fa?160:142,y0=cvH/2-(lines.length*lh)/2-30;lines.forEach((l,i)=>g.fillText(l,cvW/2,y0+lh*.8+i*lh));
+        g.fillStyle="#2b231c";g.font=`600 60px "Vazirmatn", sans-serif`;g.fillText(t.endSub,cvW/2,y0+lines.length*lh+84);
+        tex.needsUpdate=true;return}
+      const bs=150,bx=fa?cvW-80-bs:80,by=(cvH-bs)/2;rr(g,bx,by,bs,bs,38);
+      if(it.cols.length>1){const ig=g.createLinearGradient(bx,by+bs,bx+bs,by);it.cols.forEach((c,i)=>ig.addColorStop(i/(it.cols.length-1),c));g.fillStyle=ig}else g.fillStyle=it.cols[0];g.fill();
+      if(it.k==="lang"){g.fillStyle="#fff";g.font=`800 64px ${fa?'"Unbounded", sans-serif':'"Vazirmatn", sans-serif'}`;g.textAlign="center";g.textBaseline="middle";g.fillText(fa?"EN":"فا",bx+bs/2,by+bs/2+4)}
+      else{const im=iconImg(it.k==="light"?(dark?"sun":"moon"):it.k);if(im.complete&&im.naturalWidth)g.drawImage(im,bx+bs*.2,by+bs*.2,bs*.6,bs*.6)}
+      const small=it.k==="lang"?t.otherSmall:it.k==="light"?t.lightsLabel:t[it.k],big=it.k==="lang"?t.other:it.k==="light"?(dark?t.toLight:t.toDark):it.ct.display;
+      if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign=fa?"right":"left";g.textBaseline="alphabetic";
+      const tx=fa?bx-44:bx+bs+44,room=cvW-bs-80-44-(it.act?150:80);
+      g.fillStyle="#2b231c";g.font=`600 52px "Vazirmatn", sans-serif`;g.fillText(small,tx,cvH/2-14);
+      let f=74;const ff=()=>`700 ${f}px "Vazirmatn", sans-serif`;g.font=ff();while(g.measureText(big).width>room&&f>36){f-=3;g.font=ff()}
+      g.fillStyle="#15100b";if(!it.act&&"direction" in g)g.direction="ltr";g.fillText(big,tx,cvH/2+72);
+      if(it.act){const cx=fa?78:cvW-88;g.strokeStyle="#15100b";g.lineWidth=9;g.lineCap="round";g.lineJoin="round";g.beginPath();const d=fa?-1:1;g.moveTo(cx-d*14,cvH/2-28);g.lineTo(cx+d*13,cvH/2);g.lineTo(cx-d*14,cvH/2+28);g.stroke()}
+      tex.needsUpdate=true};
+    draw();G.traverse(o=>{o.userData.keep=true});scene.add(G);
+    PLQ.push({G,face,draw,it,link:it.ct&&it.ct.link,act:it.act,sc:1,W,H});
   });
-  LP.redraw();scene.add(LP.G);
-  P3.end={G:LP.G,face:LP.face,tex:LP.tex,rects,cv:LP.face.material.uniforms.tText.value.image};
-  P3.titles.push({m:LP.G,tex:LP.tex});
+  layoutPlaques();
 }
+function layoutPlaques(){
+  const P=portrait(),door=PLQ.filter(o=>!o.it.end),L=door.filter(o=>!o.it.right),R=door.filter(o=>o.it.right);
+  // end wall: invitation left of the film, the three contacts right of it, mirrored; on a phone the contacts sit under the film
+  { const ez=LED_Z-1.2+.075,head=PLQ.find(o=>o.it.k==="head"),ec=PLQ.filter(o=>o.it.end&&o.it.ct);
+    if(!P){head.G.visible=true;head.G.position.set(-4.3,2.55,ez);head.sc=1;head.G.scale.setScalar(1);ec.forEach((o,i)=>{o.G.position.set(4.3,3.4-i*.85,ez);o.sc=1;o.G.scale.setScalar(1)})}
+    else{head.G.visible=true;head.G.position.set(-.74,1.62,ez);head.sc=.55;head.G.scale.setScalar(.55);ec.forEach((o,i)=>{o.G.position.set(.74,2.09-i*.47,ez);o.sc=.55;o.G.scale.setScalar(.55)})}
+    END_FOCUS.position.set(0,P?1.62:2.55,ez);END_FOCUS.position.x=P?0:4.3;END_FOCUS.rotation.set(0,0,0); }
+  const put=(o,x,y,z,sc)=>{o.G.position.set(x,y,z);o.sc=sc;o.G.scale.setScalar(sc)};
+  if(!P&&shortLand()){
+    // phone held sideways: a smaller door, the plaques close beside it
+    L.forEach((o,i)=>put(o,-3.75,2.95-i*.8,10.33,.92));R.forEach((o,i)=>put(o,3.75,2.95-i*.8,10.33,.92));
+  }else if(!P){
+    // flat on the slatted wall either side of the door, held a few centimetres off it by four screws
+    L.forEach((o,i)=>put(o,-6.15,3.0-i*.92,10.33,1));R.forEach((o,i)=>put(o,6.15,3.0-i*.92,10.33,1));
+  }else{
+    // a phone screen is tall and narrow: the plaques hang in two columns on the wall between the door and the sign
+    const sc=1.25;L.forEach((o,i)=>put(o,i>=R.length?0:-1.55,5.95-i*.98,10.33,sc));R.forEach((o,i)=>put(o,1.55,5.95-i*.98,10.33,sc));
+  }
+  PLQ.forEach(o=>{if(o.hit){o.hit.meters=o.W*o.sc;o.hit.dead=!o.G.visible}});
+}
+function pickPlaque(x,y){
+  if(mode!=="hall"||!PLQ.length)return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const h=ray.intersectObjects(PLQ.map(o=>o.face),false)[0];if(!h||h.distance>30)return null;return PLQ.find(o=>o.face===h.object)||null;
+}
+function redrawPlaques(){PLQ.forEach(o=>o.draw())}
+// the contacts at the end of the hall are glass plaques now (buildPlaques); the camera's last stop faces them
+function buildEndPanel(){P3.end={G:END_FOCUS}}
 function pickEnd(x,y){
-  if(!P3.end||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  if(!P3.end||!P3.end.face||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
   const h=ray.intersectObject(P3.end.face,false)[0];if(!h||h.distance>16||!h.uv)return null;
   const cv=P3.end.cv,px=h.uv.x*cv.width,py=(1-h.uv.y)*cv.height;
   return P3.end.rects.find(r=>px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)||null;
@@ -1090,23 +1300,20 @@ function buildOverlays(){
   const lg=chip("lang-chip",{c:"mono",h:lang==="en"?"فا":"EN"},t.otherSmall,t.other,false);
   const lt=chip("light-chip",{c:"mono",h:dark?ICON.sun:ICON.moon},t.lightsLabel,dark?t.toLight:t.toDark,false);
   const li=CONTACT.linkedin&&CONTACT.linkedin.link?chip("",{c:"li",h:ICON.li},t.li,CONTACT.linkedin.display,true,CONTACT.linkedin.link):"";
-  // contact chips float in front of the main building, before you walk in
-  if(P){
-    anchor(wa,V(-.55,1.7,20),.98);anchor(ig,V(.55,1.7,20),.98);
-    if(li)anchor(li,V(-.55,1.1,20),.98);
-    anchor(lg,V(li?.55:-.55,1.1,20),.98);anchor(lt,V(li?0:.55,li?.5:1.1,20),.98);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),3.2,{far:24});
-  }else{
-    anchor(wa,V(-2.75,2.55,15),1.35);anchor(ig,V(-2.75,1.92,15),1.35);if(li)anchor(li,V(-2.75,1.29,15),1.35);
-    anchor(lg,V(2.75,2.55,15),1.35);anchor(lt,V(2.75,1.92,15),1.35);
-    anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});
-  }
+  // the contact and setting chips are glass plaques on the facade now (buildPlaques)
+  if(!P&&!shortLand())anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // a phone has no room for it beside the plaques
+  // invisible real links and buttons over the glass plaques, so a tap or click always opens them
+  PLQ.forEach(o=>{if(o.it.k==="head")return;const lbl=o.act==="lang"?t.otherSmall:o.act==="light"?t.lightsLabel:t[o.it.k];
+    const h=o.link?`<a class="plq-hit" href="${o.link}" target="_blank" rel="noopener" aria-label="${lbl}"></a>`:`<button class="plq-hit ${o.act}-chip" aria-label="${lbl}"></button>`;
+    o.hit=anchor(h,o.G.position,o.W*o.sc,{far:30,near:.6})});
+  if(PLQ.length){layoutPlaques();redrawPlaques()}
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
   if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
   // contact card beside the floating Instagram film (below it on phones), never on top of the picture
   sndA=FEATURES.instagramAd&&FEATURES.instagramAd.src?anchor(`<span class="snd snd3" hidden>${ICON.mute}<span>${t.tapSound}</span></span>`,V(0,P?6.25:6.05,LED_Z+.2),P?1.5:1.3,{far:26}):null;
   ovl.querySelectorAll(".lang-chip").forEach(b=>b.addEventListener("click",toggleLang));
   ovl.querySelectorAll(".light-chip").forEach(b=>b.addEventListener("click",toggleLight));
+  ovl.querySelectorAll(".lang-chip,.light-chip").forEach(b=>b.addEventListener("pointerdown",e=>e.stopPropagation()));
   measure();
 }
 
@@ -1117,11 +1324,12 @@ let activated=false;
 const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActive:activated;
 /* ---------- post processing ---------- */
 const FinalShader={
-  uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.012},uExp:{value:1}},
+  uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.012},uExp:{value:1},uWarm:{value:new THREE.Vector3(1,1,1)}},
   vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uVig,uGrain,uExp;varying vec2 vUv;
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uVig,uGrain,uExp;uniform vec3 uWarm;varying vec2 vUv;
     float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
-    void main(){vec3 c=texture2D(tDiffuse,vUv).rgb*uExp;
+    void main(){vec3 c=texture2D(tDiffuse,vUv).rgb*uExp*uWarm;   // a warm golden grade, as in the reference renders
+     
       c=clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.,1.);
       c=pow(c,vec3(1./2.2));
       float d=distance(vUv,vec2(.5));c*=mix(1.,smoothstep(.9,.28,d),uVig);
@@ -1176,34 +1384,44 @@ function applyTheme(){
   document.documentElement.dataset.theme=dark?"dark":"light";
   GLASS.dark.value=dark?1:0;
   framesAll.forEach(drawCaption);
-  const bg=dark?"#060607":"#cdc9c3";
-  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.011;
-  MAT.floor.color=C(dark?"#070708":"#b5b1ab");MAT.floor.roughness=dark?.34:.38;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.93;
-  MAT.wall.color=C(dark?"#1b1b1f":"#c4c0ba");MAT.ceil.color=C(dark?"#08080a":"#77746f");
-  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#0e0e10");MAT.plinth.roughness=dark?.28:.55;MAT.plinth.metalness=dark?.2:0;
-  MAT.facade.color=C(dark?"#18181c":"#2a2a2f");MAT.ground.color=C(dark?"#0d0d0f":"#9d9993");
-  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?.12:.42;MAT.halo.color=C(dark?"#ffffff":"#ffc978")}
+  const bg=dark?"#0a0807":"#b9ad9e";
+  scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.0026;
+  MAT.floor.color=C(dark?"#0b0907":"#b3aea7");MAT.floor.roughness=dark?.3:.4;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.6;
+  MAT.wall.color=C(dark?"#1f1b18":"#a7a29b");MAT.ceil.color=C(dark?"#0a0908":"#3f3c38");
+  MAT.hallCyc.color=C(dark?"#1b1b1e":"#dcd8d2");MAT.plinth.color=C(dark?"#0c0c0d":"#dedad4");MAT.plinth.roughness=dark?.28:.7;MAT.plinth.metalness=dark?.2:0;
+  MAT.facade.color=C(dark?"#8a7462":"#6a5646");MAT.ground.color=C(dark?"#0d0d0f":"#3e3b38");MAT.ground.roughness=.32;
+  MAT.logo.color=C(dark?"#f1eee8":"#0a0a0b");if(MAT.halo){MAT.halo.userData.base=dark?0:.12;MAT.halo.color=C(dark?"#fff0d6":"#ffc978")}
+  // the glow planes stand in for the bloom pass on phones; with bloom on they only add a touch
+  if(MAT.wmGlow)MAT.wmGlow.userData.base=0;if(MAT.logoGlow)MAT.logoGlow.userData.base=0;   // a soft glow behind the logo and its name at night, also on phones that skip the bloom pass
   // light mode: a satin black logo with a faint warm glow, instead of flat matt black
-  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C("#000000");MAT.logo.emissiveIntensity=0;
-  if(MAT.wordmark)MAT.wordmark.color=C(dark?"#f0eee8":"#efe8da");
+  MAT.logo.roughness=dark?.32:.38;MAT.logo.metalness=dark?.08:0;MAT.logo.emissive=C(dark?"#fff3dc":"#000000");MAT.logo.emissiveIntensity=dark?.1:0;   // with the lights off the projectors light the AN logo
+  if(MAT.wordmark)MAT.wordmark.color=dark?C("#fff6e8").multiplyScalar(.78):C("#000000");   // and its name on the plinth is simply bright, no halo
   MAT.truss.color=C(dark?"#7c8087":"#4a4e55");
   // the ceiling work lights are switched off when the studio lights are on
-  MAT.space.emissiveIntensity=dark?.18:0;
-  hemi.intensity=dark?.2:.48;hemi.color=C(dark?"#cfd6e6":"#fff8ef");hemi.groundColor=C(dark?"#1a1614":"#8e8a84");
-  dir.intensity=dark?.06:.62;
+  // the white pendant lamps glow warm, as in the reference renders
+  MAT.space.emissive=C("#ffc98a");MAT.space.emissiveIntensity=dark?.75:.85;
+  hemi.intensity=dark?.24:.36;hemi.color=C(dark?"#ffe6c8":"#ffe9cc");hemi.groundColor=C(dark?"#2a1e14":"#5e4c3a");
+  dir.intensity=dark?.06:.38;dir.color=C("#fff0da");
   ALLM.forEach(m=>{const metal=m.metalness>.5;m.envMapIntensity=dark?(metal?.5:.1):(metal?1:.55)});
   scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&!ALLM.includes(o.material)&&!o.material.userData.glass)o.material.envMapIntensity=dark?.1:.55});
-  // black plinth: in light mode it barely mirrors the bright room, so its top stays black instead of grey
-  MAT.plinth.envMapIntensity=dark?.06:.12;MAT.standBlack.envMapIntensity=dark?.1:.15;
+  // the logo stands on a white plinth with its name in black
+  ALLM.forEach(m=>{if(m.userData.lowEnv!=null)m.envMapIntensity=m.userData.lowEnv});
+  MAT.plinth.envMapIntensity=dark?.06:.15;MAT.standBlack.envMapIntensity=dark?.1:.15;
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.62:1));
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
+  PLQ_GLASS.emissiveIntensity=dark?.32:.14;
+  if(MAT.banner)MAT.banner.color=C(dark?"#0c0b0a":"#f6f2ec");   // at night the ARTA STUDIO banner turns black with softly glowing white letters
+  if(MAT.bannerEdge)MAT.bannerEdge.color=C(dark?"#5a5249":"#d9d3ca");
+  if(P3.gate)P3.gate.material.color=dark?C("#ffffff").multiplyScalar(1.25):C("#ffffff");
+  if(MAT.endBoard)MAT.endBoard.color=C(dark?"#a9a59e":"#f2efe9");
+  if(MAT.endWall)MAT.endWall.color=C(dark?"#4a4744":"#a39f99");
   lightMul=dark?.95:.5;
-  if(bloom){bloom.strength=dark?.7:.04;bloom.threshold=dark?.8:.99;bloom.radius=.45}
-  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1.05:.97}
+  if(bloom){bloom.strength=dark?.7:.5;bloom.threshold=dark?.8:1.3;bloom.radius=.55}
+  if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.5;finalPass.uniforms.uExp.value=dark?1.05:.96;finalPass.uniforms.uWarm.value.set(1.05,1.0,dark?.9:.88)}
   renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
 }
@@ -1211,7 +1429,7 @@ function toggleLight(){
   const f=$("#fade");f.style.opacity=.85;
   setTimeout(()=>{dark=!dark;try{localStorage.setItem("ans-theme",dark?"dark":"light")}catch(e){}themeChoice=dark?"dark":"light";applyTheme();buildOverlays();setTimeout(()=>f.style.opacity=0,60)},reduce?0:300);
 }
-sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice){dark=e.matches;applyTheme();buildOverlays()}});
+
 
 /* ---------- camera: walk the hall, step into a studio only when asked ----------
    In the hall, scrolling walks forward and back past the studio doors. Near a studio a prompt
@@ -1220,19 +1438,26 @@ sysDark.addEventListener&&sysDark.addEventListener("change",e=>{if(!themeChoice)
 let mode="hall",p=0,pTarget=0,vel=0,drag=null,px=0,py=0,tx=0,ty=0;
 let setIdx=-1,sp=0,spTarget=0,lookYaw=0,lookPitch=0,nearIdx=-1;
 const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),curPos=new THREE.Vector3(),curLook=new THREE.Vector3();
-let PP0=-20.5,PP_END=1;
+let PP0=-20.5,PP_END=1,PP_FILM=1;
+const endPos=new THREE.Vector3(),endLook=new THREE.Vector3();
+const shortLand=()=>innerWidth/innerHeight>=.85&&innerHeight<=500;
 const portrait=()=>innerWidth/innerHeight<.85;
 function hallPose(pp,pos,look){
+  // past the Instagram film, scrolling on turns the camera to the contact card and walks up to it
+  const ek=PP_END>PP_FILM?clamp((pp-PP_FILM)/(PP_END-PP_FILM),0,1):0,ee=ek*ek*(3-2*ek);pp=Math.min(pp,PP_FILM);
   const z=.5-pp,out=clamp(-pp/18,0,1);  // outside, a touch of upward tilt so the sign over the door is in frame
   const lf=FEATS3[0]&&FEATS3[0].v===FEATURES.logoAd?FEATS3[0].base.z:-15,lk=clamp(1-Math.abs(z-(lf+3.4))/4.2,0,1),up=lk*lk*(3-2*lk);
   pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
-  const end=clamp((pp-(PP_END-7))/7,0,1);
+  const end=clamp((pp-(PP_FILM-7))/7,0,1);
   look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
+  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?5.4:5.4;
+    endPos.set(G.position.x+Math.sin(ry)*d,G.position.y+(portrait()?.25:.1),G.position.z+Math.cos(ry)*d);endLook.copy(G.position);
+    pos.lerp(endPos,ee);look.lerp(endLook,ee)}
 }
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
   // phones start a little further back so the whole sign over the door fits the narrow screen
-  PP0=portrait()?-24.5:-20.5;PP_END=.5-(LED_Z+8);
+  PP0=portrait()?-21.5:shortLand()?-18:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
   SETS.forEach(S=>{
     const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
     S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
@@ -1290,7 +1515,7 @@ function showSetHud(S){
   $("#fprev").setAttribute("aria-label",t.prevFilm);$("#fnext").setAttribute("aria-label",t.nextFilm);lastCount="";hintOn=null;
 }
 $("#back").onclick=exitSet;$("#sprev").onclick=()=>switchSet(-1);$("#snext").onclick=()=>switchSet(1);
-$("#enterBtn").onclick=()=>{if(nearIdx>=0)enterSet(nearIdx)};
+["#enterBtn","#enterBtn2"].forEach(id=>{$(id).onclick=e=>{const i=e.currentTarget.dataset.set;if(i!=="")enterSet(+i)}});
 // look up / down buttons on touch screens (hold to keep tilting, double-tap the screen area between to reset)
 for(const [id,d] of [["#lookUp",1],["#lookDown",-1]]){let iv=null;const b=$(id);if(!b)continue;
   const stop=()=>{clearInterval(iv);iv=null};
@@ -1368,20 +1593,30 @@ function updatePlayHint(){
   let on=false;const cp=camera.position;
   if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
     if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<3.3&&Math.abs(spTarget-sp)<.6}}
-    else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
+    else for(const F of FEATS3){if(!F.G.visible||F.k<.8||(F.v===FEATURES.instagramAd&&p>PP_FILM+1.5))continue;   // not once the camera has turned to the contact card
+      F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
   }
   if(on!==hintOn){hintOn=on;const h=$("#playHint");h.querySelector("span").textContent=T()[coarse?"playTap":"playClick"];h.classList.toggle("show",on)}
 }
 
 // near a studio door in the hall, offer to step inside
 function updateNear(){
-  let n=-1;
+  // studios stand in facing pairs, so near a pair both doors get a button: the left one on the left, the right one on the right
+  let near=[];
   // no studio button once you stand in front of the Instagram film at the end, so it never covers the film
-  if(mode==="hall"&&!jumping&&curPos.z>LED_Z+9.5){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best){best=d;n=S.i}})}
-  if(n!==nearIdx){nearIdx=n;const b=$("#enterBtn");
-    if(n>=0){const S=SETS[n],fa=lang==="fa",arrow=S.side<0?"←":"→";b.innerHTML=fa?`<span>${arrow}</span> ورود به ${S.s.name.fa}`:`<span>${arrow}</span> Enter ${S.s.name.en}`;b.style.setProperty("--b",S.s.c.acc);b.classList.add("show")}
-    else b.classList.remove("show")}
+  if(mode==="hall"&&!jumping&&curPos.z>LED_Z+9.5){const z=curPos.z;let best=99;SETS.forEach(S=>{const d=Math.abs(z-(S.z+1.2));if(d<4.2&&d<best-.01)best=d});
+    near=SETS.filter(S=>Math.abs(Math.abs(z-(S.z+1.2))-best)<.01&&best<4.2).sort((a,b)=>a.side-b.side)}
+  const key=near.map(S=>S.i).join(",");
+  if(key!==nearKey){nearKey=key;nearIdx=near.length?near[0].i:-1;
+    const fa=lang==="fa",btns=[$("#enterBtn"),$("#enterBtn2")];
+    btns.forEach((b,k)=>{const S=near[k];b.classList.remove("pair-l","pair-r");
+      if(!S){b.classList.remove("show");b.dataset.set="";return}
+      const arrow=S.side<0?"←":"→";b.dataset.set=S.i;const short=near.length>1&&innerWidth<640,nm=short?S.s.name[lang]:(fa?"ورود به "+S.s.name.fa:"Enter "+S.s.name.en);
+      b.innerHTML=S.side<0?`<span>${arrow}</span> ${nm}`:`${nm} <span>${arrow}</span>`;
+      b.style.setProperty("--b",S.s.c.acc);if(near.length>1)b.classList.add(k?"pair-r":"pair-l");b.classList.add("show")});
+  }
 }
+let nearKey="";
 
 /* ---------- map ---------- */
 let stops=[];
@@ -1429,7 +1664,7 @@ function applyLang(){
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
-  buildOverlays();buildMap();lastStop=-1;nearIdx=-2;applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
+  buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
@@ -1443,7 +1678,9 @@ function resize(){
 }
 addEventListener("resize",()=>{resize();clearTimeout(rzT);rzT=setTimeout(()=>{
   const portraitChanged=(lw/lh<.85)!==(innerWidth/innerHeight<.85);
-  if(portraitChanged)buildPath();
+  const was0=PP0;if(buildFacade()||portraitChanged){buildPath();
+    // standing at the entrance when the device turns: move to the new entrance spot for this screen
+    if(mode==="hall"&&(p<PP0||Math.abs(p-was0)<.8)){p=pTarget=PP0;snapCam=true}else pTarget=clamp(pTarget,PP0,PP_END)}
   if(Math.abs(innerWidth-lw)>40||portraitChanged){lw=innerWidth;lh=innerHeight;buildOverlays();buildMap();lastStop=-1}else measure();
 },180)});
 
@@ -1467,7 +1704,8 @@ function frame(now){
   // fly through the lobby logo: it melts away as the camera reaches it and comes back behind
   { const d=Math.hypot(curPos.z+6.4,curPos.x*.5),o=clamp((d-.5)/2.4,0,1);
     MAT.logo.transparent=o<1;MAT.logo.opacity=o;MAT.logo.depthWrite=o>.98;if(MAT.wordmark)MAT.wordmark.opacity=o;
-    if(MAT.halo)MAT.halo.opacity=(MAT.halo.userData.base||.5)*o; }
+    if(MAT.halo){MAT.halo.opacity=(MAT.halo.userData.base||0)*o;MAT.halo.visible=MAT.halo.opacity>.005}
+    for(const m of [MAT.wmGlow,MAT.logoGlow])if(m){m.opacity=(m.userData.base||0)*o;m.visible=m.opacity>.005} }
   updatePool();
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
