@@ -97,7 +97,7 @@ const STUDIOS = [
   {id:"snapp", theme:"dark", c:{bg:"#161A26",bg2:"#252A3C",ink:"#FFFFFF",acc:"#00D170"},logoImg:"assets/brands/snapp.svg",
    name:{en:"Snapp",fa:"اسنپ"},tag:{en:"Rides, food and everything on the go.",fa:"سفر، غذا و هر چیزی در مسیر."},
    videos:[
-     {t:{en:"Ad film",fa:"تیزر تبلیغاتی"},m:{en:"Brand film",fa:"فیلم برند"},src:"",r:"9/16"}]},
+     {t:{en:"Box loop",fa:"لوپ جعبه"},m:{en:"29s, 9:16",fa:"۲۹ ثانیه، ۹:۱۶"},src:"videos/snapp-1.mp4",poster:"videos/snapp-1.jpg",r:"9/16"}]},
   // 6. Azkivam (logo and colors from the official site)
   {id:"azkivam", theme:"light", c:{bg:"#F3F5FD",bg2:"#DCE2FA",ink:"#242B35",acc:"#364FD9"},logoImg:"assets/brands/azkivam.svg",
    name:{en:"Azkivam",fa:"از کی وام"},tag:{en:"Loans made simple, on screen.",fa:"وام ساده، روی صفحه."},
