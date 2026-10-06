@@ -319,7 +319,8 @@ function build3D(){
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
   // the main studio building: facade with a big doorway, the ARTA NOORI sign above it, and the forecourt outside
   MAT.facade=std("#4a3a2e",.7,.05,{map:slatTex});MAT.ground=std("#0d0d0f",.6,0,{map:concreteTex});
-  const DW=9,DH=4.6;
+  // on a phone the whole entrance is built to the screen: a narrower door, so the glass plaques fit on the wall beside it
+  const PORT=portrait(),DW=PORT?2.4:9,DH=PORT?3.2:4.6,SS=PORT?.85:1;
   for(const sd of [-1,1])scene.add(box((36-DW)/2,13,.5,MAT.facade,sd*(DW/2+(36-DW)/4),6.5,10));
   scene.add(box(DW,13-DH,.5,MAT.facade,0,DH+(13-DH)/2,10));
   const trim=emissive("#f2c27a",2.4);
@@ -335,7 +336,7 @@ function build3D(){
     fit("ARTA NOORI",700,190,.09);g.fillText("ARTA NOORI",x,H*.42);
     fit("STUDIO",500,92,.43);g.fillStyle="#e9c98d";g.fillText("STUDIO",x+6,H*.76);
   });
-  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4,2.02),new THREE.MeshBasicMaterial({map:fsTex,transparent:true}));fs.position.set(0,DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
+  const fs=new THREE.Mesh(new THREE.PlaneGeometry(7.4*SS,2.02*SS),new THREE.MeshBasicMaterial({map:fsTex,transparent:true}));fs.position.set(0,PORT?7.45:DH+1.42,10.27);fs.userData.keep=true;scene.add(fs);
   { const im=new Image();im.onload=()=>{FACADE_LOGO=im;fsTex.userData.redraw()};im.src="assets/logo-white.png"; }
   // palms in black planters either side of the door
   for(const sd of [-1,1]){const pl=palm(1.45,sd+3);pl.position.set(sd*(DW/2+4.1),0,10.75);scene.add(pl)}
@@ -1117,7 +1118,7 @@ function iconImg(k){
 }
 
 /* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
-const PLQ=[],PLQ_PILLARS=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
+const PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
 const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.28,metalness:0,clearcoat:1,clearcoatRoughness:.06,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:1});
 PLQ_GLASS.userData.glass=true;
 function buildPlaques(){
@@ -1159,9 +1160,6 @@ function buildPlaques(){
     draw();G.traverse(o=>{o.userData.keep=true});scene.add(G);
     PLQ.push({G,face,draw,it,link:it.ct&&it.ct.link,act:it.act,sc:1});
   });
-  // on a phone the door fills the screen, so the plaques are bolted to two slatted pillars in front of it instead
-  for(const sd of [-1,1]){const pi=box(1.75,2.6,.4,MAT.facade,sd*.9,1.3,19.1);pi.userData.keep=true;scene.add(pi);PLQ_PILLARS.push(pi);
-    const cap2=box(1.75,.04,.42,MAT.doorLed,sd*.9,2.62,19.1);cap2.userData.keep=true;scene.add(cap2);PLQ_PILLARS.push(cap2)}
   layoutPlaques();
 }
 function layoutPlaques(){
@@ -1171,9 +1169,9 @@ function layoutPlaques(){
     // flat on the slatted wall either side of the door, held a few centimetres off it by four screws
     L.forEach((o,i)=>put(o,-6.15,3.0-i*.92,10.33,1));R.forEach((o,i)=>put(o,6.15,3.0-i*.92,10.33,1));
   }else{
-    L.forEach((o,i)=>put(o,-.9,2.22-i*.54,19.36,.62));R.forEach((o,i)=>put(o,.9,2.22-i*.54,19.36,.62));
+    // a phone screen is tall and narrow: the plaques hang in two columns on the wall between the door and the sign
+    const sc=1.25;L.forEach((o,i)=>put(o,i>=R.length?0:-1.55,5.95-i*.98,10.33,sc));R.forEach((o,i)=>put(o,1.55,5.95-i*.98,10.33,sc));
   }
-  PLQ_PILLARS.forEach(m=>m.visible=P);
   PLQ.forEach(o=>{if(o.hit){o.hit.meters=PLQ_W*o.sc}});
 }
 function pickPlaque(x,y){
@@ -1284,7 +1282,7 @@ function buildOverlays(){
   const lt=chip("light-chip",{c:"mono",h:dark?ICON.sun:ICON.moon},t.lightsLabel,dark?t.toLight:t.toDark,false);
   const li=CONTACT.linkedin&&CONTACT.linkedin.link?chip("",{c:"li",h:ICON.li},t.li,CONTACT.linkedin.display,true,CONTACT.linkedin.link):"";
   // the contact and setting chips are glass plaques on the facade now (buildPlaques)
-  if(!P)anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // on a phone the plaque pillars stand where it would be
+  if(!P)anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // a phone has no room for it beside the plaques
   // invisible real links and buttons over the glass plaques, so a tap or click always opens them
   PLQ.forEach(o=>{const lbl=o.act==="lang"?t.otherSmall:o.act==="light"?t.lightsLabel:t[o.it.k];
     const h=o.link?`<a class="plq-hit" href="${o.link}" target="_blank" rel="noopener" aria-label="${lbl}"></a>`:`<button class="plq-hit ${o.act}-chip" aria-label="${lbl}"></button>`;
@@ -1434,7 +1432,7 @@ function hallPose(pp,pos,look){
 const pose=fn=>{const a=V(0,0,0),b=V(0,0,0);fn(a,b);return {pos:a,look:b}};
 function buildPath(){
   // phones start a little further back so the whole sign over the door fits the narrow screen
-  PP0=portrait()?-25.5:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
+  PP0=portrait()?-21.5:-20.5;PP_FILM=.5-(LED_Z+8);PP_END=PP_FILM+6;
   SETS.forEach(S=>{
     const path=[];let u=0;const key=(a,b,len,ez=true)=>{path.push({u0:u,u1:u+len,a,b,ez});u+=len};
     S.ppA=.5-(S.z+3.2);S.ppD=.5-(S.z-2.6);
@@ -1667,8 +1665,6 @@ function frame(now){
   // gentle look-around: follows the mouse, or the visitor's swipes and look buttons on touch screens
   camera.rotateY(-tx*.14+lookYaw);camera.rotateX(ty*.06+lookPitch);
   updateNear();
-  // phone: the plaque pillars step out of the way once the camera has walked past them
-  if(PLQ.length&&portrait()){const past=curPos.z<20.4;PLQ.forEach(o=>{o.G.visible=!past;if(o.hit)o.hit.dead=past});PLQ_PILLARS.forEach(m=>m.visible=!past)}
   // fly through the lobby logo: it melts away as the camera reaches it and comes back behind
   { const d=Math.hypot(curPos.z+6.4,curPos.x*.5),o=clamp((d-.5)/2.4,0,1);
     MAT.logo.transparent=o<1;MAT.logo.opacity=o;MAT.logo.depthWrite=o>.98;if(MAT.wordmark)MAT.wordmark.opacity=o;
