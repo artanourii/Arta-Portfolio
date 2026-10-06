@@ -469,7 +469,11 @@ function drawBrand(tex){
     const font=f=>`600 ${f}px Unbounded, "Helvetica Neue", Arial, sans-serif`;
     g.font=font(fs);if("letterSpacing" in g)g.letterSpacing=(fs*.16)+"px";
     while(g.measureText(name).width>W*.94&&fs>20){fs-=4;g.font=font(fs);if("letterSpacing" in g)g.letterSpacing=(fs*.16)+"px"}
-    g.fillText(name,W/2,H/2);
+    // a studio can show what it does under its name (Dream Salon: brow fibrosis, lip shading, microblading)
+    const sub=s.showTag&&s.tag?s.tag[lang]:"";
+    g.fillText(name,W/2,sub?H*.38:H/2);
+    if(sub){if("letterSpacing" in g)g.letterSpacing="0px";if("direction" in g)g.direction=lang==="fa"?"rtl":"ltr";let f2=H*.13;const f2f=()=>`500 ${f2}px "Vazirmatn", sans-serif`;g.font=f2f();
+      while(g.measureText(sub).width>W*.94&&f2>14){f2-=2;g.font=f2f()}g.globalAlpha=.85;g.fillText(sub,W/2,H*.76);g.globalAlpha=1;if("direction" in g)g.direction="ltr"}
   }
   tex.needsUpdate=true;
 }
@@ -938,7 +942,7 @@ function pickFeatureFilm(x,y){
   for(const F of FEATS3){if(!F.G.visible)continue;const h=ray.intersectObjects([F.screen,F.cap],false)[0];if(h&&h.distance<F.range)return F}
   return null;
 }
-function refreshCaptions(){framesAll.forEach(drawCaption);signTex.forEach(t=>t.userData.redraw())}
+function refreshCaptions(){framesAll.forEach(drawCaption);brandTex.forEach(t=>{if(t.userData.s.showTag)drawBrand(t)});signTex.forEach(t=>t.userData.redraw())}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refreshCaptions);
 // tap / click on a frame
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();

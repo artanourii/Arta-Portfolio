@@ -159,8 +159,8 @@ const STUDIOS = [
      {t:{en:"Makeup transition",fa:"ترنزیشن میکاپ"},m:{en:"Transition video, 9:16",fa:"ویدیوی ترنزیشن، ۹:۱۶"},src:"",r:"9/16"},
      {t:{en:"Beauty teaser",fa:"تیزر بیوتی"},m:{en:"Teaser, 9:16",fa:"تیزر، ۹:۱۶"},src:"",r:"9/16"}]},
   // 15. Dream Salon (colors approximate; films to come)
-  {id:"dreamsalon", theme:"light", c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},
-   name:{en:"Dream Salon",fa:"دریم سالن"},tag:{en:"Hair, colour and transformations",fa:"مو، رنگ و تغییر چهره"},
+  {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},
+   name:{en:"Dream Salon",fa:"دریم سالن"},tag:{en:"Brow fibrosis, lip shading and microblading",fa:"فیبروز ابرو، شیدینگ لب و میکروبلیدینگ"},
    videos:[
      {t:{en:"Salon film",fa:"فیلم سالن"},m:{en:"Coming soon, 9:16",fa:"به‌زودی، ۹:۱۶"},src:"",r:"9/16"}]},
   // 16. My Tiktok Video
