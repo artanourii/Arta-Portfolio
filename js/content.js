@@ -140,7 +140,11 @@ const STUDIOS = [
   {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
    name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed.",fa:"موتور، قدرت و سرعت."},
    videos:[
-     {t:{en:"Yamaha R25 illusion",fa:"ایلوژن یاماها R25"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"videos/niromotor-1.mp4",poster:"videos/niromotor-1.jpg",r:"9/16"}]},
+     {t:{en:"Yamaha R25 illusion",fa:"ایلوژن یاماها R25"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"videos/niromotor-1.mp4",poster:"videos/niromotor-1.jpg",r:"9/16"},
+     {t:{en:"Wi-Fi board illusion",fa:"ایلوژن تابلوی وای‌فای"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"videos/niromotor-2.mp4",poster:"videos/niromotor-2.jpg",r:"9/16"},
+     {t:{en:"Flat rider illusion",fa:"ایلوژن موتورسوار"},m:{en:"11s, 9:16",fa:"۱۱ ثانیه، ۹:۱۶"},src:"videos/niromotor-3.mp4",poster:"videos/niromotor-3.jpg",r:"9/16"},
+     {t:{en:"Giant and tiny",fa:"غول و کوچولو"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"videos/niromotor-4.mp4",poster:"videos/niromotor-4.jpg",r:"9/16"},
+     {t:{en:"Showroom",fa:"نمایشگاه نیرو موتور"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"videos/niromotor-5.mp4",poster:"videos/niromotor-5.jpg",r:"9/16"}]},
   // 13. IT Mall (logo and colors from the official site)
   {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
    name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot.",fa:"هر گجت، یک نمای قهرمان."},
