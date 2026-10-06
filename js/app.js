@@ -594,8 +594,8 @@ function buildSet(s,i){
   let lay,DZ;
   if(!many){
     DZ=n>1?Math.min(2.6,9.1/(n-1)):0;
-    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?-(vert?1.05:1.4):(j%2===0?-1:1)*(vert?.85:1.25);
-      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:Z0-j*DZ,sc:1}});
+    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?0:(j%2===0?-1:1)*(vert?.85:1.25);
+      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:n===1?-.3:Z0-j*DZ,sc:1}});   // a single film floats in the middle of the room
   }else{
     // rows across the whole room (the middle too), each frame at its own height; the camera stops close in
     // front of every film, so each one can be seen properly and tapped
@@ -690,7 +690,7 @@ function drawCaption(F){
   // long titles shrink to fit the frame instead of being cut off
   const fit=(txt,wt,px)=>{g.font=`${wt} ${px}px ${fam}`;const m=g.measureText(txt).width,max=W-68;if(m>max)g.font=`${wt} ${px*max/m}px ${fam}`};
   g.fillStyle=dark?"#ffffff":"#121014";fit(v.t[lang],700,H*.36);g.fillText(v.t[lang],x,H*.5);
-  g.fillStyle=dark?"rgba(255,255,255,.85)":"#24212a";fit(v.m[lang],500,H*.25);g.fillText(v.m[lang],x,H*.86);
+  g.fillStyle=dark?"rgba(255,255,255,.85)":"#24212a";fit(v.m[lang],650,H*.26);g.fillText(v.m[lang],x,H*.86);
   F.capTex.needsUpdate=true;
 }
 const framesAll=[];
@@ -713,12 +713,12 @@ function makeFrame(s,v,i){
   // screen (poster until the film is ready)
   F.posterCv=document.createElement("canvas");F.posterCv.width=vert?360:640;F.posterCv.height=vert?640:360;
   F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;drawPoster(F);
-  F.screenMat=new THREE.MeshBasicMaterial({map:F.posterTex});
+  F.screenMat=new THREE.MeshBasicMaterial({map:F.posterTex,fog:false});
   const scr=new THREE.Mesh(new THREE.PlaneGeometry(w,h),F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
   // caption plate under the screen
   F.capCv=document.createElement("canvas");F.capCv.width=1024;F.capCv.height=Math.round(1024*CAP_H/w);
   F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
-  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false}));
+  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false,fog:false}));   // no haze on the caption: it stays crisp
   cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
@@ -1202,7 +1202,7 @@ function applyTheme(){
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   lightMul=dark?.95:.5;
-  if(bloom){bloom.strength=dark?.7:.15;bloom.threshold=dark?.8:.96;bloom.radius=.45}
+  if(bloom){bloom.strength=dark?.7:.04;bloom.threshold=dark?.8:.99;bloom.radius=.45}
   if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.42;finalPass.uniforms.uExp.value=dark?1.05:.97}
   renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
@@ -1239,7 +1239,7 @@ function buildPath(){
     const P=portrait(),n=S.lay.length;
     // standing across the aisle at eye level, looking at the door and its name board
     const Door=pose((a,b)=>{a.set(-S.side*(P?2.6:3.4),1.65,S.z);b.set(S.side*7.2,P?2.45:2.25,S.z)});
-    const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),1.5,L.z)))}));
+    const E=S.lay.map(L=>pose((a,b)=>{const dist=L.vert?(P?3.1:2.75):(P?3.4:2.3);a.copy(S.W(V(L.x*(P?.35:0),1.6,L.z+dist)));b.copy(S.W(V(L.x*(P?1:.6),P?1.5:1.43,L.z)))}));
     key(Door,Door,.6);S.u={in:u};
     if(n>4){
       // many films: the camera stops close in front of each one in turn (row by row, snaking left and right)
@@ -1367,7 +1367,7 @@ let hintOn=false;
 function updatePlayHint(){
   let on=false;const cp=camera.position;
   if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
-    if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<2.6&&Math.abs(spTarget-sp)<.6}}
+    if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<3.3&&Math.abs(spTarget-sp)<.6}}
     else for(const F of FEATS3){if(!F.G.visible||F.k<.8)continue;F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
   }
   if(on!==hintOn){hintOn=on;const h=$("#playHint");h.querySelector("span").textContent=T()[coarse?"playTap":"playClick"];h.classList.toggle("show",on)}
