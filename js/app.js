@@ -209,8 +209,8 @@ function ledPanel(){
   return g;
 }
 /* a potted palm in a black square planter (one shared frond shape, rotated) */
-const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.32,.72,1,6);g.translate(0,.36,0);const p=g.attributes.position;
-  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.5*y*y)}g.computeVertexNormals();return g})();
+const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.3,.52,1,6);g.translate(0,.26,0);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.55*y*y)}g.computeVertexNormals();return g})();
 let FROND_MAT=null;
 let PALM_UP=null,PALM_LED=null;
 function palm(h=1.25,seed=1){
@@ -221,7 +221,7 @@ function palm(h=1.25,seed=1){
   if(!PALM_UP){PALM_UP=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc77a"),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});PALM_LED=emissive("#ffd49a",3)}
   for(const ry of [0,Math.PI/2]){const u=new THREE.Mesh(new THREE.PlaneGeometry(1.1,h*1.5),PALM_UP);u.position.set(0,.62+h*.75,0);u.rotation.y=ry+.4;u.userData.keep=true;g.add(u)}
   for(let s2=0;s2<3;s2++){
-    const a=s2*2.1+r(s2),top=V(Math.cos(a)*.12,.6+h*(.55+r(s2+5)*.35),Math.sin(a)*.12);
+    const a=s2*2.1+r(s2),top=V(Math.cos(a)*.12,.6+h*(.42+r(s2+5)*.25),Math.sin(a)*.12);
     g.add(stick(V(0,.6,0),top,.025,MAT.trunk));
     const n=9;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
       f.rotation.order="YXZ";f.rotation.y=k/n*Math.PI*2+a;f.rotation.x=-(.55+r(k+s2*7)*.5);f.scale.setScalar(.75+r(k*3+s2)*.45);g.add(f)}
@@ -407,10 +407,10 @@ function build3D(){
   { MAT.endWall=std("#a39f99",.85,0,{map:concTex});
     const ew=mesh(new THREE.PlaneGeometry(36,13),MAT.endWall,false);ew.position.set(0,6.5,LED_Z-1.2);scene.add(ew);
     const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffcf94"),transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false});
-    for(const x of [-13,-9,-5.2,5.2,9,13]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.2,4.6),wm);f.position.set(x,4.9,LED_Z-1.18);f.userData.keep=true;scene.add(f);
+    for(const x of [-10.6,-6.6,-2.35,2.35,6.6,10.6]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.2,4.6),wm);f.position.set(x,4.9,LED_Z-1.18);f.userData.keep=true;scene.add(f);
       const d=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.6),wm);d.scale.y=-1;d.position.set(x,1.4,LED_Z-1.18);d.material.side=THREE.DoubleSide;d.userData.keep=true;scene.add(d);
       scene.add(box(.16,.1,.1,MAT.metal,x,2.68,LED_Z-1.14));scene.add(box(.1,.02,.06,emissive("#ffd49a",3),x,2.62,LED_Z-1.12))}
-    for(const [x,z,hh,sd] of [[-6.4,-.5,1.7,41],[-4.6,-.2,1.05,42],[-2.6,-.6,.8,43],[1.55,-.6,.75,44],[6.6,-.3,1.5,45],[8.3,-.5,1.1,46],[-8.6,-.3,1.3,47]]){
+    for(const [x,z,hh,sd] of [[-2.35,-.55,.8,41],[2.35,-.55,.8,41],[-6.55,-.45,1.35,42],[6.55,-.45,1.35,42],[-8.7,-.5,1.05,43],[8.7,-.5,1.05,43]]){
       const pl=palm(hh,sd);pl.position.set(x,0,LED_Z+z);scene.add(pl)} }
   // the Instagram film floats here in its own frame (buildFeatureFilms)
   slot(V(0,7.6,LED_Z-3),V(0,0,LED_Z-1),"#ffe3c4",1.1,.45,.7);
@@ -874,7 +874,7 @@ function layoutFeatureFilms(){
   const P=portrait();
   for(const F of FEATS3){
     if(F.v===FEATURES.logoAd){F.base.set(0,2.15,P?-12.6:-15);F.sc=P?1:1.3}
-    else{F.base.set(0,P?3.9:3.55,LED_Z);F.sc=P?1.8:2.35}
+    else{F.base.set(0,P?4.75:3.55,LED_Z);F.sc=P?1.6:2.35}
     F.y0=F.base.y;F.G.position.copy(F.base);F.G.scale.setScalar(F.sc);
   }
 }
@@ -1094,8 +1094,6 @@ function layoutPanels3D(){
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
-  if(P3.end){if(P){P3.end.G.position.set(0,.95,LED_Z+1.4);P3.end.G.rotation.y=0;P3.end.G.scale.setScalar(1.22)}
-    else{P3.end.G.position.set(3.6,1.8,LED_Z+.6);P3.end.G.rotation.y=-.32;P3.end.G.scale.setScalar(1.5)}}
 }
 /* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
    WhatsApp / Instagram / LinkedIn buttons drawn on it */
@@ -1103,7 +1101,7 @@ const ICON_IMG={};
 function iconImg(k){
   if(ICON_IMG[k])return ICON_IMG[k];const im=new Image();ICON_IMG[k]=im;
   let svg=ICON[k].replace(/currentColor/g,"#ffffff");if(!/xmlns=/.test(svg))svg=svg.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ');
-  im.onload=()=>{if(P3.end)P3.end.tex.userData.redraw();redrawPlaques()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
+  im.onload=()=>{redrawPlaques()};im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);return im;
 }
 
 
@@ -1132,20 +1130,25 @@ function buildFacade(){
   return true;
 }
 /* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
-const PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
+const END_FOCUS=new THREE.Object3D(),PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
 const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.28,metalness:0,clearcoat:1,clearcoatRoughness:.06,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:1});
 PLQ_GLASS.userData.glass=true;
 function buildPlaques(){
   const items=[{k:"wa",cols:["#1FA855"],ct:CONTACT.whatsapp},{k:"ig",cols:["#F5B041","#D6336C","#7B3FE4"],ct:CONTACT.instagram}];
   if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push({k:"li",cols:["#0A66C2"],ct:CONTACT.linkedin});
   items.push({k:"lang",cols:["#141210"],act:"lang",right:true},{k:"light",cols:["#141210"],act:"light",right:true});
-  const W=PLQ_W,H=PLQ_H,cvW=1080,cvH=324,D=.06;
+  // the end of the hall: the same glass plaques on the concrete wall, contacts on one side of the Instagram film and
+  // a matching plaque with the invitation on the other, so the wall is symmetric
+  items.push({k:"head",cols:[],end:true,W:PLQ_W,H:PLQ_H*3+.26});
+  items.filter(it=>it.ct).forEach(it=>items.push(Object.assign({},it,{end:true})));
+  const D=.06,GEO={};
   // a slab of frosted glass with real thickness, a polished bright edge, four chrome standoff screws and a soft shadow on the wall
-  const geo=new THREE.ExtrudeGeometry(roundRect(W,H,.07),{depth:D,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:8});
-  const rimS=roundRect(W+.026,H+.026,.082);rimS.holes.push(roundRect(W-.012,H-.012,.064));const rimG=new THREE.ShapeGeometry(rimS,8);
+  const geos=(W,H)=>GEO[W+"x"+H]||(GEO[W+"x"+H]=(()=>{const rimS=roundRect(W+.026,H+.026,.082);rimS.holes.push(roundRect(W-.012,H-.012,.064));
+    return {slab:new THREE.ExtrudeGeometry(roundRect(W,H,.07),{depth:D,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:8}),rim:new THREE.ShapeGeometry(rimS,8)}})());
   const bolt=new THREE.CylinderGeometry(.034,.034,.11,20);bolt.rotateX(Math.PI/2);const cap=new THREE.CylinderGeometry(.04,.04,.018,20);cap.rotateX(Math.PI/2);
   if(!PLQ_SHADOW){PLQ_SHADOW=new THREE.MeshBasicMaterial({map:canvasTex(256,96,(g,w,h)=>{g.filter="blur(10px)";rr(g,22,22,w-44,h-44,14);g.fillStyle="rgba(0,0,0,.85)";g.fill()}),transparent:true,depthWrite:false,opacity:.55});PLQ_RIM=emissive("#fff1d8",.9)}
   items.forEach(it=>{
+    const W=it.W||PLQ_W,H=it.H||PLQ_H,cvW=1080,cvH=Math.round(1080*H/W),{slab:geo,rim:rimG}=geos(W,H);
     const G=new THREE.Group();
     const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);G.add(sh);
     const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;G.add(slab);
@@ -1159,6 +1162,13 @@ function buildPlaques(){
       const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(255,240,215,.62)");gr.addColorStop(.45,"rgba(240,215,180,.38)");gr.addColorStop(1,"rgba(215,185,145,.3)");
       rr(g,0,0,cvW,cvH,56);g.fillStyle=gr;g.fill();
       const sh2=g.createLinearGradient(0,0,0,cvH*.5);sh2.addColorStop(0,"rgba(255,255,255,.35)");sh2.addColorStop(1,"rgba(255,255,255,0)");rr(g,0,0,cvW,cvH*.5,56);g.fillStyle=sh2;g.fill();
+      if(it.k==="head"){   // the invitation: big words centred on the glass
+        if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle="#15100b";
+        const fT=fa?`800 128px "Vazirmatn", sans-serif`:`800 112px "Unbounded", "Vazirmatn", sans-serif`;g.font=fT;
+        const words=t.endH.split(" "),lines=[];let cur="";for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>cvW-150&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
+        const lh=fa?160:142,y0=cvH/2-(lines.length*lh)/2-30;lines.forEach((l,i)=>g.fillText(l,cvW/2,y0+lh*.8+i*lh));
+        g.fillStyle="#2b231c";g.font=`600 60px "Vazirmatn", sans-serif`;g.fillText(t.endSub,cvW/2,y0+lines.length*lh+84);
+        tex.needsUpdate=true;return}
       const bs=150,bx=fa?cvW-80-bs:80,by=(cvH-bs)/2;rr(g,bx,by,bs,bs,38);
       if(it.cols.length>1){const ig=g.createLinearGradient(bx,by+bs,bx+bs,by);it.cols.forEach((c,i)=>ig.addColorStop(i/(it.cols.length-1),c));g.fillStyle=ig}else g.fillStyle=it.cols[0];g.fill();
       if(it.k==="lang"){g.fillStyle="#fff";g.font=`800 64px ${fa?'"Unbounded", sans-serif':'"Vazirmatn", sans-serif'}`;g.textAlign="center";g.textBaseline="middle";g.fillText(fa?"EN":"فا",bx+bs/2,by+bs/2+4)}
@@ -1172,12 +1182,17 @@ function buildPlaques(){
       if(it.act){const cx=fa?78:cvW-88;g.strokeStyle="#15100b";g.lineWidth=9;g.lineCap="round";g.lineJoin="round";g.beginPath();const d=fa?-1:1;g.moveTo(cx-d*14,cvH/2-28);g.lineTo(cx+d*13,cvH/2);g.lineTo(cx-d*14,cvH/2+28);g.stroke()}
       tex.needsUpdate=true};
     draw();G.traverse(o=>{o.userData.keep=true});scene.add(G);
-    PLQ.push({G,face,draw,it,link:it.ct&&it.ct.link,act:it.act,sc:1});
+    PLQ.push({G,face,draw,it,link:it.ct&&it.ct.link,act:it.act,sc:1,W,H});
   });
   layoutPlaques();
 }
 function layoutPlaques(){
-  const P=portrait(),L=PLQ.filter(o=>!o.it.right),R=PLQ.filter(o=>o.it.right);
+  const P=portrait(),door=PLQ.filter(o=>!o.it.end),L=door.filter(o=>!o.it.right),R=door.filter(o=>o.it.right);
+  // end wall: invitation left of the film, the three contacts right of it, mirrored; on a phone the contacts sit under the film
+  { const ez=LED_Z-1.2+.075,head=PLQ.find(o=>o.it.k==="head"),ec=PLQ.filter(o=>o.it.end&&o.it.ct);
+    if(!P){head.G.visible=true;head.G.position.set(-4.3,2.55,ez);head.sc=1;head.G.scale.setScalar(1);ec.forEach((o,i)=>{o.G.position.set(4.3,3.4-i*.85,ez);o.sc=1;o.G.scale.setScalar(1)})}
+    else{head.G.visible=false;ec.forEach((o,i)=>{o.G.position.set(0,2.15-i*.6,ez);o.sc=.72;o.G.scale.setScalar(.72)})}
+    END_FOCUS.position.set(P?0:4.3,P?1.55:2.55,ez);END_FOCUS.rotation.set(0,0,0); }
   const put=(o,x,y,z,sc)=>{o.G.position.set(x,y,z);o.sc=sc;o.G.scale.setScalar(sc)};
   if(!P&&shortLand()){
     // phone held sideways: a smaller door, the plaques close beside it
@@ -1189,58 +1204,17 @@ function layoutPlaques(){
     // a phone screen is tall and narrow: the plaques hang in two columns on the wall between the door and the sign
     const sc=1.25;L.forEach((o,i)=>put(o,i>=R.length?0:-1.55,5.95-i*.98,10.33,sc));R.forEach((o,i)=>put(o,1.55,5.95-i*.98,10.33,sc));
   }
-  PLQ.forEach(o=>{if(o.hit){o.hit.meters=PLQ_W*o.sc}});
+  PLQ.forEach(o=>{if(o.hit){o.hit.meters=o.W*o.sc;o.hit.dead=!o.G.visible}});
 }
 function pickPlaque(x,y){
   if(mode!=="hall"||!PLQ.length)return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
   const h=ray.intersectObjects(PLQ.map(o=>o.face),false)[0];if(!h||h.distance>30)return null;return PLQ.find(o=>o.face===h.object)||null;
 }
 function redrawPlaques(){PLQ.forEach(o=>o.draw())}
-function buildEndPanel(){
-  const items=[["wa",CONTACT.whatsapp,["#1FA855"]],["ig",CONTACT.instagram,["#F5B041","#D6336C","#7B3FE4"]]];
-  if(CONTACT.linkedin&&CONTACT.linkedin.link)items.push(["li",CONTACT.linkedin,["#0A66C2"]]);
-  const rects=[];
-  const LP=liquidPanel((g,measure)=>{
-    const t=T(),fa=lang==="fa",c={t:"#121014",m:"#3a3640"},pad=58,cw=470,chH=108,gap=22,W=pad*2+cw*2+gap;
-    const fT=fa?`800 56px "Vazirmatn", sans-serif`:`800 48px "Unbounded", "Vazirmatn", sans-serif`;
-    g.font=fT;const words=t.endH.split(" "),lines=[];let cur="";
-    for(const w of words){const tr=cur?cur+" "+w:w;if(g.measureText(tr).width>W-pad*2&&cur){lines.push(cur);cur=w}else cur=tr}if(cur)lines.push(cur);
-    const lh=fa?74:64,rowsN=Math.ceil(items.length/2),H=pad*2+lines.length*lh+34+rowsN*chH+(rowsN-1)*gap;
-    if(measure)return {w:W,h:H};
-    if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";textShadow(g,true);
-    g.fillStyle=c.t;g.font=fT;lines.forEach((l,k)=>g.fillText(l,W/2,pad+lh*.8+k*lh));
-    textShadow(g,false);rects.length=0;
-    let y=pad+lines.length*lh+34;
-    items.forEach(([k,ct,cols],idx)=>{
-      const row=Math.floor(idx/2),inRow=Math.min(2,items.length-row*2),col=idx%2;
-      const rowW=inRow*cw+(inRow-1)*gap,x0=(W-rowW)/2+(fa?(inRow-1-col):col)*(cw+gap),yy=y+row*(chH+gap);
-      rr(g,x0,yy,cw,chH,30);g.fillStyle="rgba(0,0,0,0)";g.fill();
-      
-      const bs=74,bx=fa?x0+cw-17-bs:x0+17,by=yy+(chH-bs)/2;rr(g,bx,by,bs,bs,22);
-      if(cols.length>1){const gr=g.createLinearGradient(bx,by,bx+bs,by+bs);cols.forEach((cc,i)=>gr.addColorStop(i/(cols.length-1),cc));g.fillStyle=gr}else g.fillStyle=cols[0];g.fill();
-      const im=iconImg(k);if(im.complete&&im.naturalWidth)g.drawImage(im,bx+bs*.22,by+bs*.22,bs*.56,bs*.56);
-      const tx=fa?bx-20:bx+bs+20;g.textAlign=fa?"right":"left";
-      g.fillStyle=c.m;g.font=`500 24px "Vazirmatn", sans-serif`;g.fillText(t[k],tx,yy+44);
-      let f=31;g.font=`700 ${f}px "Vazirmatn", sans-serif`;while(g.measureText(ct.display).width>cw-bs-60&&f>18){f-=2;g.font=`700 ${f}px "Vazirmatn", sans-serif`}
-      g.fillStyle=c.t;if("direction" in g)g.direction="ltr";g.fillText(ct.display,tx,yy+84);if("direction" in g)g.direction=fa?"rtl":"ltr";
-      rects.push({x:x0,y:yy,w:cw,h:chH,link:ct.link});
-    });
-    return {w:W,h:H};
-  });
-  // the card is printed on a white light box, not glass
-  const cardTex=LP.face.material.uniforms.tText.value;LP.face.material=new THREE.MeshBasicMaterial({map:cardTex,transparent:true,depthWrite:false,toneMapped:false,fog:false});LP.face.renderOrder=3;
-  LP.redraw();scene.add(LP.G);
-  // the card is a white light box on a slim black stand, as in the reference render
-  { const bx=new THREE.Box3().setFromObject(LP.face),sz=bx.getSize(V(0,0,0));
-    const board=new THREE.Mesh(new THREE.PlaneGeometry(sz.x+.08,sz.y+.08),(MAT.endBoard=new THREE.MeshBasicMaterial({color:C("#f7f5f1"),toneMapped:false})));board.position.z=-.035;LP.G.add(board);
-    const fr=new THREE.Mesh(new THREE.BoxGeometry(sz.x+.14,sz.y+.14,.05),MAT.standBlack);fr.position.z=-.07;LP.G.add(fr);
-    for(const sx of [-1,1]){const lg=new THREE.Mesh(new THREE.BoxGeometry(.035,4,.035),MAT.standBlack);lg.position.set(sx*(sz.x/2-.1),-sz.y/2-2,-.07);LP.G.add(lg)}
-    LP.G.traverse(o=>{o.userData.keep=true});P3.endH=sz.y; }
-  P3.end={G:LP.G,face:LP.face,tex:LP.tex,rects,cv:cardTex.image};
-  P3.titles.push({m:LP.G,tex:LP.tex});
-}
+// the contacts at the end of the hall are glass plaques now (buildPlaques); the camera's last stop faces them
+function buildEndPanel(){P3.end={G:END_FOCUS}}
 function pickEnd(x,y){
-  if(!P3.end||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  if(!P3.end||!P3.end.face||mode!=="hall")return null;ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
   const h=ray.intersectObject(P3.end.face,false)[0];if(!h||h.distance>16||!h.uv)return null;
   const cv=P3.end.cv,px=h.uv.x*cv.width,py=(1-h.uv.y)*cv.height;
   return P3.end.rects.find(r=>px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)||null;
@@ -1301,9 +1275,9 @@ function buildOverlays(){
   // the contact and setting chips are glass plaques on the facade now (buildPlaques)
   if(!P&&!shortLand())anchor(`<div class="tagline">${t.line}</div>`,V(0,4.05,11.6),4.4,{far:24});   // a phone has no room for it beside the plaques
   // invisible real links and buttons over the glass plaques, so a tap or click always opens them
-  PLQ.forEach(o=>{const lbl=o.act==="lang"?t.otherSmall:o.act==="light"?t.lightsLabel:t[o.it.k];
+  PLQ.forEach(o=>{if(o.it.k==="head")return;const lbl=o.act==="lang"?t.otherSmall:o.act==="light"?t.lightsLabel:t[o.it.k];
     const h=o.link?`<a class="plq-hit" href="${o.link}" target="_blank" rel="noopener" aria-label="${lbl}"></a>`:`<button class="plq-hit ${o.act}-chip" aria-label="${lbl}"></button>`;
-    o.hit=anchor(h,o.G.position,PLQ_W*o.sc,{far:30,near:.6})});
+    o.hit=anchor(h,o.G.position,o.W*o.sc,{far:30,near:.6})});
   if(PLQ.length){layoutPlaques();redrawPlaques()}
   // the Arta Studio panels and the two floating titles are 3D objects now (see buildPanels3D)
   if(P3.panels.length){layoutPanels3D();redrawPanels3D()}
@@ -1443,7 +1417,7 @@ function hallPose(pp,pos,look){
   pos.set(Math.sin(pp*.08)*.25,1.65+up*.35,z);
   const end=clamp((pp-(PP_FILM-7))/7,0,1);
   look.set(Math.sin(pp*.08)*.15,(portrait()?1.75:1.45)+out*1.1+end*(portrait()?1.3:1)+up*.75,z-8);
-  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?4.4:3.2;
+  if(ee>0&&P3.end){const G=P3.end.G,ry=G.rotation.y,d=portrait()?3.6:5.4;
     endPos.set(G.position.x+Math.sin(ry)*d,G.position.y+(portrait()?.25:.1),G.position.z+Math.cos(ry)*d);endLook.copy(G.position);
     pos.lerp(endPos,ee);look.lerp(endLook,ee)}
 }
