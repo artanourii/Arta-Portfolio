@@ -298,9 +298,9 @@ function beam(from,to,angle,color){
 }
 
 /* light slots served by a small pool of real spotlights (nearest win) */
-const slots=[];
+const slots=[];let SLOT_ZONE=-1;   // zone: the studio a light belongs to (-1 = hall)
 function slot(from,to,color,intensity,angle,pen=.5,withBeam=true,alwaysBeam=false){
-  slots.push({from,to,color:C(color),intensity,angle,pen});
+  slots.push({from,to,color:C(color),intensity,angle,pen,zone:SLOT_ZONE});
   if(withBeam&&(Q==="high"||alwaysBeam))beam(from,to,angle*.62,color);
 }
 
@@ -702,6 +702,7 @@ function decor(s,g,back){
 }
 
 function buildSet(s,i){
+  SLOT_ZONE=i;
   const side=i%2===0?-1:1,z=SET0-Math.floor(i/2)*SETSTEP;
   const g=new THREE.Group();g.position.set(side*7.2,0,z);g.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(g);
   // films float one behind another down a tunnel into the set, alternating left and right,
@@ -793,6 +794,7 @@ function buildSet(s,i){
   [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m)});
   hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
+  SLOT_ZONE=-1;
   SETS.push({g,s,i,side,z,W,frames,pick,lay,back,DZ});
 }
 
@@ -864,25 +866,31 @@ const wallOf=src=>/^https:\/\/artanourii\.github\.io\/arta-videos-\d+\//.test(sr
 // videos come from this site or from the arta-videos repos on GitHub Pages, which send CORS headers, so they can be drawn on the 3D walls
 const sameOrigin=src=>{try{const o=new URL(src,location.href).origin;return o===location.origin||o==="https://artanourii.github.io"}catch(e){return false}};
 let frameT=0;
+function dropVideo(F){const v=F.video;F.video=null;v.pause();v.removeAttribute("src");v.load();
+  if(F.vtex){F.vtex.dispose();F.vtex=null}F.screenMat.map=F.posterTex;F.screenMat.needsUpdate=true}
 function updateFrames(dt){
   frameT+=dt*.001;
   P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
   const cp=camera.position;
   // only the films nearest the camera play (a studio can hold ten); the others keep their cover image
-  const near=new Set();
-  if(setIdx>=0){near.clear();SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
-    .sort((a,b)=>a[0]-b[0]).slice(0,Q==="high"?4:2).forEach(x=>near.add(x[1]))}
+  // the next few films along the way already load (paused), so a film starts as soon as the camera reaches it
+  const near=new Set(),pre=new Set(),NP=Q==="high"?4:2;
+  if(setIdx>=0)SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
+    .sort((a,b)=>a[0]-b[0]).slice(0,NP+2).forEach((x,k)=>{pre.add(x[1]);if(k<NP)near.add(x[1])});
   for(const F of framesAll){
     if(F.set<0){updateFeatureFilm(F,cp);continue}
+    // leaving a studio frees its films (phones can only hold a few at a time)
+    if(F.video&&F.set!==setIdx&&playerFrame!==F){dropVideo(F);continue}
     const S=SETS[F.set];if(Math.abs(cp.z-S.z)>24)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=F.set===setIdx&&d<8&&near.has(F)&&!(playerEl&&playerFrame===F)&&!document.hidden;
-    if(want&&!F.video){
-      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.addEventListener("error",()=>{if(vd.src!==F.v.src)vd.src=F.v.src},{once:true});vd.setAttribute("playsinline","");
-      F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
-      vd.addEventListener("error",()=>{F.v._bad=true});
+    if(!F.video&&F.set===setIdx&&pre.has(F)&&d<16&&!F.v._bad){
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      F.video=vd;vd.addEventListener("playing",()=>{if(F.video!==vd)return;if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
+      // a missing light copy falls back to the original; only a failing original marks the film as broken
+      vd.addEventListener("error",()=>{if(F.video!==vd)return;if(!vd._fb&&vd.src!==F.v.src){vd._fb=1;vd.src=F.v.src;vd.play().catch(()=>{})}else F.v._bad=true});
     }
     if(F.video&&!F.v._bad){if(want&&F.video.paused)F.video.play().catch(()=>{});else if(!want&&!F.video.paused)F.video.pause()}
   }
@@ -922,9 +930,10 @@ function updateFeatureFilm(F,cp){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=mode==="hall"&&d<F.range&&e>.5&&!playerEl&&!document.hidden;
     if(want&&!F.video){
-      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.addEventListener("error",()=>{if(vd.src!==F.v.src)vd.src=F.v.src},{once:true});vd.setAttribute("playsinline","");
-      F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
-      vd.addEventListener("error",()=>{F.v._bad=true});
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      F.video=vd;vd.addEventListener("playing",()=>{if(F.video!==vd)return;if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
+      // a missing light copy falls back to the original; only a failing original marks the film as broken
+      vd.addEventListener("error",()=>{if(F.video!==vd)return;if(!vd._fb&&vd.src!==F.v.src){vd._fb=1;vd.src=F.v.src;vd.play().catch(()=>{})}else F.v._bad=true});
     }
     const v=F.video;
     if(v&&!F.v._bad){
@@ -1378,11 +1387,15 @@ function setupPool(){
 }
 let lightMul=1;
 function updatePool(){
-  // the few real spotlights follow the camera to the nearest light positions; a light keeps its position and fades
-  // in or out instead of jumping between positions every frame (that jumping made the floors and sets flicker)
-  const cp=camera.position,K=Math.max(2,pool.length-2);
-  const want=new Set(slots.map(s=>[s,s.to.distanceToSquared(cp)]).sort((a,b)=>a[1]-b[1]).slice(0,K).map(a=>a[0]));
-  for(const L of pool){const s=L.userData.slot;if(!s)continue;const tgt=want.has(s)?1:0;s.w=(s.w||0)+(tgt-(s.w||0))*.07;if(!tgt&&s.w<.02){s.w=0;L.userData.slot=null}}
+  // the few real spotlights are shared out among the light positions. Inside a studio its own lights stay fixed
+  // wherever the camera goes; in the hall the nearest lights win, and a light only lets go once it is clearly
+  // farther than the others, so lights do not pulse on and off as the camera moves (that made the floors flicker)
+  const cp=camera.position,N=pool.length;let want;
+  if(mode==="set"&&setIdx>=0)want=new Set(slots.filter(s=>s.zone===setIdx).sort((a,b)=>b.intensity-a.intensity).slice(0,N));
+  else{const K=Math.max(2,N-2),rank=slots.map(s=>[s,s.to.distanceToSquared(cp)]).sort((a,b)=>a[1]-b[1]).map(a=>a[0]);
+    want=new Set(rank.slice(0,K));
+    for(const L of pool){const s=L.userData.slot;if(s&&s.w>.5&&want.size<N&&rank.indexOf(s)<K+2)want.add(s)}}
+  for(const L of pool){const s=L.userData.slot;if(!s)continue;const tgt=want.has(s)?1:0;s.w=(s.w||0)+(tgt-(s.w||0))*.06;if(!tgt&&s.w<.02){s.w=0;L.userData.slot=null}}
   for(const s of want){if(pool.some(L=>L.userData.slot===s))continue;const L=pool.find(L=>!L.userData.slot);if(!L)break;
     L.userData.slot=s;s.w=0;L.position.copy(s.from);L.target.position.copy(s.to);L.color.copy(s.color);L.angle=s.angle;L.penumbra=s.pen}
   for(const L of pool){const s=L.userData.slot;L.intensity=s?s.intensity*lightMul*s.w:0}
