@@ -6,6 +6,14 @@
 <title>ARTA NOORI STUDIO</title>
 <meta name="description" content="ARTA NOORI STUDIO: ad films built on ideas, editing and VFX. Walk through a 3D studio of brand films for Respina, Mixland, U Collective and more.">
 <meta name="copyright" content="© 2026 Arta Noori. All rights reserved.">
+<!-- opened from the home screen, the site runs full screen without the browser bars (iPhone Safari cannot do that for a page) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ARTA NOORI">
+<meta name="theme-color" content="#0b0b0c">
 <meta property="og:title" content="ARTA NOORI STUDIO">
 <meta property="og:description" content="Ad films built on ideas, editing and VFX.">
 <meta property="og:type" content="website">
@@ -29,6 +37,7 @@
   <div class="r">
     <button class="pill glass" id="langBtn"></button>
     <button class="pill glass" id="lightBtn"></button>
+    <button class="pill glass icon-only" id="fsBtn" hidden></button>
   </div>
 </header>
 <nav class="map glass" id="map" aria-label="Studio map"></nav>
@@ -37,6 +46,7 @@
 <button class="enter-btn glass" id="enterBtn2"></button>
 <div class="lookctl" id="lookCtl" aria-label="Look up or down"><button class="glass" id="lookUp" aria-label="Look up">▲</button><button class="glass" id="lookReset" aria-label="Reset view">●</button><button class="glass" id="lookDown" aria-label="Look down">▼</button></div>
 
+<div class="a2hs glass" id="a2hs" hidden><p></p><button id="a2hsX" aria-label="Close">✕</button></div>
 <div class="shud" id="shud">
   <div class="top"><button class="pill glass" id="back"></button><span class="pill glass" id="stitle" style="cursor:default"></span></div>
   <p class="tip" id="stip"></p>

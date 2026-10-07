@@ -6,9 +6,9 @@ const ICON = {
 };
 
 
-Object.assign(TX.en,{li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
+Object.assign(TX.en,{fsOn:"Full screen",fsOff:"Exit full screen",a2hs:"For full screen, tap Share {s} and then “Add to Home Screen”",li:"LinkedIn",enterHint:"Tap to enter",tapSound:"Tap for sound",toLight:"Lights on",toDark:"Lights off",loading:"Lighting the set",
  noGL:"Your browser can't show the 3D studio, reach me on WhatsApp or Instagram @artanourii"});
-Object.assign(TX.fa,{li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
+Object.assign(TX.fa,{fsOn:"تمام‌صفحه",fsOff:"خروج از تمام‌صفحه",a2hs:"برای تمام‌صفحه، دکمه‌ی اشتراک‌گذاری {s} رو بزن و بعد «Add to Home Screen» رو انتخاب کن",li:"لینکدین",enterHint:"برای ورود بزن",tapSound:"برای صدا بزن",toLight:"روشن کردن نور",toDark:"خاموش کردن نور",loading:"در حال روشن کردن ست",
  noGL:"مرورگرت استودیوی سه‌بعدی رو نشون نمی‌ده، از واتس‌اپ یا اینستاگرام ‎@artanourii در تماس باش"});
 ICON.sun=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 ICON.li=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.2 21 14.4V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>`;
@@ -41,13 +41,18 @@ if(!window.THREE||!(()=>{try{const c=document.createElement("canvas");return !!(
 
 /* ---------- renderer & quality ---------- */
 const phoneLike=()=>innerWidth<640;
-let Q=(TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike()?"mid":"high";
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+// strong phones and tablets (recent iPhones and iPads, Android with 6 GB or more) get the full studio: glow, colour grade
+// and floor reflections, so the site looks the same as on a computer; weaker ones keep the lighter version
+const GL2=(()=>{try{return !!document.createElement("canvas").getContext("webgl2")}catch(e){return false}})();
+const STRONG=GL2&&((IOS&&(devicePixelRatio>=3||Math.min(screen.width,screen.height)>=744))||(navigator.deviceMemory||0)>=6);
+let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid":"high";
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
-let DPR=Math.min(devicePixelRatio||1,Q==="high"?2:1.6);
+let DPR=Math.min(devicePixelRatio||1,2);   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
-renderer.shadowMap.enabled=Q==="high";renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.18,220);
 const C=h=>new THREE.Color(h).convertSRGBToLinear();
@@ -537,8 +542,8 @@ function logoLum(cv){
 }
 const signTex=[];
 function canvasSign(w,h,draw){
-  // phones draw signs at 70% size (Safari on iPhone stops creating canvases once their total memory is too large)
-  const k=Q==="high"?1:.7;
+  // phones draw signs at 90% size (Safari on iPhone stops creating canvases once their total memory is too large)
+  const k=TOUCH?.9:1;
   const cv=document.createElement("canvas");cv.width=Math.round(w*k);cv.height=Math.round(h*k);
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
   t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");if(!g)return;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(k,0,0,k,0,0);draw(g,w,h);t.needsUpdate=true};
@@ -1068,8 +1073,9 @@ function drawCaption(F){
   F.capTex.needsUpdate=true;
 }
 const framesAll=[];
-// on phones the many film covers and captions skip mipmaps, which roughly halves their graphics memory
-function lightTex(t){if(Q!=="high"){t.generateMipmaps=false;t.minFilter=THREE.LinearFilter}return t}
+// film covers and captions keep their mipmaps (without them they shimmered and looked low quality); graphics memory is
+// kept down instead by freeing the films of studios far down the hall
+function lightTex(t){return t}
 function makeFrame(s,v,i){
   const vert=v.r!=="16/9",w=vert?.95:1.75,h=vert?w*16/9:w*9/16,pad=.045,depth=.07;
   const G=new THREE.Group(),F={s,v,G,w,h,set:i,video:null,vtex:null};
@@ -1087,7 +1093,7 @@ function makeFrame(s,v,i){
     const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),liquidMat(pw,ph,.075));
     lf.position.set(0,-CAP_H/2,depth/2+.006);lf.renderOrder=3;G.add(lf); }
   // screen (poster until the film is ready)
-  const TS=Q==="high"?1:.6;F.posterCv=document.createElement("canvas");F.posterCv.width=Math.round((vert?360:640)*TS);F.posterCv.height=Math.round((vert?640:360)*TS);
+  const TS=TOUCH?.85:1;F.posterCv=document.createElement("canvas");F.posterCv.width=Math.round((vert?360:640)*TS);F.posterCv.height=Math.round((vert?640:360)*TS);
   F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;lightTex(F.posterTex);drawPoster(F);
   F.screenMat=new THREE.MeshBasicMaterial({map:F.posterTex,fog:false});
   const scr=new THREE.Mesh(new THREE.PlaneGeometry(w,h),F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
@@ -1117,7 +1123,7 @@ function updateFrames(dt){
   const cp=camera.position;
   // only the films nearest the camera play (a studio can hold ten); the others keep their cover image
   // the next few films along the way already load (paused), so a film starts as soon as the camera reaches it
-  const near=new Set(),pre=new Set(),NP=Q==="high"?4:2;
+  const near=new Set(),pre=new Set(),NP=Q==="high"&&!TOUCH?4:2;
   if(setIdx>=0)SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
     .sort((a,b)=>a[0]-b[0]).slice(0,NP+2).forEach((x,k)=>{pre.add(x[1]);if(k<NP)near.add(x[1])});
   for(const F of framesAll){
@@ -1184,12 +1190,14 @@ function updateFeatureFilm(F,cp){
     const v=F.video;
     if(v&&!F.v._bad){
       if(want){
-        if(v.paused){v.muted=!(sound&&canSound());if(!v.muted)v.volume=0;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
+        if(v.paused){v.muted=!(sound&&canSound());F.vol=0;if(!v.muted)v.volume=0;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
         if(sound&&v.muted&&canSound())v.muted=false;
         // the sound rises as you walk up to the screen
-        if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);v.volume=clamp(v.volume+(tv-v.volume)*.08,0,1)}
+        if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);F.vol=clamp((F.vol||0)+(tv-(F.vol||0))*.08,0,1);v.volume=F.vol}
         showHint=sound&&v.muted;
-      }else if(!v.paused){if(sound&&!v.muted&&v.volume>.03&&!playerEl)v.volume=clamp(v.volume*.85,0,1);else v.pause()}
+      }else if(!v.paused){
+        // the fade is counted by the site, not read back from the video: iPhone ignores video.volume, so the film never stopped
+        if(sound&&!v.muted&&(F.vol||0)>.03&&!playerEl&&!IOS){F.vol*=.85;v.volume=F.vol}else{F.vol=0;v.pause()}}
     }
   }
   if(sound&&sndA)sndA.e.firstChild.hidden=!showHint;
@@ -1941,6 +1949,27 @@ function applyLang(){
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
+let A2HS=null;
+/* full screen: a button where the browser allows it (computers, Android, iPad); on iPhone, where Safari keeps its bars,
+   a one-time hint explains that the site opens full screen when added to the home screen */
+const FS_ICON={on:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>'};
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+const STANDALONE=matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches||navigator.standalone===true;
+function drawFsBtn(){const b=$("#fsBtn"),on=!!fsEl();b.innerHTML=on?FS_ICON.off:FS_ICON.on;b.setAttribute("aria-label",on?T().fsOff:T().fsOn);b.title=on?T().fsOff:T().fsOn}
+if(!STANDALONE&&(document.fullscreenEnabled||document.webkitFullscreenEnabled)){
+  const b=$("#fsBtn");b.hidden=false;drawFsBtn();
+  b.onclick=()=>{const d=document.documentElement;
+    if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else{const r=(d.requestFullscreen||d.webkitRequestFullscreen).call(d,{navigationUI:"hide"});if(r&&r.then)r.then(()=>{try{screen.orientation.unlock()}catch(e){}}).catch(()=>{})}};
+  ["fullscreenchange","webkitfullscreenchange"].forEach(ev=>document.addEventListener(ev,()=>{drawFsBtn();setTimeout(resize,120)}));
+}else if(!STANDALONE&&/iPhone|iPod/.test(navigator.userAgent)){
+  let seen=false;try{seen=localStorage.getItem("ans-a2hs")==="1"}catch(e){}
+  // shown a few seconds after the studio has appeared
+  if(!seen)A2HS=()=>setTimeout(()=>{const h=$("#a2hs"),share='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M8 7l4-4 4 4M5 11v9h14v-9"/></svg>';
+    h.querySelector("p").innerHTML=T().a2hs.replace("{s}",share);h.dir=lang==="fa"?"rtl":"ltr";h.hidden=false;
+    const close=()=>{h.hidden=true;try{localStorage.setItem("ans-a2hs","1")}catch(e){}};$("#a2hsX").onclick=close;setTimeout(close,14000)},4500);
+}
 $("#home").onclick=()=>goTo(0);
 
 /* ---------- resize ---------- */
@@ -1989,7 +2018,7 @@ function frame(now){
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
-  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350)}
+  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   if(frames===160){const avg=acc/120;
