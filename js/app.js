@@ -406,7 +406,7 @@ function build3D(){
     const cap=new THREE.ExtrudeGeometry(sh,{depth:.12,bevelEnabled:false,curveSegments:2});cap.rotateY(-Math.PI/2);
     const sideM=std("#d9d3c8",.8);
     for(const x of [-5.06,5.06]){const m=mesh(cap,sideM);m.position.set(x+.06,0,0);cy.add(m)}
-    cy.add(box(10.24,h,T,sideM,0,h/2-.02,-r-T/2));cy.add(box(10.24,.04,T+.02,std("#bfb7aa",.6),0,h,-r-T/2)); }
+    cy.add(box(10.24,h,T,sideM,0,h/2-.02,-r-T/2-.04));cy.add(box(10.24,.04,T+.06,std("#bfb7aa",.6),0,h+.01,-r-T/2-.02)); }
   const dolly=cameraRig(true);dolly.position.set(2.9,0,-15.8);dolly.lookAt(-8,0,-16.6);dolly.rotateY(Math.PI);scene.add(dolly);
   for(const z of [-.5,.5]){const r=box(.05,.05,6,MAT.chrome,0,.03,0);r.position.set(2.9+z,.03,-15.8);r.rotation.y=Math.PI/2;r.scale.z=1;scene.add(r)}
   for(let i=0;i<10;i++)scene.add(box(.08,.03,1.3,MAT.wood,0.0+i*.6-2.7+2.9,.015,-15.8));
