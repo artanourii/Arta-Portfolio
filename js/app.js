@@ -112,6 +112,9 @@ const glowTex=smoothTex(64,256,(u,v)=>v<.25?lerpA(1,.35,v/.25):lerpA(.35,0,(v-.2
 // neon light spilling from a studio front onto the hall floor: strongest at the wall, dying away smoothly toward the
 // middle of the hall and at both ends, so it has no hard rectangular edge
 const sstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+// a soft glow around a hanging sign (2.26 x .6 m board in a 3.0 x 1.2 m plane)
+const signHaloTex=smoothTex(256,104,(u,v)=>{const x=Math.max(0,Math.abs(u-.5)*3.0-1.13),y=Math.max(0,Math.abs(v-.5)*1.2-.3),d=Math.hypot(x,y);return Math.pow(1-sstep(0,.3,d),2)});
+const SIGN_HALOS=[];
 const spillTex=smoothTex(128,256,(u,v)=>Math.pow(1-sstep(0,1,v),2.4)*sstep(0,.22,u)*sstep(0,.22,1-u));
 const fanTex=smoothTex(256,512,(u,v)=>{const t=1-v,half=.04+.46*Math.pow(t,.8),a=Math.pow(1-t,1.6)*.95+.05*(1-t);return a*Math.max(0,1-Math.abs(u-.5)/half)});
 const frameGlowTex=canvasTex(256,256,(g,w,h)=>{g.shadowColor="#fff";g.shadowBlur=26;g.strokeStyle="rgba(255,255,255,.9)";g.lineWidth=6;
@@ -228,22 +231,26 @@ function ledPanel(){
   return g;
 }
 /* a potted palm in a black square planter (one shared frond shape, rotated) */
-const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.3,.52,1,6);g.translate(0,.26,0);const p=g.attributes.position;
-  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.55*y*y)}g.computeVertexNormals();return g})();
-let FROND_MAT=null;
+const FROND_GEO=(()=>{const g=new THREE.PlaneGeometry(.3,.34,1,6);g.translate(0,.17,0);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){const y=p.getY(i);p.setZ(i,-.9*y*y)}g.computeVertexNormals();return g})();
+let FROND_MAT=null,POT_GEO=null,POT_MAT=null,POT_RIM=null;
 let PALM_UP=null,PALM_LED=null;
 function palm(h=1.25,seed=1){
   if(!FROND_MAT){FROND_MAT=new THREE.MeshStandardMaterial({map:frondTex,alphaTest:.45,side:THREE.DoubleSide,roughness:.7});ALLM.push(FROND_MAT)}
   const g=new THREE.Group(),r=k=>{const x=Math.sin(seed*91.7+k*12.3)*43758.5;return x-Math.floor(x)};
-  g.add(box(.58,.62,.58,MAT.planter,0,.31,0));g.add(box(.5,.02,.5,MAT.soil,0,.6,0));
+  if(!POT_GEO){const pr=[[0,0],[.2,0],[.215,.02],[.2,.04],[.235,.1],[.27,.36],[.29,.54],[.315,.555],[.318,.6],[.3,.615],[.28,.6],[.27,.57],[0,.57]].map(([x,y])=>new THREE.Vector2(x,y));
+    POT_GEO=new THREE.LatheGeometry(pr,36);POT_MAT=std("#2c2a27",.55,.08);POT_RIM=std("#3a3632",.4,.1)}
+  g.add(mesh(POT_GEO,POT_MAT));const rimR=new THREE.Mesh(new THREE.TorusGeometry(.305,.016,8,40),POT_RIM);rimR.rotation.x=Math.PI/2;rimR.position.y=.6;g.add(rimR);
+  const soil=cyl(.272,.272,.02,MAT.soil,32);soil.position.y=.575;g.add(soil);
+  for(let k=0;k<5;k++){const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.035,0),POT_RIM);st.position.set(Math.cos(k*1.3)*.17,.59,Math.sin(k*1.3)*.17);st.rotation.set(k,k*2,0);g.add(st)}
   // a warm uplight hidden in the planter washes up through the fronds
   if(!PALM_UP){PALM_UP=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc77a"),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});PALM_LED=emissive("#ffd49a",3)}
   for(const ry of [0,Math.PI/2]){const u=new THREE.Mesh(new THREE.PlaneGeometry(1.1,h*1.5),PALM_UP);u.position.set(0,.62+h*.75,0);u.rotation.y=ry+.4;u.userData.keep=true;g.add(u)}
   for(let s2=0;s2<3;s2++){
-    const a=s2*2.1+r(s2),top=V(Math.cos(a)*.12,.6+h*(.42+r(s2+5)*.25),Math.sin(a)*.12);
+    const a=s2*2.1+r(s2),top=V(Math.cos(a)*.1,.6+h*(.3+r(s2+5)*.2),Math.sin(a)*.1);
     g.add(stick(V(0,.6,0),top,.025,MAT.trunk));
-    const n=9;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
-      f.rotation.order="YXZ";f.rotation.y=k/n*Math.PI*2+a;f.rotation.x=-(.55+r(k+s2*7)*.5);f.scale.setScalar(.75+r(k*3+s2)*.45);g.add(f)}
+    const n=11;for(let k=0;k<n;k++){const f=new THREE.Mesh(FROND_GEO,FROND_MAT);f.position.copy(top);
+      f.rotation.order="YXZ";f.rotation.y=k/n*Math.PI*2+a;f.rotation.x=-(.7+r(k+s2*7)*.6);f.scale.setScalar(.8+r(k*3+s2)*.35);g.add(f)}
   }
   return g;
 }
@@ -1042,7 +1049,12 @@ function buildSet(s,i){
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
   const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,-side)),transparent:true}));bk.rotation.y=Math.PI;bk.position.z=-.03;
   [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m);m.material.userData.hang=true;signMats.push(m.material)});
-  hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
+  hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));
+  // at night the sign is lit by an even, steady glow in its brand colour behind the board, instead of its own letters
+  // glowing (bright logos glowed and dark ones did not, and the small letters flickered in the glow as the camera moved)
+  { const hc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.35);
+    const hm=new THREE.MeshBasicMaterial({map:signHaloTex,color:hc,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+    const h=new THREE.Mesh(new THREE.PlaneGeometry(3.0,1.2),hm);h.userData.keep=true;h.visible=false;hs.add(h);SIGN_HALOS.push(h) }for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
   SLOT_ZONE=-1;
   SETS.push({g,s,i,side,z,W,frames,pick,lay,back,DZ});
@@ -1698,7 +1710,7 @@ function applyTheme(){
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   // at night the hanging signs glow softly (their white letters sit a little above the glow threshold, less than at first);
   // the boards over the doors are lit but don't glow
-  signMats.forEach(m=>m.color.setScalar(dark?(m.userData.hang?1.32:.95):1));
+  signMats.forEach(m=>m.color.setScalar(dark?.9:1));SIGN_HALOS.forEach(h=>{h.visible=dark;h.material.opacity=dark?.42:0});
   PLQ.forEach(q=>q.face.material.color.setScalar(dark?.86:1));   // boards stay clearly below the glow threshold at night
   // [night, day] brightness of lights seen straight on; the door frames were the strongest glare in both modes
   MAT.doorLed.emissiveIntensity=dark?1.8:1.3;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
