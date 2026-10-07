@@ -1070,6 +1070,7 @@ function roundRect(w,h,r){const s=new THREE.Shape(),x=-w/2,y=-h/2;
   s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
   s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
 function drawPoster(F){
+  if(!F.posterCv)return;
   const cv=F.posterCv,g=cv.getContext("2d"),W=cv.width,H=cv.height,s=F.s;
   const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,s.c.bg2);bg.addColorStop(1,s.c.bg);g.fillStyle=bg;g.fillRect(0,0,W,H);
   const gl=g.createRadialGradient(W*.3,H*.22,0,W*.3,H*.22,Math.max(W,H)*.7);gl.addColorStop(0,s.c.acc+"cc");gl.addColorStop(1,s.c.acc+"00");g.fillStyle=gl;g.fillRect(0,0,W,H);
@@ -1080,6 +1081,7 @@ function drawPoster(F){
   F.posterTex.needsUpdate=true;
 }
 function drawCaption(F){
+  if(!F.capCv)return;
   const cv=F.capCv,g=cv.getContext("2d"),W=cv.width,H=cv.height,s=F.s,v=F.v,fa=lang==="fa";
   g.clearRect(0,0,W,H);
   const fam=fa?'"Vazirmatn", Tahoma, sans-serif':'"Vazirmatn", "Helvetica Neue", Arial, sans-serif';
@@ -1093,6 +1095,7 @@ function drawCaption(F){
   F.capTex.needsUpdate=true;
 }
 const framesAll=[];
+const BLANK_TEX=(()=>{const t=new THREE.DataTexture(new Uint8Array([20,20,24,255]),1,1,THREE.RGBAFormat);t.needsUpdate=true;return t})();
 // film covers and captions keep their mipmaps (without them they shimmered and looked low quality); graphics memory is
 // kept down instead by freeing the films of studios far down the hall
 function lightTex(t){return t}
@@ -1113,19 +1116,25 @@ function makeFrame(s,v,i){
     const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),liquidMat(pw,ph,.075));
     lf.position.set(0,-CAP_H/2,depth/2+.006);lf.renderOrder=3;G.add(lf); }
   // screen (poster until the film is ready)
-  const TS=TOUCH?.85:1;F.posterCv=document.createElement("canvas");F.posterCv.width=Math.round((vert?360:640)*TS);F.posterCv.height=Math.round((vert?640:360)*TS);
-  F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;lightTex(F.posterTex);drawPoster(F);
-  F.screenMat=new THREE.MeshBasicMaterial({map:F.posterTex,fog:false});
+  F.screenMat=new THREE.MeshBasicMaterial({map:BLANK_TEX,fog:false});
   const scr=new THREE.Mesh(new THREE.PlaneGeometry(w,h),F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
   // caption plate under the screen
-  F.capCv=document.createElement("canvas");F.capCv.width=Math.round(1024*TS);F.capCv.height=Math.round(1024*TS*CAP_H/w);
-  F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;lightTex(F.capTex);drawCaption(F);
-  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:F.capTex,transparent:true,depthWrite:false,fog:false}));   // no haze on the caption: it stays crisp
+  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:BLANK_TEX,transparent:true,depthWrite:false,fog:false}));   // no haze on the caption: it stays crisp
   cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   F.loadPoster=()=>{if(F.posterReq||!v.poster)return;F.posterReq=true;const im=new Image();im.decoding="async";im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster};
-  if(i<0)F.loadPoster();
+  // the cover and caption canvases exist only while their studio is near: on iPhone, Safari stops the page once all
+  // canvases together pass its memory limit, and 133 films each holding two canvases came close to it
+  F.makeTex=()=>{if(F.posterCv)return;const TS=TOUCH?.85:1;
+    F.posterCv=document.createElement("canvas");F.posterCv.width=Math.round((vert?360:640)*TS);F.posterCv.height=Math.round((vert?640:360)*TS);
+    F.posterTex=new THREE.CanvasTexture(F.posterCv);F.posterTex.encoding=THREE.sRGBEncoding;drawPoster(F);
+    F.capCv=document.createElement("canvas");F.capCv.width=Math.round(1024*TS);F.capCv.height=Math.round(1024*TS*CAP_H/w);
+    F.capTex=new THREE.CanvasTexture(F.capCv);F.capTex.encoding=THREE.sRGBEncoding;drawCaption(F);
+    if(!F.vtex){F.screenMat.map=F.posterTex;F.screenMat.needsUpdate=true}cap.material.map=F.capTex;cap.material.needsUpdate=true;F.loadPoster()};
+  F.freeTex=()=>{if(!F.posterCv)return;F.posterTex.dispose();F.capTex.dispose();F.posterCv.width=F.posterCv.height=F.capCv.width=F.capCv.height=0;
+    F.posterCv=F.capCv=F.posterTex=F.capTex=null;if(!F.vtex){F.screenMat.map=BLANK_TEX;F.screenMat.needsUpdate=true}cap.material.map=BLANK_TEX;cap.material.needsUpdate=true};
+  if(i<0)F.makeTex();
   G.traverse(o=>{o.userData.keep=true;o.userData.frame=F});
   addGlass(G,Math.max(w,h));framesAll.push(F);return F;
 }
@@ -1137,7 +1146,7 @@ const wallOf=src=>/^https:\/\/artanourii\.github\.io\/arta-videos-\d+\//.test(sr
 const sameOrigin=src=>{try{const o=new URL(src,location.href).origin;return o===location.origin||o==="https://artanourii.github.io"}catch(e){return false}};
 let frameT=0;
 function dropVideo(F){const v=F.video;F.video=null;v.pause();v.removeAttribute("src");v.load();
-  if(F.vtex){F.vtex.dispose();F.vtex=null}F.screenMat.map=F.posterTex;F.screenMat.needsUpdate=true}
+  if(F.vtex){F.vtex.dispose();F.vtex=null}F.screenMat.map=F.posterTex||BLANK_TEX;F.screenMat.needsUpdate=true}
 function updateFrames(dt){
   frameT+=dt*.001;
   P3.panels.forEach(o=>{o.G.position.y=o.y0+Math.sin(frameT*.8+o.ph)*.03});
@@ -1153,8 +1162,8 @@ function updateFrames(dt){
     if(F.video&&F.set!==setIdx&&playerFrame!==F){dropVideo(F);continue}
     const S=SETS[F.set],far=Math.abs(cp.z-S.z)>22;
     // films of studios far down the hall are hidden and their covers freed from graphics memory (phones ran out of it)
-    if(F.G.visible===far){F.G.visible=!far;if(far){F.posterTex.dispose();F.capTex.dispose()}}
-    if(!far)F.loadPoster();
+    if(F.G.visible===far){F.G.visible=!far;if(far)F.freeTex()}
+    if(!far)F.makeTex();
     if(far)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
