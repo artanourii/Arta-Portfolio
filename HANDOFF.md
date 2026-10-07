@@ -40,3 +40,12 @@ More than four films: frames sit in rows across the whole room (middle included)
 - The claude.ai preview holds at most 256 MB, so it only carries some of the Asus films (the rest show their cover there).
 - Optional from Arta: Services text, project count, a larger Mahan Net logo.
 - Last step: merge to `main` and switch on GitHub Pages.
+
+
+## Video hosting
+The films are stored at their original quality in five public repos served by GitHub Pages, so the site itself stays small:
+arta-videos-1 … arta-videos-5 (https://artanourii.github.io/arta-videos-N/<file>.mp4). Repos 1–4 hold the current 131 films
+(~0.9 GB each at most); arta-videos-5 is free for new films. Every "src" in js/content.js points to its file there; posters
+(*.jpg) stay in this repo's videos/ folder. GitHub Pages sends CORS headers, so the films can be drawn on the 3D walls
+(the video elements use crossOrigin="anonymous"). Originals that were HEVC were converted to H.264 at visually lossless
+quality, since most browsers cannot play HEVC; all other files are the uploads unchanged (only the index moved to the front).
