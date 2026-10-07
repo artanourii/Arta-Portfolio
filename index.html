@@ -20,8 +20,8 @@
 <link rel="icon" type="image/png" href="assets/logo-white.png" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" href="assets/logo-black.png" media="(prefers-color-scheme: light)">
 <script>
-/* light by default; the visitor's choice of lights on or off is remembered */
-(function(){var t=null;try{t=localStorage.getItem("ans-theme")}catch(e){}if(!t){var h=matchMedia("(pointer: coarse)").matches&&Math.min(screen.width,screen.height)<1100;t=h&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)})();
+/* light on computers; phones and tablets follow their own light or dark setting. The button only changes it for this visit */
+(function(){var t=null;try{t=sessionStorage.getItem("ans-theme")}catch(e){}if(!t){var h=matchMedia("(pointer: coarse)").matches&&Math.min(screen.width,screen.height)<1100;t=h&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)})();
 </script>
 <link rel="preload" href="assets/fonts/unbounded-latin-1.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/vazirmatn-latin-4.woff2" as="font" type="font/woff2" crossorigin>

@@ -27,11 +27,11 @@ const TOUCH=matchMedia("(pointer: coarse)").matches;
 // English by default; visitors whose phone or browser is set to Persian get the Persian site. A language chosen with
 // the button is remembered and always wins
 const sysLang=/^fa(-|$)/i.test((navigator.languages&&navigator.languages[0])||navigator.language||"")?"fa":"en";   // the device's main language
-let lang=sysLang;try{lang=localStorage.getItem("ans-lang")||sysLang}catch(e){}
-let themeChoice=null;try{themeChoice=localStorage.getItem("ans-theme")}catch(e){}
+let lang=sysLang;try{lang=sessionStorage.getItem("ans-lang")||sysLang}catch(e){}
+let themeChoice=null;try{themeChoice=sessionStorage.getItem("ans-theme");localStorage.removeItem("ans-theme");localStorage.removeItem("ans-lang")}catch(e){}
 const sysDark=matchMedia("(prefers-color-scheme: dark)");
 // computers and TVs open in the bright studio; phones and tablets follow the device's own light or dark setting.
-// The visitor's own choice (the Lights button) is remembered and always wins
+// The Lights and language buttons change it only for this visit; the next visit follows the device again
 const HANDHELD=TOUCH&&Math.min(screen.width,screen.height)<1100;
 let dark=themeChoice?themeChoice==="dark":HANDHELD&&sysDark.matches;
 const T=()=>TX[lang];
@@ -1767,7 +1767,7 @@ function applyTheme(){
 }
 function toggleLight(){
   const f=$("#fade");f.style.opacity=.85;
-  setTimeout(()=>{dark=!dark;try{localStorage.setItem("ans-theme",dark?"dark":"light")}catch(e){}themeChoice=dark?"dark":"light";applyTheme();buildOverlays();setTimeout(()=>f.style.opacity=0,60)},reduce?0:300);
+  setTimeout(()=>{dark=!dark;try{sessionStorage.setItem("ans-theme",dark?"dark":"light")}catch(e){}themeChoice=dark?"dark":"light";applyTheme();buildOverlays();setTimeout(()=>f.style.opacity=0,60)},reduce?0:300);
 }
 
 
@@ -2039,7 +2039,7 @@ function applyLang(){
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
   buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
-function toggleLang(){lang=lang==="en"?"fa":"en";try{localStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
+function toggleLang(){lang=lang==="en"?"fa":"en";try{sessionStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
 let A2HS=null;
 /* full screen: a button where the browser allows it (computers, Android, iPad); on iPhone, where Safari keeps its bars,
