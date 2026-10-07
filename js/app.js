@@ -1283,8 +1283,9 @@ canvas.addEventListener("click",e=>{
     const pi=pickPanel(e.clientX,e.clientY);if(pi>=0){openSheet(T().panels[pi].id);return}}
   const F=pickFrame(e.clientX,e.clientY)||pickFeatureFilm(e.clientX,e.clientY);
   if(F&&mode==="set"){const S=SETS[setIdx],j=S.frames.indexOf(F);F.screen.getWorldPosition(tmp);
-    // a film further away: the camera flies over to it first; close up, a tap opens it
-    if(j>=0&&(j!==curFilm(S)||tmp.distanceTo(camera.position)>2.8)){goFilm(j);return}}
+    // a film that is small on screen: the camera flies over to it first; the film in front of you, or any film big
+    // enough to see well, opens straight away (wide shots of tall two-row walls stand well back, so distance is no guide)
+    if(j>=0){const at=Math.abs(sp-S.u.stop[j])<.35,r=frameRect(F);if(!at&&r.height<innerHeight*.22&&r.width<innerWidth*.22){goFilm(j);return}}}
   if(F){playerFrame=F;openPlayer(F.v,()=>frameRect(F),F.video?F.video.currentTime:0);return}
   const i=pickSign(e.clientX,e.clientY);if(i>=0&&i!==setIdx)enterSet(i);
 });
