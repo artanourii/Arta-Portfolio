@@ -858,7 +858,8 @@ function makeFrame(s,v,i){
   addGlass(G,Math.max(w,h));framesAll.push(F);return F;
 }
 // films play on the glass only near the camera, and only from this site's own files (other hosts can't be drawn into 3D)
-const sameOrigin=src=>{try{return new URL(src,location.href).origin===location.origin}catch(e){return false}};
+// videos come from this site or from the arta-videos repos on GitHub Pages, which send CORS headers, so they can be drawn on the 3D walls
+const sameOrigin=src=>{try{const o=new URL(src,location.href).origin;return o===location.origin||o==="https://artanourii.github.io"}catch(e){return false}};
 let frameT=0;
 function updateFrames(dt){
   frameT+=dt*.001;
@@ -876,7 +877,7 @@ function updateFrames(dt){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=F.set===setIdx&&d<8&&near.has(F)&&!(playerEl&&playerFrame===F)&&!document.hidden;
     if(want&&!F.video){
-      const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
       vd.addEventListener("error",()=>{F.v._bad=true});
     }
@@ -918,7 +919,7 @@ function updateFeatureFilm(F,cp){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=mode==="hall"&&d<F.range&&e>.5&&!playerEl&&!document.hidden;
     if(want&&!F.video){
-      const vd=document.createElement("video");Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
       vd.addEventListener("error",()=>{F.v._bad=true});
     }
