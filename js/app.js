@@ -1866,21 +1866,29 @@ for(const [id,d] of [["#lookUp",1],["#lookDown",-1]]){let iv=null;const b=$(id);
 $("#lookReset")&&($("#lookReset").onclick=()=>{lookPitch=lookYaw=0});
 
 // the studio whose door the camera is turned toward (looking left or right in the hall, near that door), or -1
+// (the camera's actual view is used, so a door seen at an angle a little ahead counts too)
+const fwdV=new THREE.Vector3(),doorV=new THREE.Vector3();
 function facingStudio(){
   let y=lookYaw%(Math.PI*2);if(y>Math.PI)y-=Math.PI*2;if(y<-Math.PI)y+=Math.PI*2;
-  if(Math.abs(y)<.55||Math.abs(y)>2.6)return -1;
-  const side=y>0?-1:1;let best=-1,bd=4.6;
-  for(const S of SETS){if(S.side!==side)continue;const dz=Math.abs(curPos.z-S.z);if(dz<bd){bd=dz;best=S.i}}
+  if(Math.abs(y)<.3)return -1;   // looking down the hall: scrolling walks along it as usual
+  camera.getWorldDirection(fwdV);fwdV.y=0;fwdV.normalize();let best=-1,ba=.5;
+  for(const S of SETS){doorV.copy(S.W(V(0,1.6,3.5))).sub(curPos);doorV.y=0;const d=doorV.length();if(d>11||d<.5)continue;
+    const a=fwdV.angleTo(doorV.normalize());if(a<ba){ba=a;best=S.i}}
   return best;
 }
+let enterAcc=0,exitCool=0;
 function moveBy(d){
   if(mode==="set"){
     const S=SETS[setIdx];spTarget+=d;
     // scrolling back past the door, or on past the end, steps back out into the hall
-    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA;vel=0}
+    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA;vel=0;drag=null;exitCool=performance.now()}   // the rest of that swipe or scroll does not carry on down the hall
     else spTarget=Math.min(spTarget,S.len);
     return;
   }
+  if(performance.now()-exitCool<600)return;
+  // turned toward a studio's door: scrolling or swiping forward walks straight in, no need to tap its name
+  if(d>0&&!jumping){const i=facingStudio();if(i>=0){enterAcc+=d;if(enterAcc>.45){enterAcc=0;vel=0;drag=null;enterSet(i)}return}}
+  enterAcc=0;
   pTarget=clamp(pTarget+d,PP0,PP_END);
 }
 // while a film is open, scrolling back closes it; the short cooldown stops the same gesture from also moving the camera
@@ -1895,16 +1903,19 @@ addEventListener("wheel",e=>{
 let downXY=null,dragged=false;
 /* touch: one finger swiped up or down walks, swiped sideways turns the view all the way round; two fingers look
    freely in any direction (up, down and around); a double tap straightens the view again */
-const TOUCHES=new Map();let lastTap=0;
+const TOUCHES=new Map();let lastTap=0,mouseLook=null;
 addEventListener("pointerdown",e=>{
   downXY=[e.clientX,e.clientY];dragged=false;
-  if(e.pointerType==="mouse"||e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player"))return;
+  if(e.pointerType==="mouse"){mouseLook=e.button===0&&e.target===canvas?{x:e.clientX,y:e.clientY}:null;return}
+  if(e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player"))return;
   TOUCHES.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(TOUCHES.size===1){const t=performance.now();if(t-lastTap<300&&e.pointerType==="touch"){lookYaw=lookPitch=0}lastTap=t}
   drag={last:e.clientY,lastX:e.clientX};vel=0;
 },{passive:true});
 addEventListener("pointermove",e=>{
-  if(e.pointerType==="mouse"){px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5}
+  if(e.pointerType==="mouse"){px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5;
+    if((e.buttons&1)&&mouseLook){const dx=e.clientX-mouseLook.x,dy=e.clientY-mouseLook.y;mouseLook.x=e.clientX;mouseLook.y=e.clientY;
+      if(dragged){lookYaw-=dx*.004;lookPitch=clamp(lookPitch-dy*.003,-.65,.65)}}}
   if(downXY&&Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>10)dragged=true;
   if(!drag)return;
   const tp=TOUCHES.get(e.pointerId);
@@ -1915,8 +1926,7 @@ addEventListener("pointermove",e=>{
   const dy=drag.last-e.clientY,dx=drag.lastX-e.clientX;drag.last=e.clientY;drag.lastX=e.clientX;
   if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw-=dx*.005;return}
   const d=dy*(innerWidth<640?.03:.022);
-  // turned toward a studio's door in the hall: swiping forward walks straight in, no need to tap its name
-  if(mode==="hall"&&d>0&&!jumping){const i=facingStudio();if(i>=0){drag.inAcc=(drag.inAcc||0)+d;if(drag.inAcc>.45){drag.inAcc=0;drag=null;enterSet(i)}return}}
+
   moveBy(d);vel=vel*.5+d*.5;
 },{passive:true});
 addEventListener("pointerup",e=>{
