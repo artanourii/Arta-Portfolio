@@ -1041,7 +1041,7 @@ function buildSet(s,i){
   const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
   const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,-side)),transparent:true}));bk.rotation.y=Math.PI;bk.position.z=-.03;
-  [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m);signMats.push(m.material)});
+  [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m);m.material.userData.hang=true;signMats.push(m.material)});
   hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
   SLOT_ZONE=-1;
@@ -1696,7 +1696,9 @@ function applyTheme(){
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
-  signMats.forEach(m=>m.color.setScalar(dark?.74:1));
+  // at night the hanging signs glow softly (their white letters sit a little above the glow threshold, less than at first);
+  // the boards over the doors are lit but don't glow
+  signMats.forEach(m=>m.color.setScalar(dark?(m.userData.hang?1.32:.95):1));
   PLQ.forEach(q=>q.face.material.color.setScalar(dark?.86:1));   // boards stay clearly below the glow threshold at night
   // [night, day] brightness of lights seen straight on; the door frames were the strongest glare in both modes
   MAT.doorLed.emissiveIntensity=dark?1.8:1.3;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
