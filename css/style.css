@@ -235,3 +235,14 @@ a{color:inherit;text-decoration:none}
 .a2hs svg{width:16px;height:16px;vertical-align:-3px}
 .a2hs button{border:0;background:none;color:inherit;font-size:16px;cursor:pointer;padding:6px}
 [hidden]{display:none!important}
+
+/* the entrance hint: big enough to notice on a large monitor, with a moving mouse wheel or finger */
+.hint-pill{display:inline-flex;align-items:center;gap:14px;padding:14px 26px;border-radius:999px;font-size:clamp(16px,1.35vw,22px);font-weight:600;color:var(--text);letter-spacing:.01em}
+.hint-mouse{position:relative;width:24px;height:36px;border:2.5px solid currentColor;border-radius:13px;flex:none}
+.hint-mouse em{position:absolute;left:50%;top:7px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--accent);animation:wheel 1.6s ease-in-out infinite}
+.hint-swipe{position:relative;width:22px;height:34px;flex:none}
+.hint-swipe::before{content:"";position:absolute;left:50%;bottom:2px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--accent);animation:swipe 1.6s ease-in-out infinite}
+@keyframes wheel{0%{transform:translateY(0);opacity:1}70%{transform:translateY(12px);opacity:0}100%{transform:translateY(0);opacity:0}}
+@keyframes swipe{0%{transform:translateY(0);opacity:0}20%{opacity:1}80%{transform:translateY(-18px);opacity:0}100%{opacity:0}}
+.hint i{height:56px}
+@media (prefers-reduced-motion:reduce){.hint-mouse em,.hint-swipe::before{animation:none}}

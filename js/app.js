@@ -2001,7 +2001,8 @@ function applyLang(){
   hintOn=null;lastCount="";
   const t=T();document.documentElement.lang=lang;document.documentElement.dir=t.dir;
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
-  $("#hint").innerHTML=(TOUCH?t.swipe:t.scroll)+"<i></i>";$("#loadTxt").textContent=t.loading;
+  // a clear invitation at the entrance: a glass pill with an animated mouse (or a swiping finger on touch screens)
+  $("#hint").innerHTML=`<span class="hint-pill glass">${TOUCH?'<b class="hint-swipe"></b>':'<b class="hint-mouse"><em></em></b>'}<span>${TOUCH?t.swipe:t.scroll}</span></span><i></i>`;$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
   buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
