@@ -1033,7 +1033,7 @@ function buildSet(s,i){
   for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
-  hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
+  hb.position.set(0,3.58,3.66);hb.userData.keep=true;hb.userData.front=true;hb.userData.enter=i;g.add(hb);hallPick.push(hb);signMats.push(hb.material);
   g.add(B3(3.04,1.02,.06,MAT.metal,0,3.58,3.6));
   g.add(B3(2.6,.025,.025,emissive(s.c.acc,2),0,3.04,3.68));
   g.updateMatrixWorld(true);W=p=>g.localToWorld(p.clone());
@@ -1075,7 +1075,7 @@ for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
   SLOT_ZONE=-1;
   SETS[i]={g,s,i,side,z,W,frames,pick,lay,back,DZ,built:false,finish};
-  if(i<4)finish();else PENDING_SETS.push(SETS[i]);
+  PENDING_SETS.push(SETS[i]);
 }
 
 /* ---------- 3D glass frames: each film floats in a real slab of glass ---------- */
@@ -1841,7 +1841,7 @@ function goTo(v){v=clamp(v,PP0,PP_END);vel=0;
   if(mode==="set"||Math.abs(v-p)>30)fadeJump(move);else{leaveSet();pTarget=v}}
 function leaveSet(){if(mode!=="set")return;mode="hall";setIdx=-1;sp=spTarget=0;$("#shud").classList.remove("show")}
 function enterSet(i){
-  const S=SETS[i];if(!S.built){S.finish();mergeStatic(S.g)}if(mode==="set"&&setIdx===i)return;vel=0;lookYaw=lookPitch=0;
+  const S=SETS[i];if(!S.built){S.finish();S.merged=mergeStatic(S.g)}if(mode==="set"&&setIdx===i)return;vel=0;lookYaw=lookPitch=0;
   const go=()=>{mode="set";setIdx=i;p=pTarget=S.ppA;sp=spTarget=0;showSetHud(S)};
   // next to the door: turn and walk in; from further away fade over to the door first
   if(mode==="hall"&&Math.abs(p-S.ppA)<10){go();sp=0}else fadeJump(go);
@@ -2084,15 +2084,18 @@ function frame(now){
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
-  if(started&&PENDING_SETS.length&&frames%2===0){const S=PENDING_SETS.shift();if(!S.built){S.finish();mergeStatic(S.g)}}
+  if(started&&PENDING_SETS.length&&frames%2===0){const S=PENDING_SETS.shift();if(!S.built){S.finish();S.merged=mergeStatic(S.g)}}
+  // a studio's inside (props, trusses, backdrop) is drawn only while the camera is within about 30 m of it: from
+  // farther away it shows only as a small glimpse through the door, and skipping it saves the graphics chip most work
+  for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<30||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
   // at a slightly lower resolution so walking stays smooth, and goes back up once it can; strong devices never step down
-  if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=45){const a=dynT/dynN;dynN=dynT=0;
-    const next=a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_MAX?Math.min(DPR_MAX,DPR+.25):DPR;
-    if(next!==DPR&&now-dynLast>1500){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
+  if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=30){const a=dynT/dynN;dynN=dynT=0;
+    const next=a>45&&DPR>1?Math.max(1,DPR-.5):a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_MAX?Math.min(DPR_MAX,DPR+.25):DPR;
+    if(next!==DPR&&now-dynLast>(next<DPR?700:2500)){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
   if(frames===160){const avg=acc/120;
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
@@ -2102,6 +2105,7 @@ function frame(now){
 
 /* ---------- merge static meshes by material (hundreds of parts -> a few draw calls) ---------- */
 function mergeStatic(root=scene){
+  const made=[];
   if(!THREE.BufferGeometryUtils)return;
   root.updateMatrixWorld(true);
   // materials that the theme or the studio lights change by name must stay themselves; any other materials that look
@@ -2133,12 +2137,16 @@ function mergeStatic(root=scene){
   groups.forEach(G=>{
     const merged=THREE.BufferGeometryUtils.mergeBufferGeometries(G.list,false);if(!merged)return;
     const m=new THREE.Mesh(merged,G.m);m.castShadow=G.cast&&renderer.shadowMap.enabled;m.receiveShadow=renderer.shadowMap.enabled;m.matrixAutoUpdate=false;
-    if(G.m.blending===THREE.AdditiveBlending)m.renderOrder=6;m.userData.keep=true;scene.add(m);
+    if(G.m.blending===THREE.AdditiveBlending)m.renderOrder=6;m.userData.keep=true;scene.add(m);made.push(m);
   });
+  return made;
 }
 
 /* ---------- start ---------- */
-build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
+build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();
+// the first four studios are finished before the first picture; the rest follow one by one just after it
+for(let k=0;k<4&&PENDING_SETS.length;k++){const S=PENDING_SETS.shift();S.finish();S.merged=mergeStatic(S.g)}
+setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
 // the studio starts at once instead of waiting for the fonts (that wait could hold the loading screen for up to 2.5 s);
