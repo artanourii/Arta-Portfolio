@@ -352,6 +352,9 @@ function build3D(){
           c+=sm*(.6+dot(sm,vec3(.33)))*w;ws+=w;}
         gl_FragColor=vec4(c/ws*color*1.1,1.);}`;
     rf.rotation.x=-Math.PI/2;rf.position.set(0,0,HALL_MID);scene.add(rf);floorMirror=rf;
+    // the floor's reflection is a heavily smeared copy of the scene, so it is redrawn every other frame while moving
+    // (one frame older is invisible in the smear) instead of every frame: one whole extra scene pass saved per two frames
+    { const ob=rf.onBeforeRender;rf.onBeforeRender=function(r,sc,cam){if(!isIdle&&(frames&1)&&frames>10)return;ob.call(this,r,sc,cam)} }
   }else{MAT.floor.transparent=false;MAT.floor.opacity=1}
   for(const s of [-1,1]){const w=mesh(new THREE.PlaneGeometry(HALL_LEN,13),MAT.wall,false);w.rotation.y=-s*Math.PI/2;w.position.set(s*18,6.5,HALL_MID);scene.add(w)}
   const bw=mesh(new THREE.PlaneGeometry(36,13),MAT.wall,false);bw.position.set(0,6.5,HALL_END);scene.add(bw);
@@ -1669,7 +1672,7 @@ function setupPost(on){
     if(renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget){
       const hf=!!renderer.extensions.get("EXT_color_buffer_float");
       rt=new THREE.WebGLMultisampleRenderTarget(innerWidth*DPR,innerHeight*DPR,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:hf?THREE.HalfFloatType:THREE.UnsignedByteType});
-      rt.samples=4;
+      rt.samples=DPR>=1.5?2:4;   // on sharp (high-density) screens two samples give the same clean edges as four
     }
     composer=new THREE.EffectComposer(renderer,rt);composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight);
     composer.addPass(new THREE.RenderPass(scene,camera));
