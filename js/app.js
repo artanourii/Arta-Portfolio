@@ -24,7 +24,10 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TOUCH=matchMedia("(pointer: coarse)").matches;
-let lang="en";try{lang=localStorage.getItem("ans-lang")||"en"}catch(e){}
+// English by default; visitors whose phone or browser is set to Persian get the Persian site. A language chosen with
+// the button is remembered and always wins
+const sysLang=/^fa(-|$)/i.test((navigator.languages&&navigator.languages[0])||navigator.language||"")?"fa":"en";   // the device's main language
+let lang=sysLang;try{lang=localStorage.getItem("ans-lang")||sysLang}catch(e){}
 let themeChoice=null;try{themeChoice=localStorage.getItem("ans-theme")}catch(e){}
 const sysDark=matchMedia("(prefers-color-scheme: dark)");
 // computers and TVs open in the bright studio; phones and tablets follow the device's own light or dark setting.
