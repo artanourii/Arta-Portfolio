@@ -55,7 +55,7 @@ let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
-let DPR=Math.min(devicePixelRatio||1,2);   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
+let DPR=Math.min(devicePixelRatio||1,2);const DPR_MAX=DPR;   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
 const scene=new THREE.Scene();
@@ -1346,7 +1346,7 @@ function renderBackdrop(){
   GLASS.pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);GLASS.fr.setFromProjectionMatrix(GLASS.pm);
   const vis=[];
   for(const o of GLASS.groups){if(!o.G.visible||!o.G.parent)continue;o.G.getWorldPosition(GLASS.sph.center);GLASS.sph.radius=o.r*o.G.scale.x;
-    if(GLASS.sph.center.distanceTo(camera.position)<40&&GLASS.fr.intersectsSphere(GLASS.sph))vis.push(o.G)}
+    if(GLASS.sph.center.distanceTo(camera.position)<16&&GLASS.fr.intersectsSphere(GLASS.sph))vis.push(o.G)}   // farther glass is too small for its backdrop to show
   if(!vis.length)return;
   const hidden=[];for(const o of GLASS.groups)if(o.G.visible){o.G.visible=false;hidden.push(o.G)}
   const rf=floorMirror,rfv=rf&&rf.visible;if(rf)rf.visible=false;
@@ -2034,13 +2034,13 @@ addEventListener("resize",()=>{resize();clearTimeout(rzT);rzT=setTimeout(()=>{
 addEventListener("contextmenu",e=>{if(e.target.closest("video,canvas,.player"))e.preventDefault()});
 
 /* ---------- main loop ---------- */
-let frames=0,acc=0,last=performance.now(),started=false;
+let frames=0,acc=0,last=performance.now(),started=false,dynN=0,dynT=0,dynLast=0,isIdle=false;
 /* the studio is drawn at most 60 times a second (120 Hz screens doubled the work for no visible gain), and about 30 times
    a second while nothing moves: no input, the camera at rest and no film being watched up close */
 let lastInput=performance.now(),camRest=0;const prevCam=new THREE.Vector3();
 ["pointerdown","pointermove","wheel","keydown","touchstart","touchmove"].forEach(ev=>addEventListener(ev,()=>{lastInput=performance.now()},{passive:true}));
 function frame(now){
-  { const idle=now-lastInput>2500&&camRest>40&&!playerEl,gap=idle?32:15;
+  { const idle=now-lastInput>2500&&camRest>40&&!playerEl,gap=idle?32:15;isIdle=idle;
     if(frames>5&&now-last<gap){requestAnimationFrame(frame);return} }
   const dt=Math.max(0,Math.min(now-last,100));last=now;
   // smoothing tuned for 60fps, scaled by real frame time so motion feels the same on 30, 60 and 120Hz screens
@@ -2073,10 +2073,14 @@ function frame(now){
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
+  // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
+  // at a slightly lower resolution so walking stays smooth, and goes back up once it can; strong devices never step down
+  if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=45){const a=dynT/dynN;dynN=dynT=0;
+    const next=a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_MAX?Math.min(DPR_MAX,DPR+.25):DPR;
+    if(next!==DPR&&now-dynLast>1500){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
   if(frames===160){const avg=acc/120;
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
-    if(avg>40&&DPR>1){DPR=Math.max(1,DPR-.5);renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}
   }
   requestAnimationFrame(frame);
 }
