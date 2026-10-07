@@ -2176,4 +2176,6 @@ let booted=false;function boot(){if(booted)return;booted=true;applyLang();reques
 // the studio starts at once instead of waiting for the fonts (that wait could hold the loading screen for up to 2.5 s);
 // signs, captions and panels redraw themselves in the right font as soon as it arrives
 boot();
+// heavy files that rarely change are kept on the device (sw.js), so later visits open faster
+if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{signTex.forEach(t=>t.userData.redraw&&t.userData.redraw());if(typeof buildOverlays==="function")buildOverlays()});
