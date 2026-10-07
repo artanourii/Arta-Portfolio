@@ -52,7 +52,7 @@ const canvas=$("#gl");
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
 let DPR=Math.min(devicePixelRatio||1,2);   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
-renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.18,220);
 const C=h=>new THREE.Color(h).convertSRGBToLinear();
@@ -138,7 +138,7 @@ const MAT={
   tally:new THREE.MeshStandardMaterial({color:0x330000,emissive:C("#ff2a2a"),emissiveIntensity:5})
 };
 const emissive=(c,i)=>{const mm=new THREE.MeshStandardMaterial({color:C("#111111"),emissive:C(c),emissiveIntensity:i,roughness:.4});ALLM.push(mm);return mm};
-MAT.doorLed=emissive("#ffd49a",2.6);
+MAT.doorLed=emissive("#ffd49a",2.6);const GLARE=[];   // lights seen straight on: door frames, neon, softbox faces (dimmed per theme)
 
 /* ---------- geometry helpers ---------- */
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -211,7 +211,7 @@ function softbox(h=1.9){
   const head=new THREE.Group();head.position.y=h+.05;g.add(head);
   const bx=mesh(new THREE.CylinderGeometry(.55,.22,.42,4,1,true),MAT.fabric);bx.rotation.x=-Math.PI/2;bx.rotation.y=Math.PI/4;bx.position.z=-.21;
   bx.material=MAT.fabric.clone();bx.material.side=THREE.DoubleSide;head.add(bx);
-  const face=mesh(new THREE.PlaneGeometry(.77,.77),emissive("#fffaf0",2.4),false);face.position.z=-.425;face.rotation.y=Math.PI;head.add(face);
+  const fm=emissive("#fffaf0",2.4);fm.userData.glare=[.75,.85];GLARE.push(fm);const face=mesh(new THREE.PlaneGeometry(.77,.77),fm,false);face.position.z=-.425;face.rotation.y=Math.PI;head.add(face);
   head.add(box(.2,.2,.12,MAT.metal,0,0,.05));
   g.userData.aim=p=>{g.updateMatrixWorld(true);const wp=head.getWorldPosition(new THREE.Vector3());head.lookAt(wp.clone().multiplyScalar(2).sub(p))};
   g.userData.face=face;return g;
@@ -990,7 +990,7 @@ function buildSet(s,i){
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // a warm light strip framing the door, and a palm in a black planter on each side of it
   // neon in the brand colour: the front corners, the door frame and a line along the foot of the wall
-  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);
+  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);neon.userData.glare=[1.5,1.3];GLARE.push(neon);
     // the door frame itself is lit warm white, as in the reference renders
     const warm=MAT.doorLed||emissive("#ffd9a0",3);
     for(const sd of [-1,1]){g.add(B3(.08,4.8,.08,neon,sd*3.84,2.4,3.56));g.add(B3(.06,3.0,.06,warm,sd*1.6,1.5,3.58))}
@@ -1037,7 +1037,7 @@ function buildSet(s,i){
   const hs=new THREE.Group();hs.position.set(side*1.5,3.35,z+5.6);scene.add(hs);
   const fr=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,side)),transparent:true}));fr.position.z=.03;
   const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.55),new THREE.MeshBasicMaterial({map:canvasSign(1024,256,drawHall(s,-side)),transparent:true}));bk.rotation.y=Math.PI;bk.position.z=-.03;
-  [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m)});
+  [fr,bk].forEach(m=>{m.userData.keep=true;m.userData.enter=i;hs.add(m);hallPick.push(m);signMats.push(m.material)});
   hs.add(box(2.26,.6,.04,MAT.metal,0,0,0));for(const x of [-.9,.9])hs.add(stick(V(x,.3,0),V(x,4.6,0),.008,MAT.metal));
   loadLogo(s,()=>signTex.forEach(t=>t.userData.redraw()));
   SLOT_ZONE=-1;
@@ -1283,8 +1283,10 @@ void main(){
   float e=1.-smoothstep(0.,bez,inside),bend=e*e*(3.-2.*e);
   // lens: toward the rim the glass pulls in the scene from just beyond its edge
   vec2 suv=gl_FragCoord.xy/uRes,off=n*bend*bez*1.15*ppm/uRes;
-  float lod=1.7+bend*1.8;   // soft frost, so text on the glass stays easy to read
+  float lod=2.5+bend*1.6;   // frost, so text on the glass stays easy to read and small bright lights behind don't sparkle
   vec3 col=vec3(texture2D(tBack,suv+off*1.1,lod).r,texture2D(tBack,suv+off,lod).g,texture2D(tBack,suv+off*.9,lod).b);
+  // bright lamps and light cones behind the glass are compressed, so they can't flash through it as the camera moves
+  col=col*1.3/(1.+col*.6);
   col=uDark>.5?col*.74+.008:col*.9+.11;   // dark mode: smoky glass; light mode: milky glass, so black text reads on it
   // specular rim: thin and bright where the light (top left) catches it, a weaker kick on the opposite edge
   vec2 L=normalize(vec2(-.55,.85));float ld=dot(n,L);
@@ -1305,7 +1307,7 @@ function liquidMat(w,h,r,textTex){
 function addGlass(G,r=2){GLASS.groups.push({G,r})}
 function renderBackdrop(){
   renderer.getDrawingBufferSize(GLASS.res);
-  if(Q!=="high"&&(GLASS.tick++&1))return;   // phones refresh the backdrop every other frame
+  // refreshed every frame: skipping frames let the glass lag behind the camera and flicker while moving
   GLASS.pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);GLASS.fr.setFromProjectionMatrix(GLASS.pm);
   const vis=[];
   for(const o of GLASS.groups){if(!o.G.visible||!o.G.parent)continue;o.G.getWorldPosition(GLASS.sph.center);GLASS.sph.radius=o.r*o.G.scale.x;
@@ -1689,7 +1691,9 @@ function applyTheme(){
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
-  signMats.forEach(m=>m.color.setScalar(dark?.62:1));
+  signMats.forEach(m=>m.color.setScalar(dark?.48:1));
+  // [night, day] brightness of lights seen straight on; the door frames were the strongest glare in both modes
+  MAT.doorLed.emissiveIntensity=dark?1.0:.75;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   PLQ_GLASS.emissiveIntensity=dark?.32:.14;
@@ -1991,7 +1995,13 @@ addEventListener("contextmenu",e=>{if(e.target.closest("video,canvas,.player"))e
 
 /* ---------- main loop ---------- */
 let frames=0,acc=0,last=performance.now(),started=false;
+/* the studio is drawn at most 60 times a second (120 Hz screens doubled the work for no visible gain), and about 30 times
+   a second while nothing moves: no input, the camera at rest and no film being watched up close */
+let lastInput=performance.now(),camRest=0;const prevCam=new THREE.Vector3();
+["pointerdown","pointermove","wheel","keydown","touchstart","touchmove"].forEach(ev=>addEventListener(ev,()=>{lastInput=performance.now()},{passive:true}));
 function frame(now){
+  { const idle=now-lastInput>2500&&camRest>40&&!playerEl,gap=idle?32:15;
+    if(frames>5&&now-last<gap){requestAnimationFrame(frame);return} }
   const dt=Math.max(0,Math.min(now-last,100));last=now;
   // smoothing tuned for 60fps, scaled by real frame time so motion feels the same on 30, 60 and 120Hz screens
   const f=dt/16.667,sm=k=>1-Math.pow(1-k,f);
@@ -2003,6 +2013,7 @@ function frame(now){
   if(snapCam){curPos.copy(camPos);curLook.copy(camLook);snapCam=false}
   else{curPos.lerp(camPos,reduce?1:sm(.14));curLook.lerp(camLook,reduce?1:sm(.14))}
   camera.position.copy(curPos);camera.lookAt(curLook);
+  camRest=curPos.distanceToSquared(prevCam)<1e-6?camRest+1:0;prevCam.copy(curPos);
   // gentle look-around: follows the mouse, or the visitor's swipes and look buttons on touch screens
   camera.rotateY(-tx*.14+lookYaw);camera.rotateX(ty*.06+lookPitch);
   updateNear();
@@ -2014,6 +2025,7 @@ function frame(now){
   updatePool();
   if(dust)dust.rotation.y=Math.sin(now*.00005)*.02,dust.position.y=Math.sin(now*.0002)*.08;
   if(finalPass)finalPass.uniforms.uTime.value=(now*.001)%100;
+  if(frames%3===0)renderer.shadowMap.needsUpdate=true;
   renderBackdrop();
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
@@ -2040,7 +2052,8 @@ function mergeStatic(){
     for(const k of Object.keys(g.attributes))if(!["position","normal","uv"].includes(k))g.deleteAttribute(k);
     if(!g.attributes.uv||!g.attributes.normal)return;
     g.applyMatrix4(o.matrixWorld);
-    const key=o.material.uuid;if(!groups.has(key))groups.set(key,{m:o.material,list:[],cast:false});
+    // grouped by material and by 24 m stretch of the hall: merged parts outside the view are then skipped entirely
+    const key=o.material.uuid+"|"+Math.floor(o.matrixWorld.elements[14]/24);if(!groups.has(key))groups.set(key,{m:o.material,list:[],cast:false});
     const G=groups.get(key);G.list.push(g);G.cast=G.cast||o.castShadow;kill.push(o);
   });
   kill.forEach(o=>o.parent&&o.parent.remove(o));
