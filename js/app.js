@@ -211,7 +211,7 @@ function softbox(h=1.9){
   const head=new THREE.Group();head.position.y=h+.05;g.add(head);
   const bx=mesh(new THREE.CylinderGeometry(.55,.22,.42,4,1,true),MAT.fabric);bx.rotation.x=-Math.PI/2;bx.rotation.y=Math.PI/4;bx.position.z=-.21;
   bx.material=MAT.fabric.clone();bx.material.side=THREE.DoubleSide;head.add(bx);
-  const fm=emissive("#fffaf0",2.4);fm.userData.glare=[.75,.85];GLARE.push(fm);const face=mesh(new THREE.PlaneGeometry(.77,.77),fm,false);face.position.z=-.425;face.rotation.y=Math.PI;head.add(face);
+  const fm=emissive("#fffaf0",2.4);fm.userData.glare=[1.4,1.3];GLARE.push(fm);const face=mesh(new THREE.PlaneGeometry(.77,.77),fm,false);face.position.z=-.425;face.rotation.y=Math.PI;head.add(face);
   head.add(box(.2,.2,.12,MAT.metal,0,0,.05));
   g.userData.aim=p=>{g.updateMatrixWorld(true);const wp=head.getWorldPosition(new THREE.Vector3());head.lookAt(wp.clone().multiplyScalar(2).sub(p))};
   g.userData.face=face;return g;
@@ -990,7 +990,7 @@ function buildSet(s,i){
   g.add(B3(7.64,.035,.035,emissive(s.c.acc,2.4),0,4.81,3.53));
   // a warm light strip framing the door, and a palm in a black planter on each side of it
   // neon in the brand colour: the front corners, the door frame and a line along the foot of the wall
-  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);neon.userData.glare=[1.5,1.3];GLARE.push(neon);
+  { const nc=new THREE.Color(s.c.acc==="#000000"?s.c.bg2:s.c.acc).lerp(new THREE.Color("#ffffff"),.2),neon=emissive("#"+nc.getHexString(),3.6);neon.userData.glare=[2.5,2.2];GLARE.push(neon);
     // the door frame itself is lit warm white, as in the reference renders
     const warm=MAT.doorLed||emissive("#ffd9a0",3);
     for(const sd of [-1,1]){g.add(B3(.08,4.8,.08,neon,sd*3.84,2.4,3.56));g.add(B3(.06,3.0,.06,warm,sd*1.6,1.5,3.58))}
@@ -1432,7 +1432,8 @@ function buildFacade(){
 }
 /* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
 const END_FOCUS=new THREE.Object3D(),PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
-const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.28,metalness:0,clearcoat:1,clearcoatRoughness:.06,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:1});
+// a satin finish: a mirror-sharp clearcoat caught the moving spotlights and flashed whenever the camera moved
+const PLQ_GLASS=new THREE.MeshPhysicalMaterial({color:C("#caa676"),roughness:.5,metalness:0,clearcoat:.6,clearcoatRoughness:.35,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:.6});
 PLQ_GLASS.userData.glass=true;
 function buildPlaques(){
   const items=[{k:"wa",cols:["#1FA855"],ct:CONTACT.whatsapp},{k:"ig",cols:["#F5B041","#D6336C","#7B3FE4"],ct:CONTACT.instagram}];
@@ -1451,13 +1452,13 @@ function buildPlaques(){
   items.forEach(it=>{
     const W=it.W||PLQ_W,H=it.H||PLQ_H,cvW=1080,cvH=Math.round(1080*H/W),{slab:geo,rim:rimG}=geos(W,H);
     const G=new THREE.Group();
-    const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);G.add(sh);
-    const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;G.add(slab);
-    const rim=new THREE.Mesh(rimG,PLQ_RIM);rim.position.z=D/2+.013;G.add(rim);
+    const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);sh.renderOrder=1;G.add(sh);
+    const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;slab.renderOrder=2;G.add(slab);
+    const rim=new THREE.Mesh(rimG,PLQ_RIM);rim.position.z=D/2+.013;rim.renderOrder=3;G.add(rim);
     for(const sx of [-1,1])for(const sy of [-1,1]){const b=new THREE.Mesh(bolt,MAT.chrome);b.position.set(sx*(W/2-.1),sy*(H/2-.1),-.02);G.add(b);
       const c=new THREE.Mesh(cap,MAT.chrome);c.position.set(sx*(W/2-.1),sy*(H/2-.1),D/2+.02);G.add(c)}
     const cv=document.createElement("canvas");cv.width=cvW;cv.height=cvH;const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=8;
-    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;G.add(face);
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;face.renderOrder=4;G.add(face);
     const draw=()=>{const g=cv.getContext("2d"),t=T(),fa=lang==="fa";g.clearRect(0,0,cvW,cvH);
       // frosted glass: a diagonal sheen over a soft warm tint, so the slats behind still show through faintly
       const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(255,240,215,.62)");gr.addColorStop(.45,"rgba(240,215,180,.38)");gr.addColorStop(1,"rgba(215,185,145,.3)");
@@ -1691,9 +1692,9 @@ function applyTheme(){
   if(!dark)MAT.logo.envMapIntensity=.12;
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
-  signMats.forEach(m=>m.color.setScalar(dark?.48:1));
+  signMats.forEach(m=>m.color.setScalar(dark?.74:1));
   // [night, day] brightness of lights seen straight on; the door frames were the strongest glare in both modes
-  MAT.doorLed.emissiveIntensity=dark?1.0:.75;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
+  MAT.doorLed.emissiveIntensity=dark?1.8:1.3;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
   if(P3.panels.length)redrawPanels3D();
   MAT.dust.opacity=dark?.55:.12;
   PLQ_GLASS.emissiveIntensity=dark?.32:.14;
