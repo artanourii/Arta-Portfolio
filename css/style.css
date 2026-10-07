@@ -180,7 +180,7 @@ a{color:inherit;text-decoration:none}
 /* look up / down on touch screens */
 .lookctl{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(146px + env(safe-area-inset-bottom,0px));z-index:29;display:none;flex-direction:column;gap:6px;opacity:.78}
 .lookctl button{width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;font-size:12px;display:grid;place-items:center}
-@media (pointer:coarse){.lookctl{display:flex}}
+/* the look buttons are gone: on touch screens the view turns with the fingers */
 /* compact controls on phones */
 @media (max-width:640px){
   .hud .pill{height:40px;padding:0 13px;font-size:14px}
@@ -246,3 +246,4 @@ a{color:inherit;text-decoration:none}
 @keyframes swipe{0%{transform:translateY(0);opacity:0}20%{opacity:1}80%{transform:translateY(-18px);opacity:0}100%{opacity:0}}
 .hint i{height:56px}
 @media (prefers-reduced-motion:reduce){.hint-mouse em,.hint-swipe::before{animation:none}}
+.hint-pill small{display:block;font-size:.72em;font-weight:500;opacity:.75;margin-top:2px}

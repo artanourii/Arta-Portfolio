@@ -242,7 +242,7 @@ const STUDIOS = [
 /* ---------- copy ---------- */
 const TX = {
  en:{dir:"ltr",other:"فارسی",otherSmall:"Change language",studio:"ARTA NOORI STUDIO",line:"Ad films built on ideas, editing and VFX",
-  scroll:"Scroll to walk in",swipe:"Swipe up to walk in",wa:"WhatsApp",ig:"Instagram",arch:"ARTA STUDIO",archSub:"Concept, edit, VFX and AI video, under one roof",
+  scroll:"Scroll to walk in",swipe:"Swipe up to walk in",swipeLook:"Drag sideways to look around",wa:"WhatsApp",ig:"Instagram",arch:"ARTA STUDIO",archSub:"Concept, edit, VFX and AI video, under one roof",
   open:"Open",studios:"The studios",studiosSub:"Pick a door and walk in",enter:"Enter",films:n=>n===1?"1 film":n+" films",
   endH:"Your brand could have the next studio",endSub:"Write to me, the next door is yours",back:"Hallway",prev:"Previous studio",next:"Next studio",
   rhint:"Scroll or use the arrows to go from film to film, tap any film to fly to it",
@@ -261,7 +261,7 @@ const TX = {
     body:`<h2>Clients</h2><ul><li>Asus Iran</li><li>Aparat</li><li>Respina</li><li>Hamrahe Aval</li><li>Snapp</li><li>Azkivam</li><li>Analiz Fix</li><li>Emarat Zarrin</li><li>Farmanieh Club</li><li>Dicardo</li><li>Mahan Net</li><li>Niro Motor</li><li>IT Mall</li><li>Dream Salon</li><li>Your brand<small>Next door is empty</small></li></ul>`}
   ]},
  fa:{dir:"rtl",other:"English",otherSmall:"تغییر زبان",studio:"ARTA NOORI STUDIO",line:"تیزرهای تبلیغاتی که روی ایده، تدوین و VFX ساخته می‌شن",
-  scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف",
+  scroll:"اسکرول کن و وارد شو",swipe:"انگشتت رو بکش بالا تا وارد شی",swipeLook:"برای چرخیدن، انگشتت رو به چپ و راست بکش",wa:"واتس‌اپ",ig:"اینستاگرام",arch:"ARTA STUDIO",archSub:"ایده، تدوین، VFX و ویدیوی AI، زیر یک سقف",
   open:"باز کن",studios:"استودیوها",studiosSub:"یه در رو انتخاب کن و برو تو",enter:"ورود",films:n=>n.toLocaleString("fa")+" فیلم",
   endH:"استودیوی بعدی می‌تونه مال برند تو باشه",endSub:"بهم پیام بده، در بعدی مال توئه",back:"راهرو",prev:"استودیوی قبلی",next:"استودیوی بعدی",
   rhint:"اسکرول کن یا با فلش‌ها از فیلمی به فیلم دیگه برو، روی هر فیلم بزن تا دوربین بره سراغش",

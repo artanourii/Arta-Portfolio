@@ -1882,25 +1882,35 @@ addEventListener("wheel",e=>{
   if(performance.now()-playerShutAt<450){playerShutAt=performance.now();return}
   const m=e.deltaMode===1?40:e.deltaMode===2?innerHeight:1;vel=0;moveBy(e.deltaY*m*.02)},{passive:false});
 let downXY=null,dragged=false;
+/* touch: one finger swiped up or down walks, swiped sideways turns the view all the way round; two fingers look
+   freely in any direction (up, down and around); a double tap straightens the view again */
+const TOUCHES=new Map();let lastTap=0;
 addEventListener("pointerdown",e=>{
   downXY=[e.clientX,e.clientY];dragged=false;
   if(e.pointerType==="mouse"||e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player"))return;
+  TOUCHES.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(TOUCHES.size===1){const t=performance.now();if(t-lastTap<300&&e.pointerType==="touch"){lookYaw=lookPitch=0}lastTap=t}
   drag={last:e.clientY,lastX:e.clientX};vel=0;
 },{passive:true});
 addEventListener("pointermove",e=>{
   if(e.pointerType==="mouse"){px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5}
   if(downXY&&Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>10)dragged=true;
   if(!drag)return;
+  const tp=TOUCHES.get(e.pointerId);
+  if(TOUCHES.size>=2&&tp){   // two fingers: look around freely, without walking
+    const lx=e.clientX-tp.x,ly=e.clientY-tp.y;tp.x=e.clientX;tp.y=e.clientY;
+    lookYaw+=lx*.005/TOUCHES.size;lookPitch=clamp(lookPitch+ly*.004/TOUCHES.size,-.65,.65);vel=0;return}
+  if(tp){tp.x=e.clientX;tp.y=e.clientY}
   const dy=drag.last-e.clientY,dx=drag.lastX-e.clientX;drag.last=e.clientY;drag.lastX=e.clientX;
-  if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw=clamp(lookYaw-dx*.004,-1,1);return}
+  if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw-=dx*.005;return}
   const d=dy*(innerWidth<640?.03:.022);
   moveBy(d);vel=vel*.5+d*.5;
 },{passive:true});
 addEventListener("pointerup",e=>{
   // swiping down on an open film closes it
   if(playerEl&&downXY&&e.clientY-downXY[1]>70&&Math.abs(e.clientY-downXY[1])>Math.abs(e.clientX-downXY[0]))backGesture();
-  drag=null;downXY=null},{passive:true});
-addEventListener("pointercancel",()=>{drag=null;vel=0;downXY=null},{passive:true});
+  TOUCHES.delete(e.pointerId);if(TOUCHES.size){const r=[...TOUCHES.values()][0];drag={last:r.y,lastX:r.x}}else{drag=null;downXY=null}},{passive:true});
+addEventListener("pointercancel",e=>{TOUCHES.delete(e.pointerId);if(!TOUCHES.size){drag=null;vel=0;downXY=null}},{passive:true});
 addEventListener("click",e=>{if(dragged&&e.target.closest("#ovl")){e.preventDefault();e.stopPropagation();dragged=false}},true);
 addEventListener("keydown",e=>{
   if(e.key==="Escape"){if(playerEl)return backGesture();if($("#veil").classList.contains("show"))return closeSheet();if(mode==="set")return exitSet()}
@@ -2002,7 +2012,7 @@ function applyLang(){
   const t=T();document.documentElement.lang=lang;document.documentElement.dir=t.dir;
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   // a clear invitation at the entrance: a glass pill with an animated mouse (or a swiping finger on touch screens)
-  $("#hint").innerHTML=`<span class="hint-pill glass">${TOUCH?'<b class="hint-swipe"></b>':'<b class="hint-mouse"><em></em></b>'}<span>${TOUCH?t.swipe:t.scroll}</span></span><i></i>`;$("#loadTxt").textContent=t.loading;
+  $("#hint").innerHTML=`<span class="hint-pill glass">${TOUCH?'<b class="hint-swipe"></b>':'<b class="hint-mouse"><em></em></b>'}<span>${TOUCH?t.swipe:t.scroll}${TOUCH&&t.swipeLook?`<small>${t.swipeLook}</small>`:""}</span></span><i></i>`;$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
   buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
