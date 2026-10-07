@@ -155,7 +155,7 @@ a{color:inherit;text-decoration:none}
 .player.full .ttl{opacity:1}
 
 /* loader / fade */
-.loader{position:fixed;inset:0;z-index:80;background:var(--bg);display:grid;place-items:center;transition:opacity .9s}
+.loader{position:fixed;inset:0;z-index:80;background:var(--bg);display:grid;place-items:center;transition:opacity .5s}
 .loader.done{opacity:0;pointer-events:none}
 .loader div{text-align:center}
 .loader img{width:150px;animation:breathe 2.4s ease-in-out infinite}

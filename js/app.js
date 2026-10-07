@@ -117,7 +117,7 @@ const glowTex=smoothTex(64,256,(u,v)=>v<.25?lerpA(1,.35,v/.25):lerpA(.35,0,(v-.2
 // neon light spilling from a studio front onto the hall floor: strongest at the wall, dying away smoothly toward the
 // middle of the hall and at both ends, so it has no hard rectangular edge
 const sstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
-let SIGN_DARK=null;
+let SIGN_DARK=dark;   // signs are drawn for the current theme when made; redrawn only when it changes
 const spillTex=smoothTex(128,256,(u,v)=>Math.pow(1-sstep(0,1,v),2.4)*sstep(0,.22,u)*sstep(0,.22,1-u));
 const fanTex=smoothTex(256,512,(u,v)=>{const t=1-v,half=.04+.46*Math.pow(t,.8),a=Math.pow(1-t,1.6)*.95+.05*(1-t);return a*Math.max(0,1-Math.abs(u-.5)/half)});
 const frameGlowTex=canvasTex(256,256,(g,w,h)=>{g.shadowColor="#fff";g.shadowBlur=26;g.strokeStyle="rgba(255,255,255,.9)";g.lineWidth=6;
@@ -2070,7 +2070,7 @@ function frame(now){
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
-  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),350);if(A2HS)A2HS()}
+  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   if(frames===160){const avg=acc/120;
@@ -2122,4 +2122,7 @@ function mergeStatic(){
 build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
-(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(boot);setTimeout(boot,2500);
+// the studio starts at once instead of waiting for the fonts (that wait could hold the loading screen for up to 2.5 s);
+// signs, captions and panels redraw themselves in the right font as soon as it arrives
+boot();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{signTex.forEach(t=>t.userData.redraw&&t.userData.redraw());if(typeof buildOverlays==="function")buildOverlays()});
