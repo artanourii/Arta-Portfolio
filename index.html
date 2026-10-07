@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" href="assets/logo-black.png" media="(prefers-color-scheme: light)">
 <script>
 /* light by default; the visitor's choice of lights on or off is remembered */
-(function(){var t="light";try{if(localStorage.getItem("ans-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)})();
+(function(){var t=null;try{t=localStorage.getItem("ans-theme")}catch(e){}if(!t){var h=matchMedia("(pointer: coarse)").matches&&Math.min(screen.width,screen.height)<1100;t=h&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
