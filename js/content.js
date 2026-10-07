@@ -105,7 +105,7 @@ const STUDIOS = [
      {t:{en:"Cardboard illusion",fa:"ایلوژن کارتن"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-1.mp4",poster:"videos/azkivam-1.jpg",r:"9/16"},
      {t:{en:"One Piece",fa:"وان پیس"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-2.mp4",poster:"videos/azkivam-2.jpg",r:"9/16"}]},
   // 7. Makeup (colors approximate)
-  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},
+  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},logoImg:"assets/brands/makeup.png",
    name:{en:"Makeup",fa:"میکاپ"},tag:{en:"Skin, glow and close-ups that sell",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن"},
    videos:[
      {t:{en:"Makeup look 1",fa:"میکاپ ۱"},m:{en:"26s, 9:16",fa:"۲۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/makeup-6.mp4",poster:"videos/makeup-6.jpg",r:"9/16"},
@@ -127,9 +127,11 @@ const STUDIOS = [
      {t:{en:"Makeup look 17",fa:"میکاپ ۱۷"},m:{en:"19s, 9:16",fa:"۱۹ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-10.mp4",poster:"videos/makeup-10.jpg",r:"9/16"},
      {t:{en:"Makeup look 18",fa:"میکاپ ۱۸"},m:{en:"8s, 9:16",fa:"۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-2.mp4",poster:"videos/makeup-2.jpg",r:"9/16"},
      {t:{en:"Makeup look 19",fa:"میکاپ ۱۹"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-4.mp4",poster:"videos/makeup-4.jpg",r:"9/16"},
-     {t:{en:"Makeup look 20",fa:"میکاپ ۲۰"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-1.mp4",poster:"videos/makeup-1.jpg",r:"9/16"}]},
+     {t:{en:"Makeup look 20",fa:"میکاپ ۲۰"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-1.mp4",poster:"videos/makeup-1.jpg",r:"9/16"},
+     {t:{en:"Makeup look 21",fa:"میکاپ ۲۱"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-5/makeup-21.mp4",poster:"videos/makeup-21.jpg",r:"9/16"},
+     {t:{en:"Makeup look 22",fa:"میکاپ ۲۲"},m:{en:"29s, 9:16",fa:"۲۹ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-5/makeup-22.mp4",poster:"videos/makeup-22.jpg",r:"9/16"}]},
   // 8. Dream Salon (colors approximate)
-  {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},
+  {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},logoImg:"assets/brands/dream-salon.png",
    name:{en:"Dream Salon",fa:"دریم سالن"},tag:{en:"Brow fibrosis, lip shading and microblading",fa:"فیبروز ابرو، شیدینگ لب و میکروبلیدینگ"},
    videos:[
      {t:{en:"Dream Salon 1",fa:"دریم سالن ۱"},m:{en:"9s, 9:16",fa:"۹ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-1.mp4",poster:"videos/salon-1.jpg",r:"9/16"},

@@ -54,3 +54,10 @@ quality, since most browsers cannot play HEVC; all other files are the uploads u
 The full-screen player has no download button or picture-in-picture, right-click is blocked on films and the 3D view,
 every panel ends with a copyright line, and LICENSE says all rights are reserved. This only stops casual copying:
 anything a browser plays can still be saved by someone determined.
+
+## Studio interiors
+Each studio's inside colours (walls, backdrop, light strength) are in `INNER` in `js/app.js`, and its props in `decor()`
+(motorcycles for Niro Motor, a car for Snapp, a laptop store for Asus, a creator room for TikTok, and so on). In studios with
+many films, props stand only along the walls, in the entrance corners and behind the last row, away from the camera's path;
+any prop that touches a film is removed automatically. Makeup and Dream Salon logos are `assets/brands/makeup.png` and
+`assets/brands/dream-salon.png`. TikTok (more than 24 films) hangs its films in two tiers so the rows can stand far apart.
