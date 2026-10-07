@@ -109,6 +109,10 @@ function smoothTex(w,h,alpha){
 }
 const lerpA=(a,b,t)=>a+(b-a)*t;
 const glowTex=smoothTex(64,256,(u,v)=>v<.25?lerpA(1,.35,v/.25):lerpA(.35,0,(v-.25)/.75));
+// neon light spilling from a studio front onto the hall floor: strongest at the wall, dying away smoothly toward the
+// middle of the hall and at both ends, so it has no hard rectangular edge
+const sstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+const spillTex=smoothTex(128,256,(u,v)=>Math.pow(1-sstep(0,1,v),2.4)*sstep(0,.22,u)*sstep(0,.22,1-u));
 const fanTex=smoothTex(256,512,(u,v)=>{const t=1-v,half=.04+.46*Math.pow(t,.8),a=Math.pow(1-t,1.6)*.95+.05*(1-t);return a*Math.max(0,1-Math.abs(u-.5)/half)});
 const frameGlowTex=canvasTex(256,256,(g,w,h)=>{g.shadowColor="#fff";g.shadowBlur=26;g.strokeStyle="rgba(255,255,255,.9)";g.lineWidth=6;
   for(let k=0;k<3;k++){g.beginPath();const m=34,r=18;g.moveTo(m+r,m);g.arcTo(w-m,m,w-m,h-m,r);g.arcTo(w-m,h-m,m,h-m,r);g.arcTo(m,h-m,m,m,r);g.arcTo(m,m,w-m,m,r);g.closePath();g.stroke()}});
@@ -998,8 +1002,8 @@ function buildSet(s,i){
     for(const sd of [-1,1])g.add(B3(2.25,.06,.06,neon,sd*2.72,.04,3.6));
     for(const sd of [-1,1])g.add(B3(.04,.04,3.5-back,neon,sd*3.86,.03,(3.5+back)/2));
     // the neon spills onto the polished floor in front of the booth
-    const sp=new THREE.Mesh(new THREE.PlaneGeometry(7.9,1.9),new THREE.MeshBasicMaterial({map:glowTex,color:nc,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    sp.rotation.x=-Math.PI/2;sp.position.set(0,.016,3.6+.95);sp.userData.keep=true;g.add(sp); }
+    const sp=new THREE.Mesh(new THREE.PlaneGeometry(8.6,2.8),new THREE.MeshBasicMaterial({map:spillTex,color:nc,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+    sp.rotation.x=-Math.PI/2;sp.position.set(0,.016,3.6+1.4);sp.userData.keep=true;g.add(sp); }
   for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
@@ -1448,7 +1452,7 @@ function buildPlaques(){
   const geos=(W,H)=>GEO[W+"x"+H]||(GEO[W+"x"+H]=(()=>{const rimS=roundRect(W+.026,H+.026,.082);rimS.holes.push(roundRect(W-.012,H-.012,.064));
     return {slab:new THREE.ExtrudeGeometry(roundRect(W,H,.07),{depth:D,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:8}),rim:new THREE.ShapeGeometry(rimS,8)}})());
   const bolt=new THREE.CylinderGeometry(.034,.034,.11,20);bolt.rotateX(Math.PI/2);const cap=new THREE.CylinderGeometry(.04,.04,.018,20);cap.rotateX(Math.PI/2);
-  if(!PLQ_SHADOW){PLQ_SHADOW=new THREE.MeshBasicMaterial({map:canvasTex(256,96,(g,w,h)=>{g.filter="blur(10px)";rr(g,22,22,w-44,h-44,14);g.fillStyle="rgba(0,0,0,.85)";g.fill()}),transparent:true,depthWrite:false,opacity:.55});PLQ_RIM=emissive("#fff1d8",.9)}
+  if(!PLQ_SHADOW){PLQ_SHADOW=new THREE.MeshBasicMaterial({map:canvasTex(256,96,(g,w,h)=>{g.filter="blur(10px)";rr(g,22,22,w-44,h-44,14);g.fillStyle="rgba(0,0,0,.85)";g.fill()}),transparent:true,depthWrite:false,opacity:.55});PLQ_RIM=emissive("#fff1d8",.35)}   // a soft edge: brighter, the thin line shimmered in the glow as the camera moved
   items.forEach(it=>{
     const W=it.W||PLQ_W,H=it.H||PLQ_H,cvW=1080,cvH=Math.round(1080*H/W),{slab:geo,rim:rimG}=geos(W,H);
     const G=new THREE.Group();
@@ -1458,7 +1462,7 @@ function buildPlaques(){
     for(const sx of [-1,1])for(const sy of [-1,1]){const b=new THREE.Mesh(bolt,MAT.chrome);b.position.set(sx*(W/2-.1),sy*(H/2-.1),-.02);G.add(b);
       const c=new THREE.Mesh(cap,MAT.chrome);c.position.set(sx*(W/2-.1),sy*(H/2-.1),D/2+.02);G.add(c)}
     const cv=document.createElement("canvas");cv.width=cvW;cv.height=cvH;const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=8;
-    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;face.renderOrder=4;G.add(face);
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;face.renderOrder=4;G.add(face);face.material.color.setScalar(dark?.86:1);
     const draw=()=>{const g=cv.getContext("2d"),t=T(),fa=lang==="fa";g.clearRect(0,0,cvW,cvH);
       // frosted glass: a diagonal sheen over a soft warm tint, so the slats behind still show through faintly
       const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(255,240,215,.62)");gr.addColorStop(.45,"rgba(240,215,180,.38)");gr.addColorStop(1,"rgba(215,185,145,.3)");
@@ -1693,6 +1697,7 @@ function applyTheme(){
   beams.forEach(b=>b.material.uniforms.uOpacity.value=dark?.22:.06);
   // name boards glow gently in the dark instead of dazzling (bright brand plates like Hamrahe Aval's)
   signMats.forEach(m=>m.color.setScalar(dark?.74:1));
+  PLQ.forEach(q=>q.face.material.color.setScalar(dark?.86:1));   // boards stay clearly below the glow threshold at night
   // [night, day] brightness of lights seen straight on; the door frames were the strongest glare in both modes
   MAT.doorLed.emissiveIntensity=dark?1.8:1.3;GLARE.forEach(m=>m.emissiveIntensity=m.userData.glare[dark?0:1]);
   if(P3.panels.length)redrawPanels3D();
@@ -1704,7 +1709,7 @@ function applyTheme(){
   if(MAT.endBoard)MAT.endBoard.color=C(dark?"#a9a59e":"#f2efe9");
   if(MAT.endWall)MAT.endWall.color=C(dark?"#4a4744":"#a39f99");
   lightMul=dark?.95:.5;
-  if(bloom){bloom.strength=dark?.7:.5;bloom.threshold=dark?.8:1.3;bloom.radius=.55}
+  if(bloom){bloom.strength=dark?.7:.5;bloom.threshold=dark?1.05:1.3;bloom.radius=.55}
   if(finalPass){finalPass.uniforms.uVig.value=dark?.6:.5;finalPass.uniforms.uExp.value=dark?1.05:.96;finalPass.uniforms.uWarm.value.set(1.05,1.0,dark?.9:.88)}
   renderer.toneMappingExposure=dark?1:.95;
   $("#lightBtn").innerHTML=(dark?ICON.sun:ICON.moon)+`<span>${dark?T().toLight:T().toDark}</span>`;
