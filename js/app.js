@@ -1881,7 +1881,7 @@ function moveBy(d){
   if(mode==="set"){
     const S=SETS[setIdx];spTarget+=d;
     // scrolling back past the door, or on past the end, steps back out into the hall
-    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA;vel=0;drag=null;exitCool=performance.now()}   // the rest of that swipe or scroll does not carry on down the hall
+    if(spTarget<-.6){leaveSet();p=pTarget=S.ppA;lookYaw=lookPitch=0;vel=0;drag=null;exitCool=performance.now()}   // faces back down the hall, like the Hallway button; the rest of that swipe or scroll does not carry on
     else spTarget=Math.min(spTarget,S.len);
     return;
   }
