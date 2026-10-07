@@ -45,10 +45,12 @@ if(!window.THREE||!(()=>{try{const c=document.createElement("canvas");return !!(
 /* ---------- renderer & quality ---------- */
 const phoneLike=()=>innerWidth<640;
 const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-// strong phones and tablets (recent iPhones and iPads, Android with 6 GB or more) get the full studio: glow, colour grade
-// and floor reflections, so the site looks the same as on a computer; weaker ones keep the lighter version
+// tablets with room to spare (iPads, Android tablets with 6 GB or more) get the full studio with glow and floor reflections;
+// phones keep the lighter pipeline at full sharpness: on iPhone the full one ran past Safari's graphics memory and the
+// page stopped, and on Android it was slow
 const GL2=(()=>{try{return !!document.createElement("canvas").getContext("webgl2")}catch(e){return false}})();
-const STRONG=GL2&&((IOS&&(devicePixelRatio>=3||Math.min(screen.width,screen.height)>=744))||(navigator.deviceMemory||0)>=6);
+const TABLET=Math.min(screen.width,screen.height)>=744;
+const STRONG=GL2&&TABLET&&(IOS||(navigator.deviceMemory||0)>=6);
 let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid":"high";
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
@@ -1122,7 +1124,8 @@ function makeFrame(s,v,i){
   cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
   const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
-  if(v.poster){const im=new Image();im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster}
+  F.loadPoster=()=>{if(F.posterReq||!v.poster)return;F.posterReq=true;const im=new Image();im.decoding="async";im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster};
+  if(i<0)F.loadPoster();
   G.traverse(o=>{o.userData.keep=true;o.userData.frame=F});
   addGlass(G,Math.max(w,h));framesAll.push(F);return F;
 }
@@ -1151,6 +1154,7 @@ function updateFrames(dt){
     const S=SETS[F.set],far=Math.abs(cp.z-S.z)>22;
     // films of studios far down the hall are hidden and their covers freed from graphics memory (phones ran out of it)
     if(F.G.visible===far){F.G.visible=!far;if(far){F.posterTex.dispose();F.capTex.dispose()}}
+    if(!far)F.loadPoster();
     if(far)continue;
     F.G.position.y=F.y0+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=F.r0+Math.sin(frameT*.6+F.ph)*.025;
     if(!F.v.src||!sameOrigin(F.v.src))continue;
