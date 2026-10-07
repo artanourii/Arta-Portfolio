@@ -1921,10 +1921,10 @@ addEventListener("pointermove",e=>{
   const tp=TOUCHES.get(e.pointerId);
   if(TOUCHES.size>=2&&tp){   // two fingers: look around freely, without walking
     const lx=e.clientX-tp.x,ly=e.clientY-tp.y;tp.x=e.clientX;tp.y=e.clientY;
-    lookYaw+=lx*.005/TOUCHES.size;lookPitch=clamp(lookPitch+ly*.004/TOUCHES.size,-.65,.65);vel=0;return}
+    lookYaw-=lx*.005/TOUCHES.size;lookPitch=clamp(lookPitch-ly*.004/TOUCHES.size,-.65,.65);vel=0;return}
   if(tp){tp.x=e.clientX;tp.y=e.clientY}
   const dy=drag.last-e.clientY,dx=drag.lastX-e.clientX;drag.last=e.clientY;drag.lastX=e.clientX;
-  if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw-=dx*.005;return}
+  if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw+=dx*.005;return}
   const d=dy*(innerWidth<640?.03:.022);
 
   moveBy(d);vel=vel*.5+d*.5;
