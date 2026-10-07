@@ -537,9 +537,11 @@ function logoLum(cv){
 }
 const signTex=[];
 function canvasSign(w,h,draw){
-  const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  // phones draw signs at 70% size (Safari on iPhone stops creating canvases once their total memory is too large)
+  const k=Q==="high"?1:.7;
+  const cv=document.createElement("canvas");cv.width=Math.round(w*k);cv.height=Math.round(h*k);
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
-  t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");g.clearRect(0,0,w,h);draw(g,w,h);t.needsUpdate=true};
+  t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");if(!g)return;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(k,0,0,k,0,0);draw(g,w,h);t.needsUpdate=true};
   t.userData.redraw();signTex.push(t);return t;
 }
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath()}
@@ -583,9 +585,9 @@ const MATC={};const cstd=(c,r=.55,m=0)=>MATC[c+"|"+r+"|"+m]||(MATC[c+"|"+r+"|"+m
 /* inside colours of each studio (walls, backdrop) and, where the room is dark, full-strength lights */
 const INNER={
   asus:{wall:"#1b2028",cyc:"#15191f",deep:2.5},aparat:{wall:"#241016",cyc:"#1a0b10",deep:3},respina:{wall:"#0a2328",cyc:"#081c20",deep:1.6},
-  mci:{wall:"#c4d8e8",cyc:"#d3e3ef"},snapp:{wall:"#1d212c",cyc:"#2a2e39"},azkivam:{wall:"#c3cdf0",cyc:"#ccd5f4"},
+  mci:{wall:"#9fb6c9",cyc:"#aec3d4",li:.2},snapp:{wall:"#1d212c",cyc:"#2a2e39"},azkivam:{wall:"#aab6e3",cyc:"#b7c2ea",li:.25},
   beauty:{wall:"#d9a9a2",cyc:"#e3b4ab",deep:2.5},dreamsalon:{wall:"#c9a8cb",cyc:"#d8bcd9",deep:1.2},analizfix:{wall:"#171b2b",cyc:"#121522",deep:3},
-  niromotor:{wall:"#0f1f3a",cyc:"#0b1830",deep:3.2},itmall:{wall:"#b8c4dc",cyc:"#c9d3e6"},farmaniyeh:{wall:"#2b2c2f",cyc:"#1f2023",li:1,deep:1.6},
+  niromotor:{wall:"#0f1f3a",cyc:"#0b1830",deep:3.2},itmall:{wall:"#a7b4cf",cyc:"#b6c2da",li:.25},farmaniyeh:{wall:"#2b2c2f",cyc:"#1f2023",li:1,deep:1.6},
   dicardo:{wall:"#140d3a",cyc:"#0c0828",deep:1.4},emaratezarin:{wall:"#13213a",cyc:"#0f1a2e"},mahannet:{wall:"#262222",cyc:"#1b1919",li:1},
   tiktok:{wall:"#0d0d10",cyc:"#08080a",deep:1.5}
 };
@@ -1612,6 +1614,8 @@ function setupPost(on){
     composer=new THREE.EffectComposer(renderer,rt);composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight);
     composer.addPass(new THREE.RenderPass(scene,camera));
     bloom=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth*(Q==="high"?.6:.4),innerHeight*(Q==="high"?.6:.4)),.8,.5,.75);composer.addPass(bloom);
+    // the bloom's small blurred layers were 8-bit: soft dark glows broke into visible steps and blocks; half-float keeps them smooth
+    if(renderer.capabilities.isWebGL2&&renderer.extensions.get("EXT_color_buffer_float"))[bloom.renderTargetBright,...bloom.renderTargetsHorizontal,...bloom.renderTargetsVertical].forEach(t=>{if(t)t.texture.type=THREE.HalfFloatType});
     finalPass=new THREE.ShaderPass(FinalShader);composer.addPass(finalPass);
   }
   renderer.toneMapping=useComposer?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;
