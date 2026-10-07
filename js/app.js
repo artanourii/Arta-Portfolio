@@ -52,13 +52,17 @@ const GL2=(()=>{try{return !!document.createElement("canvas").getContext("webgl2
 const TABLET=Math.min(screen.width,screen.height)>=744;
 const STRONG=GL2&&TABLET&&(IOS||(navigator.deviceMemory||0)>=6);
 let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid":"high";
+// lower-end Android phones (4 GB of memory or less, or four cores or fewer), or any phone found to be slow during its
+// first seconds: they start at a slightly lower resolution (it rises again by itself once the phone keeps up), play one
+// film at a time on the walls and finish the studios further down the hall only as you approach them or stand still
+let WEAK=TOUCH&&!STRONG&&!IOS&&((navigator.deviceMemory||8)<=4||(navigator.hardwareConcurrency||8)<=4);
 // phones use the standard material for glass and clearcoat paint: the clearcoat variant is the slowest shader to
 // prepare, and on a phone screen its extra sheen is not visible; computers keep it
 const PhysMat=Q==="high"?THREE.MeshPhysicalMaterial:class extends THREE.MeshStandardMaterial{constructor(p={}){const q={...p};delete q.clearcoat;delete q.clearcoatRoughness;super(q)}};
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
 const renderer=new THREE.WebGLRenderer({canvas,antialias:!(TOUCH&&devicePixelRatio>=2.5&&Q!=="high"),powerPreference:"high-performance"});   // dense phone screens: no multisampling (edges are already fine at 2.5x), a large saving on the graphics chip
-let DPR=Math.min(devicePixelRatio||1,2);const DPR_MAX=DPR;   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
+const DPR_MAX=Math.min(devicePixelRatio||1,2);let DPR=WEAK?Math.min(DPR_MAX,1.5):DPR_MAX;   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
 const scene=new THREE.Scene();
@@ -69,8 +73,8 @@ scene.environment=pmrem.fromScene(new THREE.RoomEnvironment(),.04).texture;
 scene.fog=new THREE.FogExp2(0x000000,.03);
 
 /* ---------- procedural textures ---------- */
-function canvasTex(w,h,draw,repeat){
-  const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);
+function canvasTex(w,h,draw,repeat,cpu){
+  const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d",cpu?{willReadFrequently:true}:undefined),w,h);
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
   if(repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat[0],repeat[1])}return t;
 }
@@ -79,13 +83,14 @@ const concreteTex=canvasTex(1024,1024,(g,w,h)=>{
   g.fillStyle="#bdbdbd";g.fillRect(0,0,w,h);
   for(let i=0;i<46;i++){const x=Math.random()*w,y=Math.random()*h,r=90+Math.random()*260,dk=Math.random()<.5;
     const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,dk?"rgba(0,0,0,.05)":"rgba(255,255,255,.06)");gr.addColorStop(1,"rgba(0,0,0,0)");
-    for(const ox of [-w,0,w])for(const oy of [-h,0,h]){g.save();g.translate(ox,oy);g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore()}}
+    // drawn again across an edge only where the cloud actually crosses it, so the texture still tiles seamlessly
+    for(const ox of [-w,0,w])for(const oy of [-h,0,h]){if(x+ox+r<0||x+ox-r>w||y+oy+r<0||y+oy-r>h)continue;g.save();g.translate(ox,oy);g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore()}}
   const id=g.getImageData(0,0,w,h),d=id.data;
   for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*9;d[i]+=n;d[i+1]+=n;d[i+2]+=n}
   g.putImageData(id,0,0);
   if("filter" in g){g.filter="blur(.8px)";g.drawImage(g.canvas,0,0);g.filter="none"}
   g.globalAlpha=.12;g.strokeStyle="#000";g.lineWidth=2;g.strokeRect(0,0,w,h);
-},[5,18]);
+},[5,18],true);   // drawn in ordinary memory: its grain is written pixel by pixel
 const acousticTex=canvasTex(256,256,(g,w,h)=>{
   g.fillStyle="#9a9a9a";g.fillRect(0,0,w,h);
   for(let y=0;y<2;y++)for(let x=0;x<2;x++){
@@ -538,10 +543,17 @@ function loadLogo(s,cb){
   if(!s.logoImg)return;
   if(s._img)return cb();
   (s._cbs=s._cbs||[]).push(cb);if(s._loading)return;s._loading=true;
-  const im=new Image();im.onload=()=>{
-    // a logo file only works when the site is served over http(s); skip it if the browser marks the canvas unsafe
-    const t=document.createElement("canvas");t.width=t.height=8;const tg=t.getContext("2d");tg.drawImage(im,0,0,8,8);
-    try{tg.getImageData(0,0,1,1);s._img=im;s._cbs.forEach(f=>f())}catch(e){}
+  // the logo is decoded off the main thread, then drawn once into a canvas at the largest size any sign uses (the back
+  // wall's 1024 x 400); every sign then copies that ready picture instead of redrawing the vector logo each time, which
+  // on slower phones held up the start by seconds
+  const im=new Image();im.decoding="async";im.onload=()=>{
+    (im.decode?im.decode():Promise.resolve()).catch(()=>{}).then(()=>{
+      const iw=im.naturalWidth||im.width||1000,ih=im.naturalHeight||im.height||400,vec=/\.svg($|\?)/i.test(s.logoImg);
+      const k=vec?Math.min(1024/iw,400/ih):Math.min(1,1024/iw,400/ih),cv=document.createElement("canvas");
+      cv.width=Math.max(1,Math.round(iw*k));cv.height=Math.max(1,Math.round(ih*k));
+      const g=cv.getContext("2d");if(!g)return;g.drawImage(im,0,0,cv.width,cv.height);
+      s._lum0=pixLum(im);s._img=cv;s._cbs.forEach(f=>f());s._cbs=null;
+    });
   };im.src=s.logoImg;
 }
 // the logo drawn into its own canvas (recoloured when the brand asks for it), or null when there is no logo
@@ -551,16 +563,26 @@ function logoCanvas(s,color,maxW,maxH){
     const iw=img.naturalWidth||img.width||1000,ih=img.naturalHeight||img.height||400,k=Math.min(maxW/iw,maxH/ih);
     cv.width=Math.max(1,Math.round(iw*k));cv.height=Math.max(1,Math.round(ih*k));g=cv.getContext("2d");g.drawImage(img,0,0,cv.width,cv.height);
     if(s.logoTint){g.globalCompositeOperation="source-in";g.fillStyle=color;g.fillRect(0,0,cv.width,cv.height)}
-    return cv;
+    cv._s=s;if(s.logoTint)cv._c=color;return cv;
   }
-  if(s.logo){const vb=s.logo.vb||24,k=Math.min(maxW,maxH)/vb;cv.width=cv.height=Math.round(vb*k);g=cv.getContext("2d");g.fillStyle=color;g.scale(k,k);g.fill(new Path2D(s.logo.d));return cv}
+  if(s.logo){const vb=s.logo.vb||24,k=Math.min(maxW,maxH)/vb;cv.width=cv.height=Math.round(vb*k);g=cv.getContext("2d");g.fillStyle=color;g.scale(k,k);g.fill(new Path2D(s.logo.d));cv._c=color;return cv}
   return null;
 }
-// average brightness of a logo's visible pixels (0 black .. 1 white)
-function logoLum(cv){
-  try{const d=cv.getContext("2d").getImageData(0,0,cv.width,cv.height).data;let s=0,n=0;
-    for(let i=0;i<d.length;i+=16){const a=d[i+3]/255;if(a<.4)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}
+// average brightness of a logo's visible pixels (0 black .. 1 white). Worked out once when the logo loads, from a small
+// copy kept in ordinary memory; a logo recoloured into one colour simply has that colour's brightness. (Reading the
+// pixels of each freshly drawn sign back from the graphics chip stalled slower phones for seconds at the start.)
+function pixLum(src){
+  try{const k=Math.min(1,64/src.width,64/src.height),t=document.createElement("canvas");t.width=Math.max(1,Math.round(src.width*k));t.height=Math.max(1,Math.round(src.height*k));
+    const tg=t.getContext("2d",{willReadFrequently:true});tg.drawImage(src,0,0,t.width,t.height);const d=tg.getImageData(0,0,t.width,t.height).data;let s=0,n=0;
+    for(let i=0;i<d.length;i+=4){const a=d[i+3]/255;if(a<.4)continue;s+=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;n++}
     return n?s/n:1}catch(e){return 1}
+}
+const colorLum=c=>{const h=/^#([0-9a-f]{6})$/i.exec(c||"");if(!h)return 1;const v=parseInt(h[1],16);return (.2126*(v>>16)+.7152*(v>>8&255)+.0722*(v&255))/255};
+function logoLum(cv){
+  if(cv._lum!=null)return cv._lum;
+  if(cv._c)return cv._lum=colorLum(cv._c);
+  if(cv._s&&cv._s._lum0!=null)return cv._lum=cv._s._lum0;
+  return cv._lum=pixLum(cv);
 }
 const signTex=[];
 function canvasSign(w,h,draw){
@@ -1173,7 +1195,7 @@ function updateFrames(dt){
   const cp=camera.position;
   // only the films nearest the camera play (a studio can hold ten); the others keep their cover image
   // the next few films along the way already load (paused), so a film starts as soon as the camera reaches it
-  const near=new Set(),pre=new Set(),NP=Q==="high"&&!TOUCH?4:2;
+  const near=new Set(),pre=new Set(),NP=Q==="high"&&!TOUCH?4:WEAK?1:2;
   if(setIdx>=0)SETS[setIdx].frames.filter(F=>F.v.src).map(F=>{F.G.getWorldPosition(tmp);return [tmp.distanceTo(cp),F]})
     .sort((a,b)=>a[0]-b[0]).slice(0,NP+2).forEach((x,k)=>{pre.add(x[1]);if(k<NP)near.add(x[1])});
   for(const F of framesAll){
@@ -2119,7 +2141,10 @@ function frame(now){
   if(useComposer)composer.render();else renderer.render(scene,camera);
   updateAnchors();updateMap();updateFrames(dt);updateFilmHud();updatePlayHint();
   $("#hint").style.opacity=p<PP0+1.5&&mode==="hall"?1:0;
-  if(started&&PENDING_SETS.length&&frames%2===0){const S=PENDING_SETS.shift();if(!S.built){S.finish();S.merged=mergeStatic(S.g)}}
+  // the studios not yet finished are completed nearest first; slower phones do it only while you stand still or as
+  // you come within about 45 m of one, so walking never stutters
+  if(started&&PENDING_SETS.length&&frames%2===0){let k=0;PENDING_SETS.forEach((S,j)=>{if(Math.abs(curPos.z-S.z)<Math.abs(curPos.z-PENDING_SETS[k].z))k=j});
+    const S=PENDING_SETS[k];if(!WEAK||isIdle||Math.abs(curPos.z-S.z)<45){PENDING_SETS.splice(k,1);if(!S.built){S.finish();S.merged=mergeStatic(S.g)}}}
   // a studio's inside (props, trusses, backdrop) is drawn only while the camera is within about 30 m of it: from
   // farther away it shows only as a small glimpse through the door, and skipping it saves the graphics chip most work
   for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<30||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
@@ -2131,7 +2156,7 @@ function frame(now){
   if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=30){const a=dynT/dynN;dynN=dynT=0;
     const next=a>45&&DPR>1?Math.max(1,DPR-.5):a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_MAX?Math.min(DPR_MAX,DPR+.25):DPR;
     if(next!==DPR&&now-dynLast>(next<DPR?700:2500)){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
-  if(frames===160){const avg=acc/120;
+  if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30)WEAK=true;
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
   }
