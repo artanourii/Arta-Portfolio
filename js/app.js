@@ -57,7 +57,7 @@ let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid
 const PhysMat=Q==="high"?THREE.MeshPhysicalMaterial:class extends THREE.MeshStandardMaterial{constructor(p={}){const q={...p};delete q.clearcoat;delete q.clearcoatRoughness;super(q)}};
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
+const renderer=new THREE.WebGLRenderer({canvas,antialias:!(TOUCH&&devicePixelRatio>=2.5&&Q!=="high"),powerPreference:"high-performance"});   // dense phone screens: no multisampling (edges are already fine at 2.5x), a large saving on the graphics chip
 let DPR=Math.min(devicePixelRatio||1,2);const DPR_MAX=DPR;   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
@@ -1862,6 +1862,14 @@ for(const [id,d] of [["#lookUp",1],["#lookDown",-1]]){let iv=null;const b=$(id);
   ["pointerup","pointerleave","pointercancel"].forEach(n=>b.addEventListener(n,stop));}
 $("#lookReset")&&($("#lookReset").onclick=()=>{lookPitch=lookYaw=0});
 
+// the studio whose door the camera is turned toward (looking left or right in the hall, near that door), or -1
+function facingStudio(){
+  let y=lookYaw%(Math.PI*2);if(y>Math.PI)y-=Math.PI*2;if(y<-Math.PI)y+=Math.PI*2;
+  if(Math.abs(y)<.55||Math.abs(y)>2.6)return -1;
+  const side=y>0?-1:1;let best=-1,bd=4.6;
+  for(const S of SETS){if(S.side!==side)continue;const dz=Math.abs(curPos.z-S.z);if(dz<bd){bd=dz;best=S.i}}
+  return best;
+}
 function moveBy(d){
   if(mode==="set"){
     const S=SETS[setIdx];spTarget+=d;
@@ -1904,6 +1912,8 @@ addEventListener("pointermove",e=>{
   const dy=drag.last-e.clientY,dx=drag.lastX-e.clientX;drag.last=e.clientY;drag.lastX=e.clientX;
   if(Math.abs(dx)>Math.abs(dy)*1.2){lookYaw-=dx*.005;return}
   const d=dy*(innerWidth<640?.03:.022);
+  // turned toward a studio's door in the hall: swiping forward walks straight in, no need to tap its name
+  if(mode==="hall"&&d>0&&!jumping){const i=facingStudio();if(i>=0){drag.inAcc=(drag.inAcc||0)+d;if(drag.inAcc>.45){drag.inAcc=0;drag=null;enterSet(i)}return}}
   moveBy(d);vel=vel*.5+d*.5;
 },{passive:true});
 addEventListener("pointerup",e=>{
