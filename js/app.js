@@ -48,21 +48,24 @@ const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="M
 // tablets with room to spare (iPads, Android tablets with 6 GB or more) get the full studio with glow and floor reflections;
 // phones keep the lighter pipeline at full sharpness: on iPhone the full one ran past Safari's graphics memory and the
 // page stopped, and on Android it was slow
-const GL2=(()=>{try{return !!document.createElement("canvas").getContext("webgl2")}catch(e){return false}})();
+let GPU="";
+const GL2=(()=>{try{const gl=document.createElement("canvas").getContext("webgl2");if(gl){const x=gl.getExtension("WEBGL_debug_renderer_info");GPU=x?String(gl.getParameter(x.UNMASKED_RENDERER_WEBGL)):""}return !!gl}catch(e){return false}})();
+// graphics chips of budget and mid-range Android phones (older Mali, Adreno 600-series and below, PowerVR)
+const WEAK_GPU=/Mali-(T|G[1-6]\d\b|G7[0-6]\b)|Adreno \(TM\) ([1-5]\d\d|6[0-4]\d)\b|PowerVR/i.test(GPU);
 const TABLET=Math.min(screen.width,screen.height)>=744;
 const STRONG=GL2&&TABLET&&(IOS||(navigator.deviceMemory||0)>=6);
 let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid":"high";
 // lower-end Android phones (4 GB of memory or less, or four cores or fewer), or any phone found to be slow during its
 // first seconds: they start at a slightly lower resolution (it rises again by itself once the phone keeps up), play one
 // film at a time on the walls and finish the studios further down the hall only as you approach them or stand still
-let WEAK=TOUCH&&!STRONG&&!IOS&&((navigator.deviceMemory||8)<=4||(navigator.hardwareConcurrency||8)<=4);
+let WEAK=TOUCH&&!STRONG&&!IOS&&(WEAK_GPU||(navigator.deviceMemory||8)<=4||(navigator.hardwareConcurrency||8)<=4);
 // phones use the standard material for glass and clearcoat paint: the clearcoat variant is the slowest shader to
 // prepare, and on a phone screen its extra sheen is not visible; computers keep it
 const PhysMat=Q==="high"?THREE.MeshPhysicalMaterial:class extends THREE.MeshStandardMaterial{constructor(p={}){const q={...p};delete q.clearcoat;delete q.clearcoatRoughness;super(q)}};
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
 const renderer=new THREE.WebGLRenderer({canvas,antialias:!(TOUCH&&devicePixelRatio>=2.5&&Q!=="high"),powerPreference:"high-performance"});   // dense phone screens: no multisampling (edges are already fine at 2.5x), a large saving on the graphics chip
-const DPR_MAX=Math.min(devicePixelRatio||1,2);let DPR=WEAK?Math.min(DPR_MAX,1.5):DPR_MAX;   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
+const DPR_MAX=Math.min(devicePixelRatio||1,2);let DPR=WEAK?Math.min(DPR_MAX,1.5):DPR_MAX,DPR_CAP=DPR;   // a slower phone stays at 1.5x at most   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
 const scene=new THREE.Scene();
@@ -1341,10 +1344,14 @@ function glassSlab(w,h){
    with a little colour fringing, a bright specular edge and a soft frost. Nothing is painted on, so the glass
    always shows what is really behind it, in light and dark mode alike. */
 const GLASS={res:new THREE.Vector2(1,1),groups:[],dark:{value:1},rt:null,tick:0,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),sph:new THREE.Sphere()};
-{ const sz=Q==="high"?1024:512,hf=renderer.capabilities.isWebGL2&&!!renderer.extensions.get("EXT_color_buffer_float");
+GLASS.lodB={value:0};
+// slower phones: a quarter-size backdrop (the glass frosts it anyway; the blur is matched so it looks the same)
+GLASS.small=()=>{if(GLASS.rt.width<=256)return;GLASS.rt.setSize(256,256);GLASS.lodB.value=-1};
+{ const sz=Q==="high"?1024:512,hf=renderer.capabilities.isWebGL2&&!!renderer.extensions.get("EXT_color_buffer_float")&&!WEAK;
   GLASS.rt=new THREE.WebGLRenderTarget(sz,sz,{minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:hf?THREE.HalfFloatType:THREE.UnsignedByteType,generateMipmaps:true}); }
+if(WEAK)GLASS.small();
 const GLASS_VS=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
-const GLASS_FS=`uniform sampler2D tBack,tText;uniform vec2 uRes,uSize;uniform float uRad,uHasText,uDark,uOpacity;varying vec2 vUv;
+const GLASS_FS=`uniform sampler2D tBack,tText;uniform vec2 uRes,uSize;uniform float uRad,uHasText,uDark,uOpacity,uLodB;varying vec2 vUv;
 float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
 void main(){
   vec2 hb=uSize*.5,p=(vUv-.5)*uSize;
@@ -1357,7 +1364,7 @@ void main(){
   float e=1.-smoothstep(0.,bez,inside),bend=e*e*(3.-2.*e);
   // lens: toward the rim the glass pulls in the scene from just beyond its edge
   vec2 suv=gl_FragCoord.xy/uRes,off=n*bend*bez*1.15*ppm/uRes;
-  float lod=2.5+bend*1.6;   // frost, so text on the glass stays easy to read and small bright lights behind don't sparkle
+  float lod=max(2.5+bend*1.6+uLodB,0.);   // frost, so text on the glass stays easy to read and small bright lights behind don't sparkle
   vec3 col=vec3(texture2D(tBack,suv+off*1.1,lod).r,texture2D(tBack,suv+off,lod).g,texture2D(tBack,suv+off*.9,lod).b);
   // bright lamps and light cones behind the glass are compressed, so they can't flash through it as the camera moves
   col=col*1.3/(1.+col*.6);
@@ -1373,7 +1380,7 @@ void main(){
 }`;
 function liquidMat(w,h,r,textTex){
   const m=new THREE.ShaderMaterial({uniforms:{tBack:{value:GLASS.rt.texture},tText:{value:textTex||null},uHasText:{value:textTex?1:0},uRes:{value:GLASS.res},
-    uSize:{value:new THREE.Vector2(w,h)},uRad:{value:r},uDark:GLASS.dark,uOpacity:{value:1}},vertexShader:GLASS_VS,fragmentShader:GLASS_FS,
+    uSize:{value:new THREE.Vector2(w,h)},uRad:{value:r},uDark:GLASS.dark,uOpacity:{value:1},uLodB:GLASS.lodB},vertexShader:GLASS_VS,fragmentShader:GLASS_FS,
     transparent:true,depthWrite:false,extensions:{derivatives:true}});
   m.userData.glass=true;return m;
 }
@@ -1382,7 +1389,8 @@ function addGlass(G,r=2){GLASS.groups.push({G,r})}
 function renderBackdrop(){
   renderer.getDrawingBufferSize(GLASS.res);
   // every frame while the camera moves (skipping then made the glass lag and flicker); at rest every fourth frame
-  if(camRest>3&&(GLASS.tick++&3))return;
+  // (slower phones: every other frame while moving, every eighth at rest)
+  if(WEAK?(GLASS.tick++&(camRest>3?7:1)):(camRest>3&&(GLASS.tick++&3)))return;
   GLASS.pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);GLASS.fr.setFromProjectionMatrix(GLASS.pm);
   const vis=[];
   for(const o of GLASS.groups){if(!o.G.visible||!o.G.parent)continue;o.G.getWorldPosition(GLASS.sph.center);GLASS.sph.radius=o.r*o.G.scale.x;
@@ -1987,7 +1995,8 @@ let hintOn=false;
 function updatePlayHint(){
   let on=false;const cp=camera.position;
   if(!playerEl&&!jumping&&!$("#veil").classList.contains("show")){
-    if(mode==="set"){const S=SETS[setIdx],F=S.frames[curFilm(S)];if(F&&F.v.src){F.screen.getWorldPosition(tmp);on=tmp.distanceTo(cp)<3.3&&Math.abs(spTarget-sp)<.6}}
+    // shown once the camera has arrived in front of a film (wide films are seen from further back, so not by distance)
+    if(mode==="set"){const S=SETS[setIdx],c=curFilm(S),F=S.frames[c];if(F&&F.v.src)on=Math.abs(sp-S.u.stop[c])<.5&&Math.abs(spTarget-sp)<.6}
     else for(const F of FEATS3){if(!F.G.visible||F.k<.8||(F.v===FEATURES.instagramAd&&p>PP_FILM+1.5))continue;   // not once the camera has turned to the contact card
       F.G.getWorldPosition(tmp);if(cp.z>tmp.z+.4&&tmp.distanceTo(cp)<(F.v===FEATURES.instagramAd?11:6.5))on=true}
   }
@@ -2147,16 +2156,16 @@ function frame(now){
     const S=PENDING_SETS[k];if(!WEAK||isIdle||Math.abs(curPos.z-S.z)<45){PENDING_SETS.splice(k,1);if(!S.built){S.finish();S.merged=mergeStatic(S.g)}}}
   // a studio's inside (props, trusses, backdrop) is drawn only while the camera is within about 30 m of it: from
   // farther away it shows only as a small glimpse through the door, and skipping it saves the graphics chip most work
-  for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<30||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
+  for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<(WEAK?24:30)||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
   if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
   // at a slightly lower resolution so walking stays smooth, and goes back up once it can; strong devices never step down
   if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=30){const a=dynT/dynN;dynN=dynT=0;
-    const next=a>45&&DPR>1?Math.max(1,DPR-.5):a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_MAX?Math.min(DPR_MAX,DPR+.25):DPR;
+    const next=a>45&&DPR>1?Math.max(1,DPR-.5):a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_CAP?Math.min(DPR_CAP,DPR+.25):DPR;
     if(next!==DPR&&now-dynLast>(next<DPR?700:2500)){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
-  if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30)WEAK=true;
+  if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30&&!WEAK){WEAK=true;GLASS.small();DPR_CAP=Math.min(DPR_MAX,1.5);if(DPR>DPR_CAP){DPR=DPR_CAP;renderer.setPixelRatio(DPR);resize()}}
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
   }
@@ -2205,7 +2214,7 @@ function mergeStatic(root=scene){
 /* ---------- start ---------- */
 build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();
 // the first four studios are finished before the first picture; the rest follow one by one just after it
-for(let k=0;k<4&&PENDING_SETS.length;k++){const S=PENDING_SETS.shift();S.finish();S.merged=mergeStatic(S.g)}
+for(let k=0;k<(WEAK?2:4)&&PENDING_SETS.length;k++){const S=PENDING_SETS.shift();S.finish();S.merged=mergeStatic(S.g)}   // slower phones: two, the rest follow nearest first
 setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
 let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
