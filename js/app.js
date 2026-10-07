@@ -46,7 +46,7 @@ let DPR=Math.min(devicePixelRatio||1,Q==="high"?2:1.6);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high";renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.12,220);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.18,220);
 const C=h=>new THREE.Color(h).convertSRGBToLinear();
 const pmrem=new THREE.PMREMGenerator(renderer);
 scene.environment=pmrem.fromScene(new THREE.RoomEnvironment(),.04).texture;
@@ -311,7 +311,7 @@ const SET0=-32,SETSTEP=8;   // studios stand in facing pairs, each pair right ne
 const LED_Z=SET0-(Math.ceil(STUDIOS.length/2)-1)*SETSTEP-12,HALL_END=LED_Z-12,HALL_LEN=10-HALL_END,HALL_MID=(10+HALL_END)/2;
 function build3D(){
   // floor, reflection, walls, ceiling
-  const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.002,HALL_MID);scene.add(fl);
+  const fl=mesh(new THREE.PlaneGeometry(36,HALL_LEN),MAT.floor,false);fl.rotation.x=-Math.PI/2;fl.position.set(0,.01,HALL_MID);scene.add(fl);
   if(Q==="high"&&THREE.Reflector){
     const rf=new THREE.Reflector(new THREE.PlaneGeometry(36,HALL_LEN),{clipBias:.003,textureWidth:innerWidth*.6,textureHeight:innerHeight*.6,color:0x8a8a8a});rf.userData.keep=true;
     // polished concrete: the reflection is smeared along the view, so lights and neon leave long streaks on the floor
@@ -395,7 +395,7 @@ function build3D(){
   for(const x of [-3.6,3.6]){const t=truss(4.7);t.rotation.z=Math.PI/2;t.position.set(x,2.35,-11);scene.add(t)}
   const head=truss(7.6);head.position.set(0,4.85,-11);scene.add(head);
   const strip=box(7.2,.06,.04,emissive("#ffd9a0",1.6),0,4.66,-10.82);scene.add(strip);
-  const cy=mesh(cycGeo(10,3.2,1.3,5.2),MAT.hallCyc);cy.material.side=THREE.DoubleSide;cy.position.set(-9.4,0,-16.6);cy.rotation.y=Math.PI/2;scene.add(cy);
+  const cy=mesh(cycGeo(10,3.2,1.3,5.2),MAT.hallCyc);cy.material.side=THREE.DoubleSide;cy.position.set(-9.4,.02,-16.6);cy.rotation.y=Math.PI/2;scene.add(cy);
   const dolly=cameraRig(true);dolly.position.set(2.9,0,-15.8);dolly.lookAt(-8,0,-16.6);dolly.rotateY(Math.PI);scene.add(dolly);
   for(const z of [-.5,.5]){const r=box(.05,.05,6,MAT.chrome,0,.03,0);r.position.set(2.9+z,.03,-15.8);r.rotation.y=Math.PI/2;r.scale.z=1;scene.add(r)}
   for(let i=0;i<10;i++)scene.add(box(.08,.03,1.3,MAT.wood,0.0+i*.6-2.7+2.9,.015,-15.8));
@@ -610,7 +610,7 @@ function decor(s,g,back){
       for(const x of [-.3,.3]){car.add(B(.18,.08,.02,E("#ffffff",3),x,.55,1.01));car.add(B(.18,.06,.02,E("#ff2a2a",2.4),x,.55,-1.01))}
       put(car,2.75,0,(zN+zF)/2,.12);
       for(const z of along(4)){const cone=mesh(new THREE.ConeGeometry(.16,.5,20),M("#ff7a1a",.6));put(cone,-3.0,.25,z)}
-      for(let z=3.0;z>back+.8;z-=.9)g.add(B(.1,.006,.48,E("#ffffff",1.1),0,.012,z));
+      for(let z=3.0;z>back+.8;z-=.9)g.add(B(.1,.006,.48,E("#ffffff",1.1),0,.032,z));
       break}
     case "azkivam":{ // finance: stacks of coins and big cards
       const gold=M("#e8b44a",.3,.85);
@@ -725,8 +725,8 @@ function buildSet(s,i){
   }
   const back=Math.max(-10.2,Math.min(-3.2,(lay[n-1]||{z:0}).z-2.4)),extra=-1.25-back;
   const cm=std(s.c.bg,.82,0,{side:THREE.DoubleSide});
-  const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.z=-extra;g.add(cy);
-  const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.004,3.38);g.add(edge);
+  const cy=mesh(cycGeo(7.4,3.4+extra,1.25,4.8),cm);cy.position.set(0,.02,-extra);g.add(cy);
+  const edge=mesh(new THREE.PlaneGeometry(7.4,.05),MAT.tapeW,false);edge.rotation.x=-Math.PI/2;edge.position.set(0,.026,3.38);g.add(edge);
   // truss ribs along the tunnel
   for(let rz=2.6;rz>back+.6;rz-=Math.max(DZ,2.6)){
     for(const x of [-3.5,3.5]){const t=truss(5);t.rotation.z=Math.PI/2;t.position.set(x,2.5,rz);g.add(t)}
@@ -753,7 +753,7 @@ function buildSet(s,i){
     for(const sd of [-1,1])g.add(B3(.04,.04,3.5-back,neon,sd*3.86,.03,(3.5+back)/2));
     // the neon spills onto the polished floor in front of the booth
     const sp=new THREE.Mesh(new THREE.PlaneGeometry(7.9,1.9),new THREE.MeshBasicMaterial({map:glowTex,color:nc,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    sp.rotation.x=-Math.PI/2;sp.position.set(0,.008,3.6+.95);sp.userData.keep=true;g.add(sp); }
+    sp.rotation.x=-Math.PI/2;sp.position.set(0,.016,3.6+.95);sp.userData.keep=true;g.add(sp); }
   for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
@@ -858,6 +858,9 @@ function makeFrame(s,v,i){
   addGlass(G,Math.max(w,h));framesAll.push(F);return F;
 }
 // films play on the glass only near the camera, and only from this site's own files (other hosts can't be drawn into 3D)
+// the small films on the 3D walls play light copies (arta-videos-5/w/), so several can stream at once without stutter;
+// tapping a film opens the original at full quality
+const wallOf=src=>/^https:\/\/artanourii\.github\.io\/arta-videos-\d+\//.test(src)?"https://artanourii.github.io/arta-videos-5/w/"+src.split("/").pop():src;
 // videos come from this site or from the arta-videos repos on GitHub Pages, which send CORS headers, so they can be drawn on the 3D walls
 const sameOrigin=src=>{try{const o=new URL(src,location.href).origin;return o===location.origin||o==="https://artanourii.github.io"}catch(e){return false}};
 let frameT=0;
@@ -877,7 +880,7 @@ function updateFrames(dt){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=F.set===setIdx&&d<8&&near.has(F)&&!(playerEl&&playerFrame===F)&&!document.hidden;
     if(want&&!F.video){
-      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.addEventListener("error",()=>{if(vd.src!==F.v.src)vd.src=F.v.src},{once:true});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
       vd.addEventListener("error",()=>{F.v._bad=true});
     }
@@ -919,7 +922,7 @@ function updateFeatureFilm(F,cp){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=mode==="hall"&&d<F.range&&e>.5&&!playerEl&&!document.hidden;
     if(want&&!F.video){
-      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:F.v.src,muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.addEventListener("error",()=>{if(vd.src!==F.v.src)vd.src=F.v.src},{once:true});vd.setAttribute("playsinline","");
       F.video=vd;vd.addEventListener("playing",()=>{if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
       vd.addEventListener("error",()=>{F.v._bad=true});
     }
@@ -1366,7 +1369,7 @@ function setupPost(on){
 /* ---------- spotlight pool ---------- */
 const pool=[];
 function setupPool(){
-  const n=Q==="high"?6:4;
+  const n=Q==="high"?7:5;
   for(let i=0;i<n;i++){
     const s=new THREE.SpotLight(0xffffff,0,26,.5,.5,1.4);
     if(i===0&&renderer.shadowMap.enabled){s.castShadow=true;s.shadow.mapSize.set(1024,1024);s.shadow.bias=-.0004;s.shadow.camera.near=.5;s.shadow.camera.far=26}
@@ -1375,13 +1378,14 @@ function setupPool(){
 }
 let lightMul=1;
 function updatePool(){
-  const cp=camera.position;
-  const sorted=slots.map(s=>({s,d:s.to.distanceToSquared(cp)})).sort((a,b)=>a.d-b.d);
-  pool.forEach((L,i)=>{
-    const it=sorted[i];if(!it){L.intensity=0;return}
-    const s=it.s;L.position.copy(s.from);L.target.position.copy(s.to);L.color.copy(s.color);
-    L.angle=s.angle;L.penumbra=s.pen;L.intensity=s.intensity*lightMul;
-  });
+  // the few real spotlights follow the camera to the nearest light positions; a light keeps its position and fades
+  // in or out instead of jumping between positions every frame (that jumping made the floors and sets flicker)
+  const cp=camera.position,K=Math.max(2,pool.length-2);
+  const want=new Set(slots.map(s=>[s,s.to.distanceToSquared(cp)]).sort((a,b)=>a[1]-b[1]).slice(0,K).map(a=>a[0]));
+  for(const L of pool){const s=L.userData.slot;if(!s)continue;const tgt=want.has(s)?1:0;s.w=(s.w||0)+(tgt-(s.w||0))*.07;if(!tgt&&s.w<.02){s.w=0;L.userData.slot=null}}
+  for(const s of want){if(pool.some(L=>L.userData.slot===s))continue;const L=pool.find(L=>!L.userData.slot);if(!L)break;
+    L.userData.slot=s;s.w=0;L.position.copy(s.from);L.target.position.copy(s.to);L.color.copy(s.color);L.angle=s.angle;L.penumbra=s.pen}
+  for(const L of pool){const s=L.userData.slot;L.intensity=s?s.intensity*lightMul*s.w:0}
 }
 
 /* ---------- theme ---------- */
@@ -1643,13 +1647,13 @@ function updateMap(){
 /* ---------- sheet & player ---------- */
 let lastFocus=null,playerEl=null,playerRect=null;
 function openSheet(id){const p=T().panels.find(x=>x.id===id);lastFocus=document.activeElement;
-  $("#sheetBody").innerHTML=p.body;$("#veil").classList.add("show");setTimeout(()=>$("#sheetX").focus(),50)}
+  $("#sheetBody").innerHTML=p.body+`<p class="copy">${lang==="fa"?"© ۲۰۲۶ آرتا نوری. همه‌ی حقوق ویدیوها و محتوای این سایت محفوظ است.":"© 2026 Arta Noori. All films and content on this site are copyrighted, all rights reserved."}</p>`;$("#veil").classList.add("show");setTimeout(()=>$("#sheetX").focus(),50)}
 function closeSheet(){$("#veil").classList.remove("show");lastFocus&&lastFocus.focus&&lastFocus.focus()}
 $("#sheetX").onclick=closeSheet;$("#veil").addEventListener("click",e=>{if(e.target.id==="veil")closeSheet()});
 function openPlayer(v,getRect,startAt){
   if(playerEl)return;playerRect=getRect;const r=getRect();
   const pl=el(`<div class="player" role="dialog" aria-modal="true" aria-label="${v.t[lang]}"><button class="x" aria-label="${T().close}">✕</button><div class="ttl">${v.t[lang]}</div>
-    ${v.src?`<video src="${v.src}" controls autoplay playsinline></video>`:`<div class="slot" style="--sa:#ffffff22;--sb:#111"><div><span class="play" style="margin:0 auto 18px">${ICON.play}</span>${T().soon}</div></div>`}</div>`);
+    ${v.src?`<video src="${v.src}" controls controlslist="nodownload noremoteplayback" disablepictureinpicture autoplay playsinline></video>`:`<div class="slot" style="--sa:#ffffff22;--sb:#111"><div><span class="play" style="margin:0 auto 18px">${ICON.play}</span>${T().soon}</div></div>`}</div>`);
   Object.assign(pl.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"});
   document.body.appendChild(pl);playerEl=pl;pl.querySelector(".x").onclick=closePlayer;pl.getBoundingClientRect();
   const pv=pl.querySelector("video");if(pv){pv.muted=false;pv.volume=1;if(startAt>0)pv.addEventListener("loadedmetadata",()=>{pv.currentTime=startAt},{once:true})}
@@ -1688,6 +1692,9 @@ addEventListener("resize",()=>{resize();clearTimeout(rzT);rzT=setTimeout(()=>{
     if(mode==="hall"&&(p<PP0||Math.abs(p-was0)<.8)){p=pTarget=PP0;snapCam=true}else pTarget=clamp(pTarget,PP0,PP_END)}
   if(Math.abs(innerWidth-lw)>40||portraitChanged){lw=innerWidth;lh=innerHeight;buildOverlays();buildMap();lastStop=-1}else measure();
 },180)});
+
+// no "Save video as" or "Save image as" on right-click over the films and the 3D view
+addEventListener("contextmenu",e=>{if(e.target.closest("video,canvas,.player"))e.preventDefault()});
 
 /* ---------- main loop ---------- */
 let frames=0,acc=0,last=performance.now(),started=false;

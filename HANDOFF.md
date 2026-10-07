@@ -11,7 +11,7 @@ Branch: `claude/funny-johnson-xoghyu`. The site is static: `index.html`, `css/st
 
 - Entrance with the 3D AN logo; WhatsApp (+98 901 137 7877) and Instagram (@artanourii) chips; language switch (English default, Persian RTL); dark/light mode with the white/black logo files in `assets/`.
 - Arta Studio: floating panels (about, résumé, skills, services, clients) and the logo film (`videos/logo-ad.mp4`, silent loop) in a 3D glass frame that rises into place after the camera passes through the lobby logo. Both own films are 3D frames (`buildFeatureFilms` in `js/app.js`), so solid objects hide them correctly.
-- One continuous scroll path down a hall of 16 brand studios, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam, Analiz Fix, Emarat Zarrin, Farmanieh Club, Dicardo, Mahan Net, Niro Motor, IT Mall, Makeup, Dream Salon, My Tiktok Video. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
+- One continuous scroll path down a hall of 16 brand studios, in facing pairs, in this order: Asus Iran, Aparat, Respina, Hamrahe Aval, Snapp, Azkivam (Arta's choice), then by number of films: Makeup, Dream Salon, Analiz Fix, Niro Motor, IT Mall, Farmanieh Club, Dicardo, Emarat Zarrin, Mahan Net, and My Tiktok Video always last. At each studio the camera turns, enters a tunnel of 3D glass frames (one per film), passes between them, faces the brand wall, cranes up and flies back out. Reverse scroll plays it backwards.
 - Tapping a frame opens the film full screen with sound; Esc, ✕, reverse scroll or swipe down closes it.
 - End of hall: the Instagram film floats big in its own 3D glass frame (`videos/instagram-ad.mp4`), which plays with sound as the visitor walks up (muted with a "Tap for sound" label until the visitor has tapped or clicked once).
 
@@ -45,7 +45,12 @@ More than four films: frames sit in rows across the whole room (middle included)
 ## Video hosting
 The films are stored at their original quality in five public repos served by GitHub Pages, so the site itself stays small:
 arta-videos-1 … arta-videos-5 (https://artanourii.github.io/arta-videos-N/<file>.mp4). Repos 1–4 hold the current 131 films
-(~0.9 GB each at most); arta-videos-5 is free for new films. Every "src" in js/content.js points to its file there; posters
+(~0.9 GB each at most); arta-videos-5 holds light copies in w/ (same file names; 540 px wide, or 960 for landscape, crf 27) that play on the small 3D wall frames so several can stream at once; tapping a film opens the original at full quality (wallOf() in js/app.js, which falls back to the original if a copy is missing). New films: put the original in a repo with space, and a light copy in arta-videos-5/w/ (scratchpad script enc_wall.sh shows the ffmpeg line). Every "src" in js/content.js points to its file there; posters
 (*.jpg) stay in this repo's videos/ folder. GitHub Pages sends CORS headers, so the films can be drawn on the 3D walls
 (the video elements use crossOrigin="anonymous"). Originals that were HEVC were converted to H.264 at visually lossless
 quality, since most browsers cannot play HEVC; all other files are the uploads unchanged (only the index moved to the front).
+
+## Protection
+The full-screen player has no download button or picture-in-picture, right-click is blocked on films and the 3D view,
+every panel ends with a copyright line, and LICENSE says all rights are reserved. This only stops casual copying:
+anything a browser plays can still be saved by someone determined.

@@ -104,55 +104,7 @@ const STUDIOS = [
    videos:[
      {t:{en:"Cardboard illusion",fa:"ایلوژن کارتن"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-1.mp4",poster:"videos/azkivam-1.jpg",r:"9/16"},
      {t:{en:"One Piece",fa:"وان پیس"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-2.mp4",poster:"videos/azkivam-2.jpg",r:"9/16"}]},
-  // 7. Analiz Fix (logo and colors from the brand's Instagram logo)
-  {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
-   name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion",fa:"عیب‌یابی و تعمیر، با زبان تصویر"},
-   videos:[
-     {t:{en:"Installment purchase",fa:"خرید قسطی"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-1.mp4",poster:"videos/analizfix-1.jpg",r:"9/16"},
-     {t:{en:"Installments",fa:"اقساط"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-2.mp4",poster:"videos/analizfix-2.jpg",r:"9/16"},
-     {t:{en:"Ping-pong",fa:"پینگ‌پنگی"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-3.mp4",poster:"videos/analizfix-3.jpg",r:"9/16"},
-     {t:{en:"Repair",fa:"تعمیر"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-4.mp4",poster:"videos/analizfix-4.jpg",r:"9/16"},
-     {t:{en:"Illusion",fa:"ایلوژن"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-5.mp4",poster:"videos/analizfix-5.jpg",r:"9/16"},
-     {t:{en:"Find My",fa:"فایند مای"},m:{en:"40s, 9:16",fa:"۴۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-6.mp4",poster:"videos/analizfix-6.jpg",r:"9/16"}]},
-  // 8. Emarat Zarrin (logo and colors from the brand's Instagram logo)
-  {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.png",
-   name:{en:"Emarat Zarrin",fa:"امارت زرین"},tag:{en:"Architecture in gold light",fa:"معماری در نور طلایی"},
-   videos:[
-     {t:{en:"Ronaldo's wedding",fa:"عروسی رونالدو"},m:{en:"46s, 9:16",fa:"۴۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/emaratezarin-1.mp4",poster:"videos/emaratezarin-1.jpg",r:"9/16"}]},
-  // 9. Farmanieh Club (logo and colors from the official site)
-  {id:"farmaniyeh", theme:"light", c:{bg:"#F2F0EE",bg2:"#DEDAD6",ink:"#25282A",acc:"#D94D20"},logoImg:"assets/brands/farmanieh-club.png",
-   name:{en:"Farmanieh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion",fa:"ورزش و سبک زندگی، با حرکت آهسته"},
-   videos:[
-     {t:{en:"Celebrities at the club",fa:"سلبریتی‌ها در باشگاه"},m:{en:"28s, 9:16",fa:"۲۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/farmaniyeh-1.mp4",poster:"videos/farmaniyeh-1.jpg",r:"9/16"},
-     {t:{en:"Christmas at the gym",fa:"کریسمس در باشگاه"},m:{en:"18s, 9:16",fa:"۱۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/farmaniyeh-2.mp4",poster:"videos/farmaniyeh-2.jpg",r:"9/16"}]},
-  // 10. Dicardo (logo and colors from the official site)
-  {id:"dicardo", theme:"dark", c:{bg:"#070525",bg2:"#1C1458",ink:"#F3F0FF",acc:"#AC33ED"},logoImg:"assets/brands/dicardo.png",
-   name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves",fa:"استایلی که حرکت می‌کنه"},
-   videos:[
-     {t:{en:"Coffee illusion",fa:"ایلوژن قهوه"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-1.mp4",poster:"videos/dicardo-1.jpg",r:"9/16"},
-     {t:{en:"Nano Banana",fa:"نانو بنانا"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-2.mp4",poster:"videos/dicardo-2.jpg",r:"9/16"}]},
-  // 11. Mahan Net (logo and colors from the official site)
-  {id:"mahannet", theme:"light", c:{bg:"#F7F5F4",bg2:"#E7E1DE",ink:"#000000",acc:"#FF2401"},logoImg:"assets/brands/mahan-net.png",
-   name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts",fa:"اینترنت پرسرعت، کات‌های سریع‌تر"},
-   videos:[
-     {t:{en:"Box illusion",fa:"ایلوژن جعبه"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/mahannet-1.mp4",poster:"videos/mahannet-1.jpg",r:"9/16"}]},
-  // 12. Niro Motor (logo and colors from the official site)
-  {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
-   name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed",fa:"موتور، قدرت و سرعت"},
-   videos:[
-     {t:{en:"Yamaha R25 illusion",fa:"ایلوژن یاماها R25"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-1.mp4",poster:"videos/niromotor-1.jpg",r:"9/16"},
-     {t:{en:"Board illusion",fa:"ایلوژن تابلو"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-2.mp4",poster:"videos/niromotor-2.jpg",r:"9/16"},
-     {t:{en:"Fun",fa:"فان"},m:{en:"11s, 9:16",fa:"۱۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-3.mp4",poster:"videos/niromotor-3.jpg",r:"9/16"},
-     {t:{en:"Giant and tiny",fa:"غول و کوچولو"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-4.mp4",poster:"videos/niromotor-4.jpg",r:"9/16"},
-     {t:{en:"Showroom",fa:"نمایشگاه نیرو موتور"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-5.mp4",poster:"videos/niromotor-5.jpg",r:"9/16"}]},
-  // 13. IT Mall (logo and colors from the official site)
-  {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
-   name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot",fa:"هر گجت، یک نمای قهرمان"},
-   videos:[
-     {t:{en:"Life U2i earbuds",fa:"هدفون Life U2i"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-1.mp4",poster:"videos/itmall-1.jpg",r:"9/16"},
-     {t:{en:"Unbelievable discounts",fa:"تخفیف‌های باورنکردنی"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-2.mp4",poster:"videos/itmall-2.jpg",r:"9/16"},
-     {t:{en:"Tiny door illusion",fa:"ایلوژن در کوچک"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-3.mp4",poster:"videos/itmall-3.jpg",r:"9/16"}]},
-  // 14. Makeup (colors approximate)
+  // 7. Makeup (colors approximate)
   {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},
    name:{en:"Makeup",fa:"میکاپ"},tag:{en:"Skin, glow and close-ups that sell",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن"},
    videos:[
@@ -176,7 +128,7 @@ const STUDIOS = [
      {t:{en:"Makeup look 18",fa:"میکاپ ۱۸"},m:{en:"8s, 9:16",fa:"۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-2.mp4",poster:"videos/makeup-2.jpg",r:"9/16"},
      {t:{en:"Makeup look 19",fa:"میکاپ ۱۹"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-4.mp4",poster:"videos/makeup-4.jpg",r:"9/16"},
      {t:{en:"Makeup look 20",fa:"میکاپ ۲۰"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/makeup-1.mp4",poster:"videos/makeup-1.jpg",r:"9/16"}]},
-  // 15. Dream Salon (colors approximate)
+  // 8. Dream Salon (colors approximate)
   {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},
    name:{en:"Dream Salon",fa:"دریم سالن"},tag:{en:"Brow fibrosis, lip shading and microblading",fa:"فیبروز ابرو، شیدینگ لب و میکروبلیدینگ"},
    videos:[
@@ -200,6 +152,54 @@ const STUDIOS = [
      {t:{en:"Dream Salon 18",fa:"دریم سالن ۱۸"},m:{en:"7s, 9:16",fa:"۷ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-18.mp4",poster:"videos/salon-18.jpg",r:"9/16"},
      {t:{en:"Dream Salon 19",fa:"دریم سالن ۱۹"},m:{en:"14s, 9:16",fa:"۱۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-19.mp4",poster:"videos/salon-19.jpg",r:"9/16"},
      {t:{en:"Dream Salon 20",fa:"دریم سالن ۲۰"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-20.mp4",poster:"videos/salon-20.jpg",r:"9/16"}]},
+  // 9. Analiz Fix (logo and colors from the brand's Instagram logo)
+  {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
+   name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion",fa:"عیب‌یابی و تعمیر، با زبان تصویر"},
+   videos:[
+     {t:{en:"Installment purchase",fa:"خرید قسطی"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-1.mp4",poster:"videos/analizfix-1.jpg",r:"9/16"},
+     {t:{en:"Installments",fa:"اقساط"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-2.mp4",poster:"videos/analizfix-2.jpg",r:"9/16"},
+     {t:{en:"Ping-pong",fa:"پینگ‌پنگی"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-3.mp4",poster:"videos/analizfix-3.jpg",r:"9/16"},
+     {t:{en:"Repair",fa:"تعمیر"},m:{en:"22s, 9:16",fa:"۲۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-4.mp4",poster:"videos/analizfix-4.jpg",r:"9/16"},
+     {t:{en:"Illusion",fa:"ایلوژن"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-5.mp4",poster:"videos/analizfix-5.jpg",r:"9/16"},
+     {t:{en:"Find My",fa:"فایند مای"},m:{en:"40s, 9:16",fa:"۴۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-6.mp4",poster:"videos/analizfix-6.jpg",r:"9/16"}]},
+  // 10. Niro Motor (logo and colors from the official site)
+  {id:"niromotor", theme:"dark", c:{bg:"#0A1A33",bg2:"#19438D",ink:"#EEF3FB",acc:"#6687C0"},logoImg:"assets/brands/niroomotor-white.svg",
+   name:{en:"Niro Motor",fa:"نیرو موتور"},tag:{en:"Engines, power and speed",fa:"موتور، قدرت و سرعت"},
+   videos:[
+     {t:{en:"Yamaha R25 illusion",fa:"ایلوژن یاماها R25"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-1.mp4",poster:"videos/niromotor-1.jpg",r:"9/16"},
+     {t:{en:"Board illusion",fa:"ایلوژن تابلو"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-2.mp4",poster:"videos/niromotor-2.jpg",r:"9/16"},
+     {t:{en:"Fun",fa:"فان"},m:{en:"11s, 9:16",fa:"۱۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-3.mp4",poster:"videos/niromotor-3.jpg",r:"9/16"},
+     {t:{en:"Giant and tiny",fa:"غول و کوچولو"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-4.mp4",poster:"videos/niromotor-4.jpg",r:"9/16"},
+     {t:{en:"Showroom",fa:"نمایشگاه نیرو موتور"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/niromotor-5.mp4",poster:"videos/niromotor-5.jpg",r:"9/16"}]},
+  // 11. IT Mall (logo and colors from the official site)
+  {id:"itmall", theme:"light", c:{bg:"#F3F6FD",bg2:"#D9E5FB",ink:"#1C2434",acc:"#1B61E6"},logoImg:"assets/brands/itmall.png",
+   name:{en:"IT Mall",fa:"آی تی مال"},tag:{en:"Every gadget, one hero shot",fa:"هر گجت، یک نمای قهرمان"},
+   videos:[
+     {t:{en:"Life U2i earbuds",fa:"هدفون Life U2i"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-1.mp4",poster:"videos/itmall-1.jpg",r:"9/16"},
+     {t:{en:"Unbelievable discounts",fa:"تخفیف‌های باورنکردنی"},m:{en:"24s, 9:16",fa:"۲۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-2.mp4",poster:"videos/itmall-2.jpg",r:"9/16"},
+     {t:{en:"Tiny door illusion",fa:"ایلوژن در کوچک"},m:{en:"17s, 9:16",fa:"۱۷ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/itmall-3.mp4",poster:"videos/itmall-3.jpg",r:"9/16"}]},
+  // 12. Farmanieh Club (logo and colors from the official site)
+  {id:"farmaniyeh", theme:"light", c:{bg:"#F2F0EE",bg2:"#DEDAD6",ink:"#25282A",acc:"#D94D20"},logoImg:"assets/brands/farmanieh-club.png",
+   name:{en:"Farmanieh Club",fa:"باشگاه فرمانیه"},tag:{en:"Sport and lifestyle, in slow motion",fa:"ورزش و سبک زندگی، با حرکت آهسته"},
+   videos:[
+     {t:{en:"Celebrities at the club",fa:"سلبریتی‌ها در باشگاه"},m:{en:"28s, 9:16",fa:"۲۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/farmaniyeh-1.mp4",poster:"videos/farmaniyeh-1.jpg",r:"9/16"},
+     {t:{en:"Christmas at the gym",fa:"کریسمس در باشگاه"},m:{en:"18s, 9:16",fa:"۱۸ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/farmaniyeh-2.mp4",poster:"videos/farmaniyeh-2.jpg",r:"9/16"}]},
+  // 13. Dicardo (logo and colors from the official site)
+  {id:"dicardo", theme:"dark", c:{bg:"#070525",bg2:"#1C1458",ink:"#F3F0FF",acc:"#AC33ED"},logoImg:"assets/brands/dicardo.png",
+   name:{en:"Dicardo",fa:"دیکاردو"},tag:{en:"Style that moves",fa:"استایلی که حرکت می‌کنه"},
+   videos:[
+     {t:{en:"Coffee illusion",fa:"ایلوژن قهوه"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-1.mp4",poster:"videos/dicardo-1.jpg",r:"9/16"},
+     {t:{en:"Nano Banana",fa:"نانو بنانا"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-2.mp4",poster:"videos/dicardo-2.jpg",r:"9/16"}]},
+  // 14. Emarat Zarrin (logo and colors from the brand's Instagram logo)
+  {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.png",
+   name:{en:"Emarat Zarrin",fa:"امارت زرین"},tag:{en:"Architecture in gold light",fa:"معماری در نور طلایی"},
+   videos:[
+     {t:{en:"Ronaldo's wedding",fa:"عروسی رونالدو"},m:{en:"46s, 9:16",fa:"۴۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/emaratezarin-1.mp4",poster:"videos/emaratezarin-1.jpg",r:"9/16"}]},
+  // 15. Mahan Net (logo and colors from the official site)
+  {id:"mahannet", theme:"light", c:{bg:"#F7F5F4",bg2:"#E7E1DE",ink:"#000000",acc:"#FF2401"},logoImg:"assets/brands/mahan-net.png",
+   name:{en:"Mahan Net",fa:"ماهان نت"},tag:{en:"Fast internet, faster cuts",fa:"اینترنت پرسرعت، کات‌های سریع‌تر"},
+   videos:[
+     {t:{en:"Box illusion",fa:"ایلوژن جعبه"},m:{en:"21s, 9:16",fa:"۲۱ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/mahannet-1.mp4",poster:"videos/mahannet-1.jpg",r:"9/16"}]},
   // 16. My Tiktok Video
   {id:"tiktok", theme:"dark", c:{bg:"#050505",bg2:"#161823",ink:"#FFFFFF",acc:"#FE2C55"},logo:{d:"M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z",vb:24},
    name:{en:"My Tiktok Video",fa:"تیکتاک"},tag:{en:"Short, loud and made for the scroll",fa:"کوتاه، پرانرژی و ساخته‌شده برای اسکرول"},
