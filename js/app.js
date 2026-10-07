@@ -250,7 +250,7 @@ function palm(h=1.25,seed=1){
   for(let k=0;k<7;k++){const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.03,0),POT_RIM);st.position.set(Math.cos(k*1.7)*(.08+.1*(k%3)/2),.57,Math.sin(k*1.7)*(.08+.1*(k%3)/2));st.rotation.set(k,k*2,0);g.add(st)}
   // a warm uplight hidden in the planter washes up through the fronds
   if(!PALM_UP){PALM_UP=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc77a"),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});PALM_LED=emissive("#ffd49a",3)}
-  for(const ry of [0,Math.PI/2]){const u=new THREE.Mesh(new THREE.PlaneGeometry(1.1,h*1.5),PALM_UP);u.position.set(0,.62+h*.75,0);u.rotation.y=ry+.4;u.userData.keep=true;g.add(u)}
+  for(const ry of [0,Math.PI/2]){const u=new THREE.Mesh(new THREE.PlaneGeometry(1.1,h*1.5),PALM_UP);u.position.set(0,.62+h*.75,0);u.rotation.y=ry+.4;u.userData.keep=true;u.userData.mergeAdd=true;g.add(u)}
   for(let s2=0;s2<3;s2++){
     const a=s2*2.1+r(s2),top=V(Math.cos(a)*.16,.6+h*(.3+r(s2+5)*.2),Math.sin(a)*.16);
     const base=V(Math.cos(a)*.07,.565,Math.sin(a)*.07);g.add(stick(base,top,.025,MAT.trunk));
@@ -371,7 +371,7 @@ function build3D(){
   for(const sd of [-1,1])for(const x of [7.4,10.6]){slot(V(sd*x,.15,10.6),V(sd*x,7,10.2),"#ffcf8f",1.4,.28,.9,false);scene.add(box(.22,.08,.16,MAT.metal,sd*x,.04,10.55))}
   slot(V(0,1,17),V(0,4,10),"#ffdcaa",1.6,.5,.8,false);
   { const fm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffc47a"),transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
-    for(const sd of [-1,1])for(const x of [6.6,9.4,12.2,15]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.6,7.5),fm);f.position.set(sd*x,3.75,10.27);f.userData.keep=true;scene.add(f);
+    for(const sd of [-1,1])for(const x of [6.6,9.4,12.2,15]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.6,7.5),fm);f.userData.mergeAdd=true;f.position.set(sd*x,3.75,10.27);f.userData.keep=true;scene.add(f);
       const fx=box(.22,.08,.16,MAT.metal,sd*x,.04,10.4);scene.add(fx)}
   FACADE_FAN=fm; }
   buildFacade();
@@ -395,7 +395,7 @@ function build3D(){
 
   // warm scallops of light washing the quilted walls under the lamps
   { const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffd7a0"),transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
-    for(let z=-2;z>HALL_END+4;z-=8)for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(5,9),wm);f.rotation.set(0,sd>0?-Math.PI/2:Math.PI/2,0);f.scale.y=-1;f.position.set(sd*17.97,6.6,z);f.userData.keep=true;scene.add(f)} }
+    for(let z=-2;z>HALL_END+4;z-=8)for(const sd of [-1,1]){const f=new THREE.Mesh(new THREE.PlaneGeometry(5,9),wm);f.userData.mergeAdd=true;f.rotation.set(0,sd>0?-Math.PI/2:Math.PI/2,0);f.scale.y=-1;f.position.set(sd*17.97,6.6,z);f.userData.keep=true;scene.add(f)} }
 
   // entrance
   MAT.floor.userData.lowEnv=.3;
@@ -452,7 +452,7 @@ function build3D(){
   { MAT.endWall=std("#a39f99",.85,0,{map:concTex});
     const ew=mesh(new THREE.PlaneGeometry(36,13),MAT.endWall,false);ew.position.set(0,6.5,LED_Z-1.2);scene.add(ew);
     const wm=new THREE.MeshBasicMaterial({map:fanTex,color:C("#ffcf94"),transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false});
-    for(const x of [-10.6,-6.6,-2.35,2.35,6.6,10.6]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.2,4.6),wm);f.position.set(x,4.9,LED_Z-1.18);f.userData.keep=true;scene.add(f);
+    for(const x of [-10.6,-6.6,-2.35,2.35,6.6,10.6]){const f=new THREE.Mesh(new THREE.PlaneGeometry(2.2,4.6),wm);f.userData.mergeAdd=true;f.position.set(x,4.9,LED_Z-1.18);f.userData.keep=true;scene.add(f);
       const d=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.6),wm);d.scale.y=-1;d.position.set(x,1.4,LED_Z-1.18);d.material.side=THREE.DoubleSide;d.userData.keep=true;scene.add(d);
       scene.add(box(.16,.1,.1,MAT.metal,x,2.68,LED_Z-1.14));scene.add(box(.1,.02,.06,emissive("#ffd49a",3),x,2.62,LED_Z-1.12))}
     for(const [x,z,hh,sd] of [[-2.35,-.55,.8,41],[2.35,-.55,.8,41],[-6.55,-.45,1.35,42],[6.55,-.45,1.35,42],[-8.7,-.5,1.05,43],[8.7,-.5,1.05,43]]){
@@ -1018,7 +1018,7 @@ function buildSet(s,i){
     for(const sd of [-1,1])g.add(B3(.04,.04,3.5-back,neon,sd*3.86,.03,(3.5+back)/2));
     // the neon spills onto the polished floor in front of the booth
     const sp=new THREE.Mesh(new THREE.PlaneGeometry(8.6,2.8),new THREE.MeshBasicMaterial({map:spillTex,color:nc,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-    sp.rotation.x=-Math.PI/2;sp.position.set(0,.016,3.6+1.4);sp.userData.keep=true;g.add(sp); }
+    sp.rotation.x=-Math.PI/2;sp.position.set(0,.016,3.6+1.4);sp.userData.keep=true;sp.userData.mergeAdd=true;g.add(sp); }
   for(const sd of [-1,1]){const pl=palm(1.2,i*2+sd);pl.position.set(sd*2.35,0,4.05);pl.userData.keep=false;g.add(pl)}
   // name board over the door, facing the hall
   const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.9,.9),new THREE.MeshBasicMaterial({map:canvasSign(1024,318,drawHeader(s,i))}));
@@ -1329,7 +1329,8 @@ function liquidMat(w,h,r,textTex){
 function addGlass(G,r=2){GLASS.groups.push({G,r})}
 function renderBackdrop(){
   renderer.getDrawingBufferSize(GLASS.res);
-  // refreshed every frame: skipping frames let the glass lag behind the camera and flicker while moving
+  // every frame while the camera moves (skipping then made the glass lag and flicker); at rest every fourth frame
+  if(camRest>3&&(GLASS.tick++&3))return;
   GLASS.pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);GLASS.fr.setFromProjectionMatrix(GLASS.pm);
   const vis=[];
   for(const o of GLASS.groups){if(!o.G.visible||!o.G.parent)continue;o.G.getWorldPosition(GLASS.sph.center);GLASS.sph.radius=o.r*o.G.scale.x;
@@ -2072,27 +2073,40 @@ function frame(now){
 function mergeStatic(){
   if(!THREE.BufferGeometryUtils)return;
   scene.updateMatrixWorld(true);
+  // materials that the theme or the studio lights change by name must stay themselves; any other materials that look
+  // exactly alike are shared, so their parts merge into one draw call (each studio had made its own copies)
+  const keepM=new Set([...Object.values(MAT),...GLARE,...signMats].filter(Boolean)),canon=new Map();
+  const sig=m=>[m.type,m.color&&m.color.getHexString(),m.emissive&&m.emissive.getHexString(),m.emissiveIntensity,m.roughness,m.metalness,
+    m.map&&m.map.uuid,m.transparent,m.opacity,m.side,m.blending,m.depthWrite,m.alphaTest,m.fog,JSON.stringify(m.userData)].join("|");
+  const shared=m=>{if(keepM.has(m)||m.isShaderMaterial)return m;const k=sig(m);if(!canon.has(k))canon.set(k,m);return canon.get(k)};
   const groups=new Map(),kill=[];
-  scene.traverse(o=>{
-    if(o.constructor!==THREE.Mesh||!o.material||o.material.isShaderMaterial||o.userData.keep)return;
-    let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+  const add=(o,m,g)=>{
     for(const k of Object.keys(g.attributes))if(!["position","normal","uv"].includes(k))g.deleteAttribute(k);
-    if(!g.attributes.uv||!g.attributes.normal)return;
-    g.applyMatrix4(o.matrixWorld);
+    if(!g.attributes.uv||!g.attributes.normal)return false;
     // grouped by material and by 24 m stretch of the hall: merged parts outside the view are then skipped entirely
-    const key=o.material.uuid+"|"+Math.floor(o.matrixWorld.elements[14]/24);if(!groups.has(key))groups.set(key,{m:o.material,list:[],cast:false});
-    const G=groups.get(key);G.list.push(g);G.cast=G.cast||o.castShadow;kill.push(o);
+    const e=g.boundingBox||(g.computeBoundingBox(),g.boundingBox),zc=(e.min.z+e.max.z)/2;
+    const key=m.uuid+"|"+Math.floor(zc/24);if(!groups.has(key))groups.set(key,{m,list:[],cast:false});
+    const G=groups.get(key);G.list.push(g);G.cast=G.cast||o.castShadow;return true};
+  scene.traverse(o=>{
+    if(!o.material||Array.isArray(o.material)||o.material.isShaderMaterial)return;
+    if(o.userData.keep&&!o.userData.mergeAdd)return;
+    const m=shared(o.material);
+    if(o.isInstancedMesh){   // truss lattices: every instance baked into the merged geometry
+      const base=o.geometry.index?o.geometry.toNonIndexed():o.geometry,mi=new THREE.Matrix4();let ok=true;
+      for(let i=0;i<o.count;i++){o.getMatrixAt(i,mi);const g=base.clone();g.applyMatrix4(mi.premultiply(o.matrixWorld));ok=add(o,m,g)&&ok}
+      if(ok)kill.push(o);return}
+    if(o.constructor!==THREE.Mesh)return;
+    const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);
+    if(add(o,m,g))kill.push(o);
   });
   kill.forEach(o=>o.parent&&o.parent.remove(o));
   groups.forEach(G=>{
     const merged=THREE.BufferGeometryUtils.mergeBufferGeometries(G.list,false);if(!merged)return;
-    const m=new THREE.Mesh(merged,G.m);m.castShadow=G.cast&&renderer.shadowMap.enabled;m.receiveShadow=renderer.shadowMap.enabled;m.matrixAutoUpdate=false;scene.add(m);
+    const m=new THREE.Mesh(merged,G.m);m.castShadow=G.cast&&renderer.shadowMap.enabled;m.receiveShadow=renderer.shadowMap.enabled;m.matrixAutoUpdate=false;
+    if(G.m.blending===THREE.AdditiveBlending)m.renderOrder=6;scene.add(m);
   });
 }
 
-/* if a phone runs out of graphics memory and drops the 3D view, reload once instead of leaving a frozen page */
-renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();let n=0;try{n=+sessionStorage.getItem("ans-gl-lost")||0;sessionStorage.setItem("ans-gl-lost",n+1)}catch(x){}
-  if(n<1)setTimeout(()=>location.reload(),600);else{$("#fbTxt").textContent=T().noGL;$("#fallback").classList.add("show")}});
 /* ---------- start ---------- */
 build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
