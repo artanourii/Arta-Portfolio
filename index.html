@@ -23,9 +23,10 @@
 /* light by default; the visitor's choice of lights on or off is remembered */
 (function(){var t=null;try{t=localStorage.getItem("ans-theme")}catch(e){}if(!t){var h=matchMedia("(pointer: coarse)").matches&&Math.min(screen.width,screen.height)<1100;t=h&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)})();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/unbounded-latin-1.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/vazirmatn-latin-4.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/three/three.min.js" as="script">
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>

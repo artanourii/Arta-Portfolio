@@ -105,7 +105,7 @@ const STUDIOS = [
      {t:{en:"Cardboard illusion",fa:"ایلوژن کارتن"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-1.mp4",poster:"videos/azkivam-1.jpg",r:"9/16"},
      {t:{en:"One Piece",fa:"وان پیس"},m:{en:"20s, 9:16",fa:"۲۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/azkivam-2.mp4",poster:"videos/azkivam-2.jpg",r:"9/16"}]},
   // 7. Makeup (colors approximate)
-  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},logoImg:"assets/brands/makeup.png",
+  {id:"beauty", theme:"light", c:{bg:"#F4E2DC",bg2:"#E7C6BE",ink:"#4A2229",acc:"#B76E79"},logoImg:"assets/brands/makeup.webp",
    name:{en:"Makeup",fa:"میکاپ"},tag:{en:"Skin, glow and close-ups that sell",fa:"پوست، درخشش و کلوزآپ‌هایی که می‌فروشن"},
    videos:[
      {t:{en:"Makeup look 1",fa:"میکاپ ۱"},m:{en:"26s, 9:16",fa:"۲۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/makeup-6.mp4",poster:"videos/makeup-6.jpg",r:"9/16"},
@@ -131,7 +131,7 @@ const STUDIOS = [
      {t:{en:"Makeup look 21",fa:"میکاپ ۲۱"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-5/makeup-21.mp4",poster:"videos/makeup-21.jpg",r:"9/16"},
      {t:{en:"Makeup look 22",fa:"میکاپ ۲۲"},m:{en:"29s, 9:16",fa:"۲۹ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-5/makeup-22.mp4",poster:"videos/makeup-22.jpg",r:"9/16"}]},
   // 8. Dream Salon (colors approximate)
-  {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},logoImg:"assets/brands/dream-salon.png",
+  {id:"dreamsalon", theme:"light", showTag:true, c:{bg:"#F3EAF2",bg2:"#E2CDE0",ink:"#3A2240",acc:"#A35D9E"},logoImg:"assets/brands/dream-salon.webp",
    name:{en:"Dream Salon",fa:"دریم سالن"},tag:{en:"Brow fibrosis, lip shading and microblading",fa:"فیبروز ابرو، شیدینگ لب و میکروبلیدینگ"},
    videos:[
      {t:{en:"Dream Salon 1",fa:"دریم سالن ۱"},m:{en:"9s, 9:16",fa:"۹ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-1.mp4",poster:"videos/salon-1.jpg",r:"9/16"},
@@ -155,7 +155,7 @@ const STUDIOS = [
      {t:{en:"Dream Salon 19",fa:"دریم سالن ۱۹"},m:{en:"14s, 9:16",fa:"۱۴ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-19.mp4",poster:"videos/salon-19.jpg",r:"9/16"},
      {t:{en:"Dream Salon 20",fa:"دریم سالن ۲۰"},m:{en:"10s, 9:16",fa:"۱۰ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-3/salon-20.mp4",poster:"videos/salon-20.jpg",r:"9/16"}]},
   // 9. Analiz Fix (logo and colors from the brand's Instagram logo)
-  {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.png",
+  {id:"analizfix", theme:"dark", c:{bg:"#161A2B",bg2:"#2C3766",ink:"#FFFFFF",acc:"#ED8232"},logoImg:"assets/brands/analiz-fix.webp",
    name:{en:"Analiz Fix",fa:"آنالیز فیکس"},tag:{en:"Diagnosis and repair, told in motion",fa:"عیب‌یابی و تعمیر، با زبان تصویر"},
    videos:[
      {t:{en:"Installment purchase",fa:"خرید قسطی"},m:{en:"16s, 9:16",fa:"۱۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/analizfix-1.mp4",poster:"videos/analizfix-1.jpg",r:"9/16"},
@@ -193,7 +193,7 @@ const STUDIOS = [
      {t:{en:"Coffee illusion",fa:"ایلوژن قهوه"},m:{en:"15s, 9:16",fa:"۱۵ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-1.mp4",poster:"videos/dicardo-1.jpg",r:"9/16"},
      {t:{en:"Nano Banana",fa:"نانو بنانا"},m:{en:"12s, 9:16",fa:"۱۲ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/dicardo-2.mp4",poster:"videos/dicardo-2.jpg",r:"9/16"}]},
   // 14. Emarat Zarrin (logo and colors from the brand's Instagram logo)
-  {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.png",
+  {id:"emaratezarin", theme:"dark", c:{bg:"#0B1628",bg2:"#162D4D",ink:"#F5EAD0",acc:"#D9C080"},logoImg:"assets/brands/emarat-zarrin.webp",
    name:{en:"Emarat Zarrin",fa:"امارت زرین"},tag:{en:"Architecture in gold light",fa:"معماری در نور طلایی"},
    videos:[
      {t:{en:"Ronaldo's wedding",fa:"عروسی رونالدو"},m:{en:"46s, 9:16",fa:"۴۶ ثانیه، ۹:۱۶"},src:"https://artanourii.github.io/arta-videos-2/emaratezarin-1.mp4",poster:"videos/emaratezarin-1.jpg",r:"9/16"}]},

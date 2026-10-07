@@ -1094,7 +1094,7 @@ function drawCaption(F){
   g.fillStyle=dark?"rgba(255,255,255,.85)":"#24212a";fit(v.m[lang],650,H*.26);g.fillText(v.m[lang],x,H*.86);
   F.capTex.needsUpdate=true;
 }
-const framesAll=[];
+const framesAll=[],FRAME_GEO={};
 const BLANK_TEX=(()=>{const t=new THREE.DataTexture(new Uint8Array([20,20,24,255]),1,1,THREE.RGBAFormat);t.needsUpdate=true;return t})();
 // film covers and captions keep their mipmaps (without them they shimmered and looked low quality); graphics memory is
 // kept down instead by freeing the films of studios far down the hall
@@ -1103,26 +1103,29 @@ function makeFrame(s,v,i){
   const vert=v.r!=="16/9",w=vert?.95:1.75,h=vert?w*16/9:w*9/16,pad=.045,depth=.07;
   const G=new THREE.Group(),F={s,v,G,w,h,set:i,video:null,vtex:null};
   // glass slab with real thickness
-  const slabH=h+pad*2+CAP_H,shape=roundRect(w+pad*2,slabH,.06);
-  const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:6});
-  geo.translate(0,-CAP_H/2,-depth/2);
+  // frames come in two sizes, so the glass slab and its edge lines are built once per size and shared (building one
+  // per film was a large part of the time the page took to open)
+  const slabH=h+pad*2+CAP_H,gk=w+"x"+h;
+  const GG=FRAME_GEO[gk]||(FRAME_GEO[gk]=(()=>{const g=new THREE.ExtrudeGeometry(roundRect(w+pad*2,slabH,.06),{depth,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:6});
+    g.translate(0,-CAP_H/2,-depth/2);return {slab:g,edges:new THREE.EdgesGeometry(g,30),face:new THREE.PlaneGeometry(w+pad*2,slabH),scr:new THREE.PlaneGeometry(w,h),cap:new THREE.PlaneGeometry(w,CAP_H),ln:new THREE.BoxGeometry(w*.5,.012,.012)}})());
+  const geo=GG.slab;
   const glass=new THREE.MeshPhysicalMaterial({color:new THREE.Color(s.c.acc).lerp(new THREE.Color("#bfc7d2"),.55).convertSRGBToLinear(),
     roughness:.03,metalness:.1,clearcoat:1,clearcoatRoughness:.03,transparent:true,opacity:.07,envMapIntensity:1.3,side:THREE.DoubleSide,depthWrite:false});
   glass.userData.glass=true;
   const slab=new THREE.Mesh(geo,glass);slab.renderOrder=2;G.add(slab);
-  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));G.add(edges);
+  const edges=new THREE.LineSegments(GG.edges,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));G.add(edges);
   // liquid glass face: tinted body, sheen and bright rim, sitting just in front of the slab
   { const pw=w+pad*2,ph=slabH;
-    const lf=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),liquidMat(pw,ph,.075));
+    const lf=new THREE.Mesh(GG.face,liquidMat(pw,ph,.075));
     lf.position.set(0,-CAP_H/2,depth/2+.006);lf.renderOrder=3;G.add(lf); }
   // screen (poster until the film is ready)
   F.screenMat=new THREE.MeshBasicMaterial({map:BLANK_TEX,fog:false});
-  const scr=new THREE.Mesh(new THREE.PlaneGeometry(w,h),F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
+  const scr=new THREE.Mesh(GG.scr,F.screenMat);scr.position.z=depth/2+.016;G.add(scr);F.screen=scr;
   // caption plate under the screen
-  const cap=new THREE.Mesh(new THREE.PlaneGeometry(w,CAP_H),new THREE.MeshBasicMaterial({map:BLANK_TEX,transparent:true,depthWrite:false,fog:false}));   // no haze on the caption: it stays crisp
+  const cap=new THREE.Mesh(GG.cap,new THREE.MeshBasicMaterial({map:BLANK_TEX,transparent:true,depthWrite:false,fog:false}));   // no haze on the caption: it stays crisp
   cap.position.set(0,-h/2-pad-CAP_H/2+.02,depth/2+.016);cap.renderOrder=4;G.add(cap);F.cap=cap;
   // thin light line in the brand colour along the bottom edge
-  const ln=new THREE.Mesh(new THREE.BoxGeometry(w*.5,.012,.012),emissive(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
+  const ln=new THREE.Mesh(GG.ln,cemi(s.c.acc,3));ln.position.set(0,-h/2-pad-CAP_H-.005,depth/2);G.add(ln);
   F.loadPoster=()=>{if(F.posterReq||!v.poster)return;F.posterReq=true;const im=new Image();im.decoding="async";im.onload=()=>{F.posterImg=im;drawPoster(F)};im.src=v.poster};
   // the cover and caption canvases exist only while their studio is near: on iPhone, Safari stops the page once all
   // canvases together pass its memory limit, and 133 films each holding two canvases came close to it
@@ -2087,13 +2090,12 @@ function mergeStatic(){
   const keepM=new Set([...Object.values(MAT),...GLARE,...signMats].filter(Boolean)),canon=new Map();
   const sig=m=>[m.type,m.color&&m.color.getHexString(),m.emissive&&m.emissive.getHexString(),m.emissiveIntensity,m.roughness,m.metalness,
     m.map&&m.map.uuid,m.transparent,m.opacity,m.side,m.blending,m.depthWrite,m.alphaTest,m.fog,JSON.stringify(m.userData)].join("|");
-  const shared=m=>{if(keepM.has(m)||m.isShaderMaterial)return m;const k=sig(m);if(!canon.has(k))canon.set(k,m);return canon.get(k)};
+  const seen=new Map(),shared=m=>{if(keepM.has(m)||m.isShaderMaterial)return m;let c=seen.get(m);if(c)return c;const k=sig(m);if(!canon.has(k))canon.set(k,m);c=canon.get(k);seen.set(m,c);return c};
   const groups=new Map(),kill=[];
-  const add=(o,m,g)=>{
+  const add=(o,m,g,zc)=>{
     for(const k of Object.keys(g.attributes))if(!["position","normal","uv"].includes(k))g.deleteAttribute(k);
     if(!g.attributes.uv||!g.attributes.normal)return false;
     // grouped by material and by 24 m stretch of the hall: merged parts outside the view are then skipped entirely
-    const e=g.boundingBox||(g.computeBoundingBox(),g.boundingBox),zc=(e.min.z+e.max.z)/2;
     const key=m.uuid+"|"+Math.floor(zc/24);if(!groups.has(key))groups.set(key,{m,list:[],cast:false});
     const G=groups.get(key);G.list.push(g);G.cast=G.cast||o.castShadow;return true};
   scene.traverse(o=>{
@@ -2102,11 +2104,11 @@ function mergeStatic(){
     const m=shared(o.material);
     if(o.isInstancedMesh){   // truss lattices: every instance baked into the merged geometry
       const base=o.geometry.index?o.geometry.toNonIndexed():o.geometry,mi=new THREE.Matrix4();let ok=true;
-      for(let i=0;i<o.count;i++){o.getMatrixAt(i,mi);const g=base.clone();g.applyMatrix4(mi.premultiply(o.matrixWorld));ok=add(o,m,g)&&ok}
+      for(let i=0;i<o.count;i++){o.getMatrixAt(i,mi);mi.premultiply(o.matrixWorld);const g=base.clone();g.applyMatrix4(mi);ok=add(o,m,g,mi.elements[14])&&ok}
       if(ok)kill.push(o);return}
     if(o.constructor!==THREE.Mesh)return;
     const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);
-    if(add(o,m,g))kill.push(o);
+    if(add(o,m,g,o.matrixWorld.elements[14]))kill.push(o);
   });
   kill.forEach(o=>o.parent&&o.parent.remove(o));
   groups.forEach(G=>{
