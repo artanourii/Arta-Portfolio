@@ -83,15 +83,21 @@ function canvasTex(w,h,draw,repeat,cpu){
 }
 // polished concrete: fine soft grain and broad, blurred clouding (hard per-pixel noise read as pixelation)
 const concreteTex=canvasTex(1024,1024,(g,w,h)=>{
-  g.fillStyle="#bdbdbd";g.fillRect(0,0,w,h);
-  for(let i=0;i<46;i++){const x=Math.random()*w,y=Math.random()*h,r=90+Math.random()*260,dk=Math.random()<.5;
-    const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,dk?"rgba(0,0,0,.05)":"rgba(255,255,255,.06)");gr.addColorStop(1,"rgba(0,0,0,0)");
+  // the broad clouds are drawn on a quarter-size canvas and scaled up (they are soft, so this looks the same and is far
+  // quicker); the fine grain is then written pixel by pixel and softened with a small blur of its own
+  const q=4,cw=w/q,ch=h/q,c2=document.createElement("canvas");c2.width=cw;c2.height=ch;const g2=c2.getContext("2d");
+  g2.fillStyle="#bdbdbd";g2.fillRect(0,0,cw,ch);
+  for(let i=0;i<46;i++){const x=Math.random()*cw,y=Math.random()*ch,r=(90+Math.random()*260)/q,dk=Math.random()<.5;
+    const gr=g2.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,dk?"rgba(0,0,0,.05)":"rgba(255,255,255,.06)");gr.addColorStop(1,"rgba(0,0,0,0)");
     // drawn again across an edge only where the cloud actually crosses it, so the texture still tiles seamlessly
-    for(const ox of [-w,0,w])for(const oy of [-h,0,h]){if(x+ox+r<0||x+ox-r>w||y+oy+r<0||y+oy-r>h)continue;g.save();g.translate(ox,oy);g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);g.restore()}}
-  const id=g.getImageData(0,0,w,h),d=id.data;
-  for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*9;d[i]+=n;d[i+1]+=n;d[i+2]+=n}
+    for(const ox of [-cw,0,cw])for(const oy of [-ch,0,ch]){if(x+ox+r<0||x+ox-r>cw||y+oy+r<0||y+oy-r>ch)continue;g2.save();g2.translate(ox,oy);g2.fillStyle=gr;g2.fillRect(x-r,y-r,r*2,r*2);g2.restore()}}
+  g.imageSmoothingEnabled=true;if("imageSmoothingQuality" in g)g.imageSmoothingQuality="high";g.drawImage(c2,0,0,w,h);
+  const id=g.getImageData(0,0,w,h),d=id.data,N=w*h,nz=new Float32Array(N),tb=new Float32Array(N);
+  for(let i=0;i<N;i++)nz[i]=(Math.random()-.5)*9;
+  // a 1-2-1 blur across and down (wrapping, so the tile stays seamless): about what blur(.8px) did before
+  for(let y=0;y<h;y++){const o=y*w;for(let x=0;x<w;x++)tb[o+x]=.25*nz[o+(x+w-1)%w]+.5*nz[o+x]+.25*nz[o+(x+1)%w]}
+  for(let y=0;y<h;y++){const o=y*w,u=((y+h-1)%h)*w,v=((y+1)%h)*w;for(let x=0;x<w;x++){const n=.25*tb[u+x]+.5*tb[o+x]+.25*tb[v+x],k=(o+x)*4;d[k]+=n;d[k+1]+=n;d[k+2]+=n}}
   g.putImageData(id,0,0);
-  if("filter" in g){g.filter="blur(.8px)";g.drawImage(g.canvas,0,0);g.filter="none"}
   g.globalAlpha=.12;g.strokeStyle="#000";g.lineWidth=2;g.strokeRect(0,0,w,h);
 },[5,18],true);   // drawn in ordinary memory: its grain is written pixel by pixel
 const acousticTex=canvasTex(256,256,(g,w,h)=>{
@@ -537,8 +543,6 @@ function brandWall(s){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.86),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
   m.userData.keep=true;return m;
 }
-// wordmarks use the site font once it has loaded
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>brandTex.forEach(t=>{if(!t.userData.img&&!t.userData.s.logo)drawBrand(t)}));
 const B3=(w,h,d,m,x,y,z)=>box(w,h,d,m,x,y,z);
 let FACADE_LOGO=null;
 /* ---------- brand logo images, shared by walls and signs ---------- */
@@ -1286,7 +1290,6 @@ function pickFeatureFilm(x,y){
   return null;
 }
 function refreshCaptions(){framesAll.forEach(drawCaption);brandTex.forEach(t=>{if(t.userData.s.showTag)drawBrand(t)});signTex.forEach(t=>t.userData.redraw())}
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refreshCaptions);
 // tap / click on a frame
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
 function pickFrame(x,y){
@@ -1605,7 +1608,6 @@ function pickEnd(x,y){
   return P3.end.rects.find(r=>px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)||null;
 }
 function redrawPanels3D(){P3.panels.forEach(o=>o.tex.userData.redraw());P3.titles.forEach(o=>o.tex.userData.redraw())}
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(P3.panels.length)redrawPanels3D()});
 function pickPanel(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const h=ray.intersectObjects(P3.pick,false)[0];return h&&h.distance<12?h.object.userData.panel:-1}
 // HTML overlays left in the scene hide when something solid (the lobby logo) stands between them and the camera
 const occRay=new THREE.Raycaster(),occDir=new THREE.Vector3();
@@ -1745,10 +1747,10 @@ function updatePool(){
 
 /* ---------- theme ---------- */
 if(sysDark.addEventListener)sysDark.addEventListener("change",()=>{if(!themeChoice&&HANDHELD&&dark!==sysDark.matches){dark=sysDark.matches;applyTheme();buildOverlays()}});
-function applyTheme(){
+function applyTheme(init){
   document.documentElement.dataset.theme=dark?"dark":"light";
   GLASS.dark.value=dark?1:0;
-  framesAll.forEach(drawCaption);
+  if(!init)framesAll.forEach(drawCaption);   // at the start every caption was just drawn for this theme
   const bg=dark?"#0a0807":"#b9ad9e";
   scene.background=C(bg);scene.fog.color=C(bg);scene.fog.density=dark?.024:.0026;
   MAT.floor.color=C(dark?"#0b0907":"#b3aea7");MAT.floor.roughness=dark?.3:.4;if(MAT.floor.transparent)MAT.floor.opacity=dark?.9:.6;
@@ -2062,14 +2064,15 @@ function closePlayer(){
 }
 
 /* ---------- language ---------- */
-function applyLang(){
+function applyLang(init){
   hintOn=null;lastCount="";
   const t=T();document.documentElement.lang=lang;document.documentElement.dir=t.dir;
   $("#langBtn").textContent=t.other;document.title=lang==="fa"?"استودیو آرتا نوری":"ARTA NOORI STUDIO";
   // a clear invitation at the entrance: a glass pill with an animated mouse (or a swiping finger on touch screens)
   $("#hint").innerHTML=`<span class="hint-pill glass">${TOUCH?'<b class="hint-swipe"></b>':'<b class="hint-mouse"><em></em></b>'}<span>${TOUCH?t.swipe:t.scroll}${TOUCH&&t.swipeLook?`<small>${t.swipeLook}</small>`:""}</span></span><i></i>`;$("#loadTxt").textContent=t.loading;
   t.lightsLabel=lang==="fa"?"نور استودیو":"Studio lights";
-  buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme();refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
+  // at the start every sign, caption and board was just drawn in this language and theme: not drawn again
+  buildOverlays();buildMap();lastStop=-1;nearKey="#";applyTheme(init);if(!init)refreshCaptions();if(mode==="set")showSetHud(SETS[setIdx]);
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{sessionStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
@@ -2212,15 +2215,23 @@ function mergeStatic(root=scene){
 }
 
 /* ---------- start ---------- */
+// the site's fonts (already on their way: the page preloads them) are given up to half a second to arrive, so every
+// sign is drawn once in the right font; before, the studio was drawn in a stand-in font and then all of its signs,
+// captions and boards were drawn again when the fonts came, a long stall on slower phones just as the studio appeared
+let FONTS_FRESH=false;
+function start(){
 build3D();buildPanels3D();buildFeatureFilms();layoutPanels3D();mergeStatic();
 // the first four studios are finished before the first picture; the rest follow one by one just after it
 for(let k=0;k<(WEAK?2:4)&&PENDING_SETS.length;k++){const S=PENDING_SETS.shift();S.finish();S.merged=mergeStatic(S.g)}   // slower phones: two, the rest follow nearest first
 setupPool();setupPost(Q==="high");resize();
 buildPath();p=pTarget=PP0;hallPose(p,camPos,camLook);camera.position.copy(camPos);camera.lookAt(camLook);
-let booted=false;function boot(){if(booted)return;booted=true;applyLang();requestAnimationFrame(frame)}
-// the studio starts at once instead of waiting for the fonts (that wait could hold the loading screen for up to 2.5 s);
-// signs, captions and panels redraw themselves in the right font as soon as it arrives
-boot();
+applyLang(true);requestAnimationFrame(frame);
+}
+{ const F=document.fonts;let go=false;const run=ok=>{if(go)return;go=true;FONTS_FRESH=ok===true;start()};
+  if(!F||!F.load)run();
+  else{const L=[];[400,600,800].forEach(w=>L.push(F.load(`${w} 40px "Unbounded"`,"A")));[300,400,600,800].forEach(w=>L.push(F.load(`${w} 40px "Vazirmatn"`,"Aب")));   // every weight the signs use (each is its own face)
+    Promise.all(L).then(()=>run(true),()=>run());setTimeout(run,500)} }
 // heavy files that rarely change are kept on the device (sw.js), so later visits open faster
 if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{signTex.forEach(t=>t.userData.redraw&&t.userData.redraw());if(typeof buildOverlays==="function")buildOverlays()});
+// fonts that came only after the start (a very slow connection): everything is drawn again once, in the right font
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(FONTS_FRESH)return;refreshCaptions();if(P3.panels.length)redrawPanels3D();brandTex.forEach(t=>{if(!t.userData.img&&!t.userData.s.logo)drawBrand(t)});buildOverlays()});
