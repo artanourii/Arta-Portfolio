@@ -1482,7 +1482,7 @@ function buildFacade(){
 /* ---------- glass plaques screwed to the facade: contacts on the left, language and lights on the right ---------- */
 const END_FOCUS=new THREE.Object3D(),PLQ=[],PLQ_W=2.4,PLQ_H=.72;let PLQ_SHADOW=null,PLQ_RIM=null;
 // a satin finish: a mirror-sharp clearcoat caught the moving spotlights and flashed whenever the camera moved
-const PLQ_GLASS=new PhysMat({color:C("#caa676"),roughness:.5,metalness:0,clearcoat:.6,clearcoatRoughness:.35,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.14,envMapIntensity:.6});
+const PLQ_GLASS=new PhysMat({color:C("#caa676"),roughness:.5,metalness:0,clearcoat:.6,clearcoatRoughness:.35,transparent:true,opacity:.34,emissive:C("#ffc27a"),emissiveIntensity:.06,envMapIntensity:.6});
 PLQ_GLASS.userData.glass=true;
 function buildPlaques(){
   const items=[{k:"wa",cols:["#1FA855"],ct:CONTACT.whatsapp},{k:"ig",cols:["#F5B041","#D6336C","#7B3FE4"],ct:CONTACT.instagram}];
@@ -1501,18 +1501,18 @@ function buildPlaques(){
   items.forEach(it=>{
     const W=it.W||PLQ_W,H=it.H||PLQ_H,cvW=1080,cvH=Math.round(1080*H/W),{slab:geo,rim:rimG}=geos(W,H);
     const G=new THREE.Group();
-    const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);sh.renderOrder=1;G.add(sh);
-    const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;slab.renderOrder=2;G.add(slab);
-    const rim=new THREE.Mesh(rimG,PLQ_RIM);rim.position.z=D/2+.013;rim.renderOrder=3;G.add(rim);
+    const sh=new THREE.Mesh(new THREE.PlaneGeometry(W+.3,H+.3),PLQ_SHADOW);sh.position.set(.05,-.06,-.075);sh.renderOrder=7;G.add(sh);
+    const slab=new THREE.Mesh(geo,PLQ_GLASS);slab.position.z=-D/2;slab.renderOrder=8;G.add(slab);
+    const rim=new THREE.Mesh(rimG,PLQ_RIM);rim.position.z=D/2+.013;rim.renderOrder=9;G.add(rim);
     for(const sx of [-1,1])for(const sy of [-1,1]){const b=new THREE.Mesh(bolt,MAT.chrome);b.position.set(sx*(W/2-.1),sy*(H/2-.1),-.02);G.add(b);
       const c=new THREE.Mesh(cap,MAT.chrome);c.position.set(sx*(W/2-.1),sy*(H/2-.1),D/2+.02);G.add(c)}
     const cv=document.createElement("canvas");cv.width=cvW;cv.height=cvH;const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=8;
-    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;face.renderOrder=4;G.add(face);face.material.color.setScalar(dark?.86:1);
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));face.position.z=D/2+.014;face.renderOrder=10;G.add(face);face.material.color.setScalar(dark?.86:1);
     const draw=()=>{const g=cv.getContext("2d"),t=T(),fa=lang==="fa";g.clearRect(0,0,cvW,cvH);
       // frosted glass: a diagonal sheen over a soft warm tint, so the slats behind still show through faintly
-      const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(255,240,215,.62)");gr.addColorStop(.45,"rgba(240,215,180,.38)");gr.addColorStop(1,"rgba(215,185,145,.3)");
+      const gr=g.createLinearGradient(0,0,cvW*.6,cvH*1.4);gr.addColorStop(0,"rgba(250,238,218,.9)");gr.addColorStop(.45,"rgba(238,220,192,.84)");gr.addColorStop(1,"rgba(222,200,168,.8)");
       rr(g,0,0,cvW,cvH,56);g.fillStyle=gr;g.fill();
-      const sh2=g.createLinearGradient(0,0,0,cvH*.5);sh2.addColorStop(0,"rgba(255,255,255,.35)");sh2.addColorStop(1,"rgba(255,255,255,0)");rr(g,0,0,cvW,cvH*.5,56);g.fillStyle=sh2;g.fill();
+      const sh2=g.createLinearGradient(0,0,0,cvH*.5);sh2.addColorStop(0,"rgba(255,255,255,.22)");sh2.addColorStop(1,"rgba(255,255,255,0)");rr(g,0,0,cvW,cvH*.5,56);g.fillStyle=sh2;g.fill();
       if(it.k==="head"){   // the invitation: big words centred on the glass
         if("direction" in g)g.direction=fa?"rtl":"ltr";g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle="#15100b";
         const fT=fa?`800 128px "Vazirmatn", sans-serif`:`800 112px "Unbounded", "Vazirmatn", sans-serif`;g.font=fT;
