@@ -1347,14 +1347,14 @@ function glassSlab(w,h){
    with a little colour fringing, a bright specular edge and a soft frost. Nothing is painted on, so the glass
    always shows what is really behind it, in light and dark mode alike. */
 const GLASS={res:new THREE.Vector2(1,1),groups:[],dark:{value:1},rt:null,tick:0,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),sph:new THREE.Sphere()};
-GLASS.lodB={value:0};
+GLASS.lodB={value:0};GLASS.srgb={value:0};
 // slower phones: a quarter-size backdrop (the glass frosts it anyway; the blur is matched so it looks the same)
 GLASS.small=()=>{if(GLASS.rt.width<=256)return;GLASS.rt.setSize(256,256);GLASS.lodB.value=-1};
-{ const sz=Q==="high"?1024:512,hf=renderer.capabilities.isWebGL2&&!!renderer.extensions.get("EXT_color_buffer_float")&&!WEAK;
+{ const sz=Q==="high"?1024:512,hf=Q==="high"&&renderer.capabilities.isWebGL2&&!!renderer.extensions.get("EXT_color_buffer_float")&&!WEAK;   // phones store it encoded, 8 bits are enough
   GLASS.rt=new THREE.WebGLRenderTarget(sz,sz,{minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:hf?THREE.HalfFloatType:THREE.UnsignedByteType,generateMipmaps:true}); }
 if(WEAK)GLASS.small();
 const GLASS_VS=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
-const GLASS_FS=`uniform sampler2D tBack,tText;uniform vec2 uRes,uSize;uniform float uRad,uHasText,uDark,uOpacity,uLodB;varying vec2 vUv;
+const GLASS_FS=`uniform sampler2D tBack,tText;uniform vec2 uRes,uSize;uniform float uRad,uHasText,uDark,uOpacity,uLodB,uSRGB;varying vec2 vUv;
 float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
 void main(){
   vec2 hb=uSize*.5,p=(vUv-.5)*uSize;
@@ -1369,6 +1369,7 @@ void main(){
   vec2 suv=gl_FragCoord.xy/uRes,off=n*bend*bez*1.15*ppm/uRes;
   float lod=max(2.5+bend*1.6+uLodB,0.);   // frost, so text on the glass stays easy to read and small bright lights behind don't sparkle
   vec3 col=vec3(texture2D(tBack,suv+off*1.1,lod).r,texture2D(tBack,suv+off,lod).g,texture2D(tBack,suv+off*.9,lod).b);
+  if(uSRGB>.5)col=sRGBToLinear(vec4(col,1.)).rgb;
   // bright lamps and light cones behind the glass are compressed, so they can't flash through it as the camera moves
   col=col*1.3/(1.+col*.6);
   col=uDark>.5?col*.74+.008:col*.9+.11;   // dark mode: smoky glass; light mode: milky glass, so black text reads on it
@@ -1383,7 +1384,7 @@ void main(){
 }`;
 function liquidMat(w,h,r,textTex){
   const m=new THREE.ShaderMaterial({uniforms:{tBack:{value:GLASS.rt.texture},tText:{value:textTex||null},uHasText:{value:textTex?1:0},uRes:{value:GLASS.res},
-    uSize:{value:new THREE.Vector2(w,h)},uRad:{value:r},uDark:GLASS.dark,uOpacity:{value:1},uLodB:GLASS.lodB},vertexShader:GLASS_VS,fragmentShader:GLASS_FS,
+    uSize:{value:new THREE.Vector2(w,h)},uRad:{value:r},uDark:GLASS.dark,uOpacity:{value:1},uLodB:GLASS.lodB,uSRGB:GLASS.srgb},vertexShader:GLASS_VS,fragmentShader:GLASS_FS,
     transparent:true,depthWrite:false,extensions:{derivatives:true}});
   m.userData.glass=true;return m;
 }
@@ -1716,6 +1717,10 @@ function setupPost(on){
   }
   renderer.toneMapping=useComposer?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;
   renderer.outputEncoding=useComposer?THREE.LinearEncoding:THREE.sRGBEncoding;
+  // the scene behind the glass is stored in the same colour encoding as the picture itself, so both use the very same
+  // shaders: with different encodings every material was prepared twice, and that second preparation stalled the
+  // phone for a moment whenever glass first came into view while walking; the glass decodes it back
+  GLASS.rt.texture.encoding=renderer.outputEncoding;GLASS.srgb.value=useComposer?0:1;
   scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)});
 }
 
@@ -2054,7 +2059,7 @@ function openPlayer(v,getRect,startAt){
   Object.assign(pl.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"});
   document.body.appendChild(pl);playerEl=pl;pl.querySelector(".x").onclick=closePlayer;pl.getBoundingClientRect();
   const pv=pl.querySelector("video");if(pv){pv.muted=false;pv.volume=1;if(startAt>0)pv.addEventListener("loadedmetadata",()=>{pv.currentTime=startAt},{once:true})}
-  setTimeout(()=>{pl.classList.add("full");Object.assign(pl.style,{left:"0px",top:"0px",width:innerWidth+"px",height:innerHeight+"px"});pl.querySelector(".x").focus()},20);
+  setTimeout(()=>{pl.classList.add("full");pl._fullAt=performance.now();Object.assign(pl.style,{left:"0px",top:"0px",width:innerWidth+"px",height:innerHeight+"px"});pl.querySelector(".x").focus()},20);
 }
 function closePlayer(){
   if(!playerEl)return;const pl=playerEl;playerEl=null;const v=pl.querySelector("video");if(v)v.pause();
@@ -2123,6 +2128,11 @@ let frames=0,acc=0,last=performance.now(),started=false,dynN=0,dynT=0,dynLast=0,
 let lastInput=performance.now(),camRest=0;const prevCam=new THREE.Vector3();
 ["pointerdown","pointermove","wheel","keydown","touchstart","touchmove"].forEach(ev=>addEventListener(ev,()=>{lastInput=performance.now()},{passive:true}));
 function frame(now){
+  // a film playing full screen covers the whole studio: nothing behind it is drawn and the films on the walls pause,
+  // so the phone only plays the one film (it ran warm drawing a studio no one could see)
+  if(playerEl&&playerEl._fullAt&&now-playerEl._fullAt>800){
+    if(!playerEl._quiet){playerEl._quiet=true;framesAll.forEach(F=>{if(F.video&&!F.video.paused)F.video.pause()})}
+    last=now;requestAnimationFrame(frame);return}
   { const idle=now-lastInput>2500&&camRest>40&&!playerEl,gap=idle?32:15;isIdle=idle;
     if(frames>5&&now-last<gap){requestAnimationFrame(frame);return} }
   const dt=Math.max(0,Math.min(now-last,100));last=now;
