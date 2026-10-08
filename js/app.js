@@ -55,9 +55,9 @@ const WEAK_GPU=/Mali-(T|G[1-6]\d\b|G7[0-6]\b)|Adreno \(TM\) ([1-5]\d\d|6[0-4]\d)
 const TABLET=Math.min(screen.width,screen.height)>=744;
 const STRONG=GL2&&TABLET&&(IOS||(navigator.deviceMemory||0)>=6);
 let Q=((TOUCH&&Math.min(innerWidth,innerHeight)<900)||phoneLike())&&!STRONG?"mid":"high";
-// lower-end Android phones (4 GB of memory or less, or four cores or fewer), or any phone found to be slow during its
-// first seconds: they start at a slightly lower resolution (it rises again by itself once the phone keeps up), play one
-// film at a time on the walls and finish the studios further down the hall only as you approach them or stand still
+// lower-end Android phones (a budget graphics chip, 4 GB of memory or less, or four cores or fewer), or any phone found
+// slow during its first seconds: same sharpness, but they play one film at a time on the walls, keep a lighter backdrop
+// behind the glass and finish the studios further down the hall only as you approach them or stand still
 let WEAK=TOUCH&&!STRONG&&!IOS&&(WEAK_GPU||(navigator.deviceMemory||8)<=4||(navigator.hardwareConcurrency||8)<=4);
 // phones use the standard material for glass and clearcoat paint: the clearcoat variant is the slowest shader to
 // prepare, and on a phone screen its extra sheen is not visible; computers keep it
@@ -65,7 +65,9 @@ const PhysMat=Q==="high"?THREE.MeshPhysicalMaterial:class extends THREE.MeshStan
 const canvas=$("#gl");
 // antialiasing everywhere and a pixel ratio close to the screen's own, so edges and text stay crisp
 const renderer=new THREE.WebGLRenderer({canvas,antialias:!(TOUCH&&devicePixelRatio>=2.5&&Q!=="high"),powerPreference:"high-performance"});   // dense phone screens: no multisampling (edges are already fine at 2.5x), a large saving on the graphics chip
-const DPR_MAX=Math.min(devicePixelRatio||1,2);let DPR=WEAK?Math.min(DPR_MAX,1.5):DPR_MAX,DPR_CAP=DPR;   // a slower phone stays at 1.5x at most   // phones render at up to 2x too (1.6 looked soft on sharp phone screens)
+// every device draws at up to 2x so text and logos stay sharp; when a phone can't keep up it may step down, but a
+// phone or tablet never below 1.5x (lower looked blurry on sharp phone screens)
+const DPR_MAX=Math.min(devicePixelRatio||1,2),DPR_MIN=TOUCH?Math.min(DPR_MAX,1.5):1;let DPR=DPR_MAX,DPR_CAP=DPR;
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.shadowMap.enabled=Q==="high"&&!TOUCH;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   // refreshed every third frame (see frame())
 const scene=new THREE.Scene();
@@ -593,8 +595,8 @@ function logoLum(cv){
 }
 const signTex=[];
 function canvasSign(w,h,draw){
-  // phones draw signs at 90% size (Safari on iPhone stops creating canvases once their total memory is too large)
-  const k=TOUCH?.9:1;
+  // iPhones draw signs at 90% size (Safari on iPhone stops creating canvases once their total memory is too large)
+  const k=IOS?.9:1;   // (Android phones keep full size)
   const cv=document.createElement("canvas");cv.width=Math.round(w*k);cv.height=Math.round(h*k);
   const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
   t.userData=t.userData||{};t.userData.redraw=()=>{const g=cv.getContext("2d");if(!g)return;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(k,0,0,k,0,0);draw(g,w,h);t.needsUpdate=true};
@@ -2176,9 +2178,9 @@ function frame(now){
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
   // at a slightly lower resolution so walking stays smooth, and goes back up once it can; strong devices never step down
   if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=30){const a=dynT/dynN;dynN=dynT=0;
-    const next=a>45&&DPR>1?Math.max(1,DPR-.5):a>33&&DPR>1?Math.max(1,DPR-.25):a<19&&DPR<DPR_CAP?Math.min(DPR_CAP,DPR+.25):DPR;
+    const next=a>45&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.5):a>33&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.25):a<19&&DPR<DPR_CAP?Math.min(DPR_CAP,DPR+.25):DPR;
     if(next!==DPR&&now-dynLast>(next<DPR?700:2500)){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
-  if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30&&!WEAK){WEAK=true;GLASS.small();DPR_CAP=Math.min(DPR_MAX,1.5);if(DPR>DPR_CAP){DPR=DPR_CAP;renderer.setPixelRatio(DPR);resize()}}
+  if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30&&!WEAK){WEAK=true;GLASS.small()}
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
   }
