@@ -1479,7 +1479,8 @@ function buildPanels3D(){
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
-  const P=portrait(),CP=P?[[-.55,2.3,-14.2],[.55,1.3,-15.6],[-.55,2.3,-17.2],[.55,1.3,-18.6],[0,1.3,-20.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
+  // phones held upright: the panels stand well behind the logo film, so the film never hides them (it is passed first)
+  const P=portrait(),CP=P?[[-.42,2.3,-16.0],[.42,1.3,-17.4],[-.42,2.3,-18.9],[.42,1.3,-20.3],[0,1.3,-21.9]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
   P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.82:1)});
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
   P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
