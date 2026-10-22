@@ -28,19 +28,19 @@ const CONTACT = {
   linkedin:{ display:"Arta Noori", link:"https://www.linkedin.com/in/arta-noori-shahbolaghi-1a2234359" }
 };
 /* Your own two films / دو ویدیوی شخصی:
-   logoAd: plays silently on a loop in the middle of Arta Studio, between the panels
-           وسط استودیوی آرتا، بین پنل‌ها، بی‌صدا و تکراری پخش می‌شه
+   logoAd: plays on a loop in the middle of Arta Studio, its sound rising as you walk up to it
+           وسط استودیوی آرتا تکراری پخش می‌شه و صداش با نزدیک شدن بلندتر می‌شه
    instagramAd: floats big at the end of the hall and plays WITH SOUND;
            the sound fades in as the visitor walks up to it
            آخر راهرو، بزرگ و معلق روی هوا، با صدا پخش می‌شه و صداش با نزدیک شدن بلندتر می‌شه
    Tapping either one opens it full screen with its own sound. */
 const FEATURES = {
-  logoAd:{src:"https://artanourii.github.io/arta-videos-4/logo-ad.mp4",poster:"videos/logo-ad.jpg",r:"9/16",sound:false,
+  logoAd:{src:"https://artanourii.github.io/arta-videos-4/logo-ad.mp4",poster:"videos/logo-ad.jpg",r:"9/16",sound:true,
     t:{en:"ARTA NOORI",fa:"آرتا نوری"},m:{en:"Logo film",fa:"تیزر لوگو"}},
   instagramAd:{src:"https://artanourii.github.io/arta-videos-4/instagram-ad.mp4",poster:"videos/instagram-ad.jpg",r:"9/16",sound:true,
     t:{en:"@artanourii on Instagram",fa:"پیج اینستاگرام @artanourii"},m:{en:"Follow for new films",fa:"برای دیدن کارهای جدید فالو کن"}},
   // midHall: floats in the middle of the hall, halfway down the studios, as a break; tap for full screen with sound
-  midHall:{src:"https://artanourii.github.io/arta-videos-5/fashion.mp4",poster:"videos/fashion.jpg",r:"9/16",sound:false,
+  midHall:{src:"https://artanourii.github.io/arta-videos-5/fashion.mp4",poster:"videos/fashion.jpg",r:"9/16",sound:true,
     t:{en:"Move to the Beat",fa:"با ریتم حرکت کن"},m:{en:"Take a break, watch this",fa:"یه لحظه وایسا، اینو ببین"}}
 };
 

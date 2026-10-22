@@ -1263,6 +1263,7 @@ function layoutFeatureFilms(){
 }
 let sndA=null;
 function updateFeatureFilm(F,cp){
+  F.want=false;
   const k=F.appear(cp);F.k+=(k-F.k)*.12;const e=F.k*F.k*(3-2*F.k);
   F.G.visible=e>.01;F.G.scale.setScalar(F.sc*(.6+.4*e));
   F.G.position.y=F.y0-(1-e)*.8+Math.sin(frameT*.9+F.ph)*.035;F.G.rotation.y=Math.sin(frameT*.6+F.ph)*.025;
@@ -1275,21 +1276,25 @@ function updateFeatureFilm(F,cp){
       F.video=vd;vd.addEventListener("playing",()=>{if(F.video!==vd)return;if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
       // a missing light copy falls back to the original; only a failing original marks the film as broken
       vd.addEventListener("error",()=>{if(F.video!==vd)return;if(!vd._fb&&vd.src!==F.v.src){vd._fb=1;vd.src=F.v.src;vd.play().catch(()=>{})}else F.v._bad=true});
+      if(sound)featAudio(F);
     }
-    const v=F.video;
+    F.want=want;const v=F.video;
     if(v&&!F.v._bad){
       if(want){
-        if(v.paused){v.muted=!(sound&&canSound());F.vol=0;if(!v.muted)v.volume=0;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
-        if(sound&&v.muted&&canSound())v.muted=false;
-        // the sound rises as you walk up to the screen
-        if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);F.vol=clamp((F.vol||0)+(tv-(F.vol||0))*.08,0,1);v.volume=F.vol}
+        if(v.paused){v.muted=!(sound&&canSound());F.vol=0;if(!v.muted)featVol(F,0);v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
+        if(sound&&v.muted&&canSound()&&!IOS)v.muted=false;   // (iPhone: only unmuted inside a tap, see featUnlock)
+        // the sound rises as you walk up to the screen and fades as you walk away
+        if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);F.vol=clamp((F.vol||0)+(tv-(F.vol||0))*.08,0,1);featVol(F,F.vol)}
         showHint=sound&&v.muted;
       }else if(!v.paused){
         // the fade is counted by the site, not read back from the video: iPhone ignores video.volume, so the film never stopped
-        if(sound&&!v.muted&&(F.vol||0)>.03&&!playerEl&&!IOS){F.vol*=.85;v.volume=F.vol}else{F.vol=0;v.pause()}}
+        if(sound&&!v.muted&&(F.vol||0)>.03&&!playerEl&&(F.gain||!IOS)){F.vol*=.85;featVol(F,F.vol)}else{F.vol=0;v.pause()}}
     }
+  }else if(F.video&&!F.video.paused){
+    // walked past it (the film halfway down the hall steps aside): its sound fades out, then it stops
+    const v=F.video;if(sound&&!v.muted&&(F.vol||0)>.03&&(F.gain||!IOS)){F.vol*=.85;featVol(F,F.vol)}else{F.vol=0;v.pause()}
   }
-  if(sound&&sndA)sndA.e.firstChild.hidden=!showHint;
+  if(F.v===FEATURES.instagramAd&&sndA)sndA.e.firstChild.hidden=!showHint;
 }
 function pickFeatureFilm(x,y){
   if(mode!=="hall")return null;
@@ -1692,6 +1697,23 @@ let activated=false;
 ["pointerdown","keydown","touchend"].forEach(n=>addEventListener(n,()=>{activated=true},{capture:true,passive:true}));
 // browsers only allow sound after the visitor has tapped, clicked or pressed a key on the page
 const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActive:activated;
+/* the films that play with sound in the hall (the logo film, the one halfway down, the Instagram film at the end) get
+   louder as you walk up to them and fade as you walk away. The volume goes through Web Audio: iPhone and iPad ignore a
+   video's own volume setting, so on phones the sound used to stay at full strength or stay off */
+let AC=null;
+function featAudio(F){
+  if(!AC||F.gain||!F.video)return;
+  try{const src=AC.createMediaElementSource(F.video),g=AC.createGain();g.gain.value=F.vol||0;src.connect(g);g.connect(AC.destination);F.gain=g}catch(e){}
+}
+function featVol(F,x){if(F.gain)F.gain.gain.value=x;else if(F.video)F.video.volume=x}
+// inside a tap (the only moment phones allow it) the audio is switched on and the films near you are unmuted
+function featUnlock(){
+  if(!AC){const A=window.AudioContext||window.webkitAudioContext;if(A)try{AC=new A()}catch(e){}}
+  if(AC&&AC.state!=="running")AC.resume().catch(()=>{});
+  for(const F of FEATS3){if(!F.v.sound||!F.video)continue;featAudio(F);
+    if(F.want&&F.video.muted){F.video.muted=false;featVol(F,F.vol||0);if(F.video.paused)F.video.play().catch(()=>{})}}
+}
+["pointerdown","pointerup","touchend","keydown"].forEach(n=>addEventListener(n,featUnlock,{capture:true,passive:true}));
 /* ---------- post processing ---------- */
 const FinalShader={
   uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.005},uExp:{value:1},uWarm:{value:new THREE.Vector3(1,1,1)}},
