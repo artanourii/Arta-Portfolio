@@ -1009,7 +1009,9 @@ function buildSet(s,i){
   let lay,DZ;
   if(!many){
     DZ=n>1?Math.min(2.6,9.1/(n-1)):0;
-    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1?0:(j%2===0?-1:1)*(vert?.85:1.25);
+    // leadCenter: the first film stands in the middle of the room, the rest alternate left and right behind it
+    const L0=s.leadCenter?1:0;
+    lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1||(L0&&j===0)?0:((j-L0)%2===0?-1:1)*(vert?.85:1.25);
       return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:n===1?-.3:Z0-j*DZ,sc:1}});   // a single film floats in the middle of the room
   }else if(n>20){
     // a very big studio (TikTok, Asus, Makeup): two tiers of films, one above the other, so the rows can stand far apart
