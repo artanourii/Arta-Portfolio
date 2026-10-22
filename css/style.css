@@ -160,6 +160,14 @@ a{color:inherit;text-decoration:none}
 .loader div{text-align:center}
 .loader img{width:150px;animation:breathe 2.4s ease-in-out infinite}
 .loader p{margin:22px 0 0;color:var(--muted);font-size:14px;letter-spacing:.08em}
+/* the entrance, once the studio has loaded: the 3D entrance shows through, with one button to step in (with sound) */
+.loader.ready{background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer}
+.loader.ready img{animation:none}
+.gate-btn{display:inline-flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;padding:16px 34px;border-radius:999px;font:inherit;color:var(--text);cursor:pointer;animation:gateIn .5s ease-out both}
+.gate-btn b{font-size:20px;font-weight:700;letter-spacing:.02em}
+.gate-btn small{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);letter-spacing:.04em}
+.gate-btn:focus-visible{outline:2px solid var(--text);outline-offset:4px}
+@keyframes gateIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes breathe{50%{opacity:.45}}
 .fade{position:fixed;inset:0;z-index:70;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .35s}
 .fallback{position:fixed;inset:0;display:none;place-items:center;padding:24px;text-align:center;z-index:90;background:var(--bg)}

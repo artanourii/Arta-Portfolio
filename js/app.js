@@ -1247,9 +1247,9 @@ function buildFeatureFilms(){
     scene.add(F.G);FEATS3.push(F)};
   mk(FEATURES.logoAd,{bg:"#141414",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((-6.6-cp.z)/2.6,0,1),14);
   mk(FEATURES.instagramAd,{bg:"#1a1024",bg2:"#3a1a3a",ink:"#1d1a17",acc:"#e1306c",glow:false},()=>1,24);
-  // halfway down the studios a film floats in the middle of the hall: it rises into view as you come near and steps
-  // aside (fades) just before you would walk into it
-  mk(FEATURES.midHall,{bg:"#121212",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>{const d=cp.z-MID_Z;return clamp((20-d)/5,0,1)*clamp((d-2.6)/2,0,1)},14);
+  // halfway down the studios a film floats in the middle of the hall: it rises into view as you come near, and the
+  // camera passes through it as you walk on, as with the logo film
+  mk(FEATURES.midHall,{bg:"#121212",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((20-(cp.z-MID_Z))/5,0,1),14);
   layoutFeatureFilms();
 }
 function layoutFeatureFilms(){
@@ -1262,6 +1262,13 @@ function layoutFeatureFilms(){
   }
 }
 let sndA=null;
+function makeFeatVideo(F){const sound=!!F.v.sound;
+      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
+      F.video=vd;vd.addEventListener("playing",()=>{if(F.video!==vd)return;if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
+      // a missing light copy falls back to the original; only a failing original marks the film as broken
+      vd.addEventListener("error",()=>{if(F.video!==vd)return;if(!vd._fb&&vd.src!==F.v.src){vd._fb=1;vd.src=F.v.src;vd.play().catch(()=>{})}else F.v._bad=true});
+      if(sound)featAudio(F);
+}
 function updateFeatureFilm(F,cp){
   F.want=false;
   const k=F.appear(cp);F.k+=(k-F.k)*.12;const e=F.k*F.k*(3-2*F.k);
@@ -1271,13 +1278,7 @@ function updateFeatureFilm(F,cp){
   if(F.G.visible){
     F.G.getWorldPosition(tmp);const d=tmp.distanceTo(cp);
     const want=mode==="hall"&&d<F.range&&e>.5&&!playerEl&&!document.hidden;
-    if(want&&!F.video){
-      const vd=document.createElement("video");vd.crossOrigin="anonymous";Object.assign(vd,{src:wallOf(F.v.src),muted:true,loop:true,playsInline:true,preload:"auto"});vd.setAttribute("playsinline","");
-      F.video=vd;vd.addEventListener("playing",()=>{if(F.video!==vd)return;if(!F.vtex){F.vtex=new THREE.VideoTexture(vd);F.vtex.encoding=THREE.sRGBEncoding}F.screenMat.map=F.vtex;F.screenMat.needsUpdate=true},{once:true});
-      // a missing light copy falls back to the original; only a failing original marks the film as broken
-      vd.addEventListener("error",()=>{if(F.video!==vd)return;if(!vd._fb&&vd.src!==F.v.src){vd._fb=1;vd.src=F.v.src;vd.play().catch(()=>{})}else F.v._bad=true});
-      if(sound)featAudio(F);
-    }
+    if(want&&!F.video)makeFeatVideo(F);
     F.want=want;const v=F.video;
     if(v&&!F.v._bad){
       if(want){
@@ -1714,6 +1715,22 @@ function featUnlock(){
     if(F.want&&F.video.muted){F.video.muted=false;featVol(F,F.vol||0);if(F.video.paused)F.video.play().catch(()=>{})}}
 }
 ["pointerdown","pointerup","touchend","keydown"].forEach(n=>addEventListener(n,featUnlock,{capture:true,passive:true}));
+// inside the same tap every film with sound is started once at zero volume and stopped again: phones then let it play
+// with sound later on, when you walk up to it, without another tap
+function featPrime(){
+  for(const F of FEATS3){if(!F.v.sound||!F.v.src||F.v._bad)continue;if(!F.video)makeFeatVideo(F);featAudio(F);
+    const v=F.video;F.vol=0;featVol(F,0);v.muted=!F.gain&&IOS;if(v.paused)v.play().then(()=>{if(!F.want&&F.video===v)v.pause()}).catch(()=>{})}
+}
+/* the entrance: once the studio has loaded, one tap or click on "Enter" opens it. Browsers only allow sound after the
+   visitor has tapped or clicked on the page (scrolling does not count), so this one tap lets the films in the hall play
+   with sound as you walk up to them, without having to open one first */
+let gateOpen=false;
+function gateReady(){
+  const L=$("#loader");L.classList.add("ready");const fa=lang==="fa";
+  $("#loadTxt").innerHTML=`<button class="gate-btn glass" id="gateBtn"><b>${fa?"ورود به استودیو":"Enter the studio"}</b><small><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg> ${fa?"با صدا":"Sound on"}</small></button>`;
+  L.addEventListener("click",enterGate);$("#gateBtn").focus({preventScroll:true});
+}
+function enterGate(){if(gateOpen)return;gateOpen=true;featUnlock();featPrime();$("#loader").classList.add("done")}
 /* ---------- post processing ---------- */
 const FinalShader={
   uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.005},uExp:{value:1},uWarm:{value:new THREE.Vector3(1,1,1)}},
@@ -1966,6 +1983,7 @@ let playerShutAt=0;
 const backGesture=()=>{if(playerEl){closePlayer();playerShutAt=performance.now()}};
 addEventListener("wheel",e=>{
   if(e.target.closest(".sheet"))return;e.preventDefault();
+  if(!gateOpen)return;
   if(playerEl){if(e.deltaY<-4)backGesture();return}
   // swallow the rest of the closing gesture, including trackpad momentum, until the wheel goes quiet
   if(performance.now()-playerShutAt<450){playerShutAt=performance.now();return}
@@ -1977,7 +1995,7 @@ const TOUCHES=new Map();let lastTap=0,mouseLook=null;
 addEventListener("pointerdown",e=>{
   downXY=[e.clientX,e.clientY];dragged=false;
   if(e.pointerType==="mouse"){mouseLook=e.button===0&&e.target===canvas?{x:e.clientX,y:e.clientY}:null;return}
-  if(e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player"))return;
+  if(!gateOpen||e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player,.loader"))return;
   TOUCHES.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(TOUCHES.size===1){const t=performance.now();if(t-lastTap<300&&e.pointerType==="touch"){lookYaw=lookPitch=0}lastTap=t}
   drag={last:e.clientY,lastX:e.clientX};vel=0;
@@ -2006,6 +2024,7 @@ addEventListener("pointerup",e=>{
 addEventListener("pointercancel",e=>{TOUCHES.delete(e.pointerId);if(!TOUCHES.size){drag=null;vel=0;downXY=null}},{passive:true});
 addEventListener("click",e=>{if(dragged&&e.target.closest("#ovl")){e.preventDefault();e.stopPropagation();dragged=false}},true);
 addEventListener("keydown",e=>{
+  if(!gateOpen){if(started&&(e.key==="Enter"||e.key===" "||e.key==="ArrowDown")){e.preventDefault();enterGate()}return}
   if(e.key==="Escape"){if(playerEl)return backGesture();if($("#veil").classList.contains("show"))return closeSheet();if(mode==="set")return exitSet()}
   if(playerEl){if(e.key==="ArrowUp"||e.key==="PageUp")backGesture();return}
   if($("#veil").classList.contains("show"))return;
@@ -2202,7 +2221,7 @@ function frame(now){
   // a studio's inside (props, trusses, backdrop) is drawn only while the camera is within about 30 m of it: from
   // farther away it shows only as a small glimpse through the door, and skipping it saves the graphics chip most work
   for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<(WEAK?24:30)||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
-  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
+  if(!started){started=true;setTimeout(gateReady,120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
