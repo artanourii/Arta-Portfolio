@@ -352,6 +352,7 @@ function slot(from,to,color,intensity,angle,pen=.5,withBeam=true,alwaysBeam=fals
 const SETS=[];const anchors=[];
 const SET0=-32,SETSTEP=8;   // studios stand in facing pairs, each pair right next to the one before
 // the hall grows with the number of studios
+const MID_Z=SET0-(Math.ceil(STUDIOS.length/4)-.5)*SETSTEP;   // the middle of the hall, between two pairs of studios
 const LED_Z=SET0-(Math.ceil(STUDIOS.length/2)-1)*SETSTEP-12,HALL_END=LED_Z-12,HALL_LEN=10-HALL_END,HALL_MID=(10+HALL_END)/2;
 function build3D(){
   // floor, reflection, walls, ceiling
@@ -1246,12 +1247,16 @@ function buildFeatureFilms(){
     scene.add(F.G);FEATS3.push(F)};
   mk(FEATURES.logoAd,{bg:"#141414",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>clamp((-6.6-cp.z)/2.6,0,1),14);
   mk(FEATURES.instagramAd,{bg:"#1a1024",bg2:"#3a1a3a",ink:"#1d1a17",acc:"#e1306c",glow:false},()=>1,24);
+  // halfway down the studios a film floats in the middle of the hall: it rises into view as you come near and steps
+  // aside (fades) just before you would walk into it
+  mk(FEATURES.midHall,{bg:"#121212",bg2:"#2a2a2a",ink:"#1d1a17",acc:"#ffc978"},cp=>{const d=cp.z-MID_Z;return clamp((20-d)/5,0,1)*clamp((d-2.6)/2,0,1)},14);
   layoutFeatureFilms();
 }
 function layoutFeatureFilms(){
   const P=portrait();
   for(const F of FEATS3){
     if(F.v===FEATURES.logoAd){F.base.set(0,2.15,P?-12.6:-15);F.sc=P?1:1.3}
+    else if(F.v===FEATURES.midHall){F.base.set(0,P?2.1:2.2,MID_Z);F.sc=P?1.05:1.35}
     else{F.base.set(0,P?4.75:3.55,LED_Z);F.sc=P?1.6:2.35}
     F.y0=F.base.y;F.G.position.copy(F.base);F.G.scale.setScalar(F.sc);
   }

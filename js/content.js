@@ -38,7 +38,10 @@ const FEATURES = {
   logoAd:{src:"https://artanourii.github.io/arta-videos-4/logo-ad.mp4",poster:"videos/logo-ad.jpg",r:"9/16",sound:false,
     t:{en:"ARTA NOORI",fa:"آرتا نوری"},m:{en:"Logo film",fa:"تیزر لوگو"}},
   instagramAd:{src:"https://artanourii.github.io/arta-videos-4/instagram-ad.mp4",poster:"videos/instagram-ad.jpg",r:"9/16",sound:true,
-    t:{en:"@artanourii on Instagram",fa:"پیج اینستاگرام @artanourii"},m:{en:"Follow for new films",fa:"برای دیدن کارهای جدید فالو کن"}}
+    t:{en:"@artanourii on Instagram",fa:"پیج اینستاگرام @artanourii"},m:{en:"Follow for new films",fa:"برای دیدن کارهای جدید فالو کن"}},
+  // midHall: floats in the middle of the hall, halfway down the studios, as a break; tap for full screen with sound
+  midHall:{src:"https://artanourii.github.io/arta-videos-5/fashion.mp4",poster:"videos/fashion.jpg",r:"9/16",sound:false,
+    t:{en:"Move to the Beat",fa:"با ریتم حرکت کن"},m:{en:"Take a break, watch this",fa:"یه لحظه وایسا، اینو ببین"}}
 };
 
 const STUDIOS = [
