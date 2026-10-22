@@ -1283,7 +1283,7 @@ function updateFeatureFilm(F,cp){
     if(v&&!F.v._bad){
       if(want){
         if(v.paused){v.muted=!(sound&&canSound());F.vol=0;if(!v.muted)featVol(F,0);v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
-        if(sound&&v.muted&&canSound()&&!IOS)v.muted=false;   // (iPhone: only unmuted inside a tap, see featUnlock)
+        if(sound&&v.muted&&canSound()&&!IOS&&!(soundMuted&&!F.gain))v.muted=false;   // (iPhone: only unmuted inside a tap, see featUnlock)
         // the sound rises as you walk up to the screen and fades as you walk away
         if(sound&&!v.muted){const tv=clamp((F.range-d)/(F.range*.45),0,1);F.vol=clamp((F.vol||0)+(tv-(F.vol||0))*.08,0,1);featVol(F,F.vol)}
         showHint=sound&&v.muted;
@@ -1704,13 +1704,17 @@ const canSound=()=>navigator.userActivation?navigator.userActivation.hasBeenActi
 let AC=null;
 function featAudio(F){
   if(!AC||F.gain||!F.video)return;
-  try{const src=AC.createMediaElementSource(F.video),g=AC.createGain();g.gain.value=F.vol||0;src.connect(g);g.connect(AC.destination);F.gain=g}catch(e){}
+  try{if(!AMaster){AMaster=AC.createGain();AMaster.gain.value=soundMuted?0:1;AMaster.connect(AC.destination)}
+    const src=AC.createMediaElementSource(F.video),g=AC.createGain();g.gain.value=F.vol||0;src.connect(g);g.connect(AMaster);F.gain=g}catch(e){}
 }
 function featVol(F,x){if(F.gain)F.gain.gain.value=x;else if(F.video)F.video.volume=x}
 // inside a tap (the only moment phones allow it) the audio is switched on and the films near you are unmuted
-function featUnlock(){
-  if(!AC){const A=window.AudioContext||window.webkitAudioContext;if(A)try{AC=new A()}catch(e){}}
+function featUnlock(e){
+  if(!AC){const A=window.AudioContext||window.webkitAudioContext;if(A)try{AC=new A()}catch(er){}}
   if(AC&&AC.state!=="running")AC.resume().catch(()=>{});
+  // the first tap or click anywhere switches the sound on (the sound button itself decides for itself)
+  if(!soundOn&&!(e&&e.target&&e.target.closest&&e.target.closest("#sndBtn"))){soundOn=true;drawSndBtn();featPrime()}
+  if(soundMuted)return;
   for(const F of FEATS3){if(!F.v.sound||!F.video)continue;featAudio(F);
     if(F.want&&F.video.muted){F.video.muted=false;featVol(F,F.vol||0);if(F.video.paused)F.video.play().catch(()=>{})}}
 }
@@ -1725,16 +1729,20 @@ function featPrime(){
     if(!F.video)makeFeatVideo(F);featAudio(F);
     const v=F.video;F.vol=0;featVol(F,0);v.muted=!F.gain&&IOS;if(v.paused)v.play().then(()=>{if(!F.want&&F.video===v)v.pause()}).catch(()=>{})}
 }
-/* the entrance: once the studio has loaded, one tap or click on "Enter" opens it. Browsers only allow sound after the
-   visitor has tapped or clicked on the page (scrolling does not count), so this one tap lets the films in the hall play
-   with sound as you walk up to them, without having to open one first */
-let gateOpen=false;
-function gateReady(){
-  const L=$("#loader");L.classList.add("ready");const fa=lang==="fa";
-  $("#loadTxt").innerHTML=`<button class="gate-btn glass" id="gateBtn"><b>${fa?"ورود به استودیو":"Enter the studio"}</b><small><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg> ${fa?"با صدا":"Sound on"}</small></button>`;
-  L.addEventListener("click",enterGate);$("#gateBtn").focus({preventScroll:true});
+/* sound button next to the language and lights buttons. Browsers allow sound only after a tap or click on the page
+   (scrolling does not count), so the hall films start silent; the first tap or click anywhere, or this button,
+   switches the sound on, and the button turns it off and on again */
+let soundOn=false,soundMuted=false,AMaster=null;
+const SND_ON=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>`;
+const SND_OFF=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6"/><path d="m17 9 6 6"/></svg>`;
+function drawSndBtn(){const b=$("#sndBtn");if(!b)return;const on=soundOn&&!soundMuted;b.innerHTML=on?SND_ON:SND_OFF;
+  b.setAttribute("aria-label",on?(lang==="fa"?"قطع صدا":"Sound off"):(lang==="fa"?"پخش صدا":"Sound on"));b.classList.toggle("off",!on)}
+function setSound(on){
+  soundMuted=!on;if(on&&!soundOn){soundOn=true;featUnlock();featPrime()}else if(on)featUnlock()
+  if(AMaster)AMaster.gain.value=soundMuted?0:1;
+  for(const F of FEATS3)if(F.video&&!F.gain&&F.v.sound)F.video.muted=soundMuted||!F.want;
+  drawSndBtn();
 }
-function enterGate(){if(gateOpen)return;gateOpen=true;featUnlock();featPrime();$("#loader").classList.add("done")}
 /* ---------- post processing ---------- */
 const FinalShader={
   uniforms:{tDiffuse:{value:null},uTime:{value:0},uVig:{value:.55},uGrain:{value:.005},uExp:{value:1},uWarm:{value:new THREE.Vector3(1,1,1)}},
@@ -1987,7 +1995,6 @@ let playerShutAt=0;
 const backGesture=()=>{if(playerEl){closePlayer();playerShutAt=performance.now()}};
 addEventListener("wheel",e=>{
   if(e.target.closest(".sheet"))return;e.preventDefault();
-  if(!gateOpen)return;
   if(playerEl){if(e.deltaY<-4)backGesture();return}
   // swallow the rest of the closing gesture, including trackpad momentum, until the wheel goes quiet
   if(performance.now()-playerShutAt<450){playerShutAt=performance.now();return}
@@ -1999,7 +2006,7 @@ const TOUCHES=new Map();let lastTap=0,mouseLook=null;
 addEventListener("pointerdown",e=>{
   downXY=[e.clientX,e.clientY];dragged=false;
   if(e.pointerType==="mouse"){mouseLook=e.button===0&&e.target===canvas?{x:e.clientX,y:e.clientY}:null;return}
-  if(!gateOpen||e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player,.loader"))return;
+  if(e.target.closest(".hud,.map,.veil,.shud .top,.shud .bot,.player"))return;
   TOUCHES.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(TOUCHES.size===1){const t=performance.now();if(t-lastTap<300&&e.pointerType==="touch"){lookYaw=lookPitch=0}lastTap=t}
   drag={last:e.clientY,lastX:e.clientX};vel=0;
@@ -2028,7 +2035,6 @@ addEventListener("pointerup",e=>{
 addEventListener("pointercancel",e=>{TOUCHES.delete(e.pointerId);if(!TOUCHES.size){drag=null;vel=0;downXY=null}},{passive:true});
 addEventListener("click",e=>{if(dragged&&e.target.closest("#ovl")){e.preventDefault();e.stopPropagation();dragged=false}},true);
 addEventListener("keydown",e=>{
-  if(!gateOpen){if(started&&(e.key==="Enter"||e.key===" "||e.key==="ArrowDown")){e.preventDefault();enterGate()}return}
   if(e.key==="Escape"){if(playerEl)return backGesture();if($("#veil").classList.contains("show"))return closeSheet();if(mode==="set")return exitSet()}
   if(playerEl){if(e.key==="ArrowUp"||e.key==="PageUp")backGesture();return}
   if($("#veil").classList.contains("show"))return;
@@ -2136,6 +2142,8 @@ function applyLang(init){
 }
 function toggleLang(){lang=lang==="en"?"fa":"en";try{sessionStorage.setItem("ans-lang",lang)}catch(e){}applyLang()}
 $("#langBtn").onclick=toggleLang;$("#lightBtn").onclick=toggleLight;
+$("#sndBtn").onclick=e=>{e.stopPropagation();setSound(!(soundOn&&!soundMuted))};
+$("#sndBtn").addEventListener("pointerdown",e=>e.stopPropagation(),{capture:true});drawSndBtn();
 let A2HS=null;
 /* full screen: a button where the browser allows it (computers, Android, iPad); on iPhone, where Safari keeps its bars,
    a one-time hint explains that the site opens full screen when added to the home screen */
@@ -2230,7 +2238,7 @@ function frame(now){
   // a studio's inside (props, trusses, backdrop) is drawn only while the camera is within about 30 m of it: from
   // farther away it shows only as a small glimpse through the door, and skipping it saves the graphics chip most work
   for(const S of SETS){if(!S.merged)continue;const on=Math.abs(curPos.z-S.z)<(WEAK?24:30)||(mode==="set"&&setIdx===S.i);if(S.mOn!==on){S.mOn=on;S.merged.forEach(m=>m.visible=on);S.g.children.forEach(c=>{if(!c.userData.front&&!c.userData.frame)c.visible=on})}}
-  if(!started){started=true;setTimeout(gateReady,120);if(A2HS)A2HS()}
+  if(!started){started=true;setTimeout(()=>$("#loader").classList.add("done"),120);if(A2HS)A2HS()}
   // automatic quality: drop expensive effects if the device struggles
   frames++;if(frames>40&&frames<160){acc+=dt}
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
