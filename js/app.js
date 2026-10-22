@@ -1718,7 +1718,11 @@ function featUnlock(){
 // inside the same tap every film with sound is started once at zero volume and stopped again: phones then let it play
 // with sound later on, when you walk up to it, without another tap
 function featPrime(){
-  for(const F of FEATS3){if(!F.v.sound||!F.v.src||F.v._bad)continue;if(!F.video)makeFeatVideo(F);featAudio(F);
+  // (phones start only the films close by, to spare their memory; the others are unmuted by the swipe that walks you
+  // up to them)
+  for(const F of FEATS3){if(!F.v.sound||!F.v.src||F.v._bad)continue;
+    if(TOUCH){F.G.getWorldPosition(tmp);if(tmp.distanceTo(camera.position)>40)continue}
+    if(!F.video)makeFeatVideo(F);featAudio(F);
     const v=F.video;F.vol=0;featVol(F,0);v.muted=!F.gain&&IOS;if(v.paused)v.play().then(()=>{if(!F.want&&F.video===v)v.pause()}).catch(()=>{})}
 }
 /* the entrance: once the studio has loaded, one tap or click on "Enter" opens it. Browsers only allow sound after the
@@ -2157,7 +2161,8 @@ $("#home").onclick=()=>goTo(0);
 
 /* ---------- resize ---------- */
 let lw=innerWidth,lh=innerHeight,rzT;
-function resize(){
+let pendingDPR=0,needDraw=false;
+function resize(){needDraw=true;
   camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<.85?64:camera.aspect<1.25?56:48;camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight,false);if(composer){composer.setSize(innerWidth,innerHeight)}
 }
@@ -2185,7 +2190,11 @@ function frame(now){
     if(!playerEl._quiet){playerEl._quiet=true;framesAll.forEach(F=>{if(F.video&&!F.video.paused)F.video.pause()})}
     last=now;requestAnimationFrame(frame);return}
   { const idle=now-lastInput>2500&&camRest>40&&!playerEl,gap=idle?32:15;isIdle=idle;
-    if(frames>5&&now-last<gap){requestAnimationFrame(frame);return} }
+    if(frames>5&&now-last<gap&&!needDraw){requestAnimationFrame(frame);return} }
+  // a new resolution is applied here, right before drawing: changing the canvas size clears it, and doing that after
+  // a frame was drawn left the screen black until the next one (on phones the picture blinked black every few seconds)
+  if(pendingDPR){DPR=pendingDPR;pendingDPR=0;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}
+  needDraw=false;
   const dt=Math.max(0,Math.min(now-last,100));last=now;
   // smoothing tuned for 60fps, scaled by real frame time so motion feels the same on 30, 60 and 120Hz screens
   const f=dt/16.667,sm=k=>1-Math.pow(1-k,f);
@@ -2227,8 +2236,12 @@ function frame(now){
   // automatic resolution: when a device can't keep up (frames slower than ~30 a second while moving) the picture is drawn
   // at a slightly lower resolution so walking stays smooth, and goes back up once it can; strong devices never step down
   if(frames>60&&!isIdle&&!document.hidden){dynN++;dynT+=dt;if(dynN>=30){const a=dynT/dynN;dynN=dynT=0;
-    const next=a>45&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.5):a>33&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.25):a<19&&DPR<DPR_CAP?Math.min(DPR_CAP,DPR+.25):DPR;
-    if(next!==DPR&&now-dynLast>(next<DPR?700:2500)){dynLast=now;DPR=next;renderer.setPixelRatio(DPR);if(composer){composer.setPixelRatio(DPR);composer.setSize(innerWidth,innerHeight)}resize()}}}
+    // phones and tablets only ever step down: stepping back up when a phone briefly kept up made it slow again, so the
+    // resolution swung up and down every few seconds (each change is a hitch); computers may step back up, but only
+    // after a long calm stretch well within the frame budget
+    const up=!TOUCH&&a<15&&now-dynLast>8000;
+    const next=a>45&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.5):a>33&&DPR>DPR_MIN?Math.max(DPR_MIN,DPR-.25):up&&DPR<DPR_CAP?Math.min(DPR_CAP,DPR+.25):DPR;
+    if(next!==DPR&&now-dynLast>(next<DPR?1500:8000)){dynLast=now;pendingDPR=next}}}
   if(frames===160){const avg=acc/120;if(TOUCH&&!STRONG&&avg>30&&!WEAK){WEAK=true;GLASS.small()}
     if(avg>30&&useComposer){setupPost(false);applyTheme()}
     if(avg>30&&renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;pool[0].castShadow=false;scene.traverse(o=>{if(o.material)[].concat(o.material).forEach(m=>m.needsUpdate=true)})}
