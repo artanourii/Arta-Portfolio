@@ -1013,7 +1013,9 @@ function buildSet(s,i){
     // leadCenter: the first film stands in the middle of the room, the rest alternate left and right behind it
     const L0=s.leadCenter?1:0;
     lay=s.videos.map((v,j)=>{const vert=v.r!=="16/9",x=n===1||(L0&&j===0)?0:((j-L0)%2===0?-1:1)*(vert?.85:1.25);
-      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:n===1?-.3:Z0-j*DZ,sc:1}});   // a single film floats in the middle of the room
+      // (behind a centred first film the others stand further back, so the camera stopping in front of each of them is
+      // already past the first one: on a phone it used to stand right in front of them and hide them)
+      return {x,vert,y:1.72+(j%3===1?.12:j%3===2?-.06:0),z:n===1?-.3:Z0-j*DZ-(L0&&j?1.7:0),sc:1}});   // a single film floats in the middle of the room
   }else if(n>20){
     // a very big studio (TikTok, Asus, Makeup): two tiers of films, one above the other, so the rows can stand far apart
     // instead of crowding into each other; the camera snakes along the lower tier and back along the upper one
@@ -1492,11 +1494,13 @@ function buildPanels3D(){
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
-  // phones held upright: the panels stand well behind the logo film, so the film never hides them (it is passed first)
-  const P=portrait(),CP=P?[[-.42,2.3,-16.0],[.42,1.3,-17.4],[-.42,2.3,-18.9],[.42,1.3,-20.3],[0,1.3,-21.9]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
-  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?.82:1)});
+  // phones held upright: the panels stand one behind the other along the middle of the hall, about three metres apart
+  // and at eye height, so each one fills the screen in turn and is easy to tap (the camera passes through them, as
+  // through the logo film before them); side by side they overlapped on a narrow screen
+  const P=portrait(),CP=P?[[-.28,1.72,-15.8],[.28,1.72,-18.7],[-.28,1.72,-21.6],[.28,1.72,-24.5],[0,1.72,-27.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
+  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?1.15:1)});
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
-  P3.studios.position.set(0,P?2.2:2.35,-24.6);P3.studios.scale.setScalar(P?.8:1);
+  P3.studios.position.set(0,P?2.2:2.35,P?-30:-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
 }
 /* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
