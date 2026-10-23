@@ -1494,13 +1494,12 @@ function buildPanels3D(){
 }
 // positions depend on the screen shape; text depends on language and light mode
 function layoutPanels3D(){
-  // phones held upright: the panels stand one behind the other along the middle of the hall, about three metres apart
-  // and at eye height, so each one fills the screen in turn and is easy to tap (the camera passes through them, as
-  // through the logo film before them); side by side they overlapped on a narrow screen
-  const P=portrait(),CP=P?[[-.28,1.72,-15.8],[.28,1.72,-18.7],[-.28,1.72,-21.6],[.28,1.72,-24.5],[0,1.72,-27.4]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
-  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*.12;o.G.scale.setScalar(P?1.15:1)});
+  // phones held upright: the panels stand two by two, a little apart and staggered (one higher and nearer, the other
+  // lower and further back), smaller so a pair fits side by side on a narrow screen, and well before the studios
+  const P=portrait(),CP=P?[[-.46,1.98,-15.4],[.48,1.52,-16.4],[-.5,1.54,-18.8],[.46,1.98,-19.8],[.12,1.76,-22.2]]:[[-2.1,2.05,-14.2],[2.1,2.25,-15.4],[-2.3,1.35,-17.0],[2.25,1.45,-18.4],[0,1.4,-20.2]];
+  P3.panels.forEach((o,i)=>{o.G.position.set(...CP[i]);o.y0=CP[i][1];o.G.rotation.y=-CP[i][0]*(P?.3:.12);o.G.scale.setScalar(P?.74:1)});
   P3.gate.position.set(0,5.6,-11);P3.gate.scale.setScalar(P?.82:1);
-  P3.studios.position.set(0,P?2.2:2.35,P?-30:-24.6);P3.studios.scale.setScalar(P?.8:1);
+  P3.studios.position.set(0,P?2.2:2.35,P?-25.4:-24.6);P3.studios.scale.setScalar(P?.8:1);
   layoutFeatureFilms();
 }
 /* the contact card at the end of the hall: the same 3D liquid glass as the Arta Studio panels, with tappable
